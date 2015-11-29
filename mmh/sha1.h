@@ -1,5 +1,3 @@
-#include "../../pfc/pfc.h"
-
 namespace mmh
 {
 	namespace hash

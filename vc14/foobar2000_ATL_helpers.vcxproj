@@ -131,12 +131,12 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\ATLHelpers\AutoComplete.cpp" />
-    <ClCompile Include="..\ATLHelpers\CDialogResizeHelper.cpp" />
-    <ClCompile Include="..\ATLHelpers\inplace_edit.cpp" />
-    <ClCompile Include="..\ATLHelpers\inplace_edit_v2.cpp" />
-    <ClCompile Include="..\ATLHelpers\misc.cpp" />
-    <ClCompile Include="..\ATLHelpers\stdafx.cpp">
+    <ClCompile Include="..\foobar2000\ATLHelpers\AutoComplete.cpp" />
+    <ClCompile Include="..\foobar2000\ATLHelpers\CDialogResizeHelper.cpp" />
+    <ClCompile Include="..\foobar2000\ATLHelpers\inplace_edit.cpp" />
+    <ClCompile Include="..\foobar2000\ATLHelpers\inplace_edit_v2.cpp" />
+    <ClCompile Include="..\foobar2000\ATLHelpers\misc.cpp" />
+    <ClCompile Include="..\foobar2000\ATLHelpers\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -144,17 +144,17 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ATLHelpers\ATLHelpers.h" />
-    <ClInclude Include="..\ATLHelpers\AutoComplete.h" />
-    <ClInclude Include="..\ATLHelpers\BumpableElem.h" />
-    <ClInclude Include="..\ATLHelpers\CDialogResizeHelper.h" />
-    <ClInclude Include="..\ATLHelpers\GDIUtils.h" />
-    <ClInclude Include="..\ATLHelpers\inplace_edit.h" />
-    <ClInclude Include="..\ATLHelpers\inplace_edit_v2.h" />
-    <ClInclude Include="..\ATLHelpers\misc.h" />
-    <ClInclude Include="..\ATLHelpers\stdafx.h" />
-    <ClInclude Include="..\ATLHelpers\WindowPositionUtils.h" />
-    <ClInclude Include="..\ATLHelpers\WTL-PP.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\ATLHelpers.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\AutoComplete.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\BumpableElem.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\CDialogResizeHelper.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\GDIUtils.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\inplace_edit.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\inplace_edit_v2.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\misc.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\stdafx.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\WindowPositionUtils.h" />
+    <ClInclude Include="..\foobar2000\ATLHelpers\WTL-PP.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -6,10 +6,10 @@
 #include <WindowsX.h>
 #include <SHLWAPI.H>
 
-#include "../../pfc/pfc.h"
-#include "../shared/shared.h"
+#include "../pfc/pfc.h"
+#include "../foobar2000/shared/shared.h"
 
-#include "../SDK/foobar2000.h"
+#include "../foobar2000/SDK/foobar2000.h"
 
 #include "osversion.h"
 #include "exception.h"

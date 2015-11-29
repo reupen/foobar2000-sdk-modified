@@ -170,68 +170,68 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\helpers\clipboard.cpp" />
-    <ClCompile Include="..\helpers\CPowerRequest.cpp" />
-    <ClCompile Include="..\helpers\create_directory_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\clipboard.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\CPowerRequest.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\create_directory_helper.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\cue_creator.cpp" />
-    <ClCompile Include="..\helpers\cue_parser.cpp">
+    <ClCompile Include="..\foobar2000\helpers\cue_creator.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\cue_parser.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\cue_parser_embedding.cpp" />
-    <ClCompile Include="..\helpers\cuesheet_index_list.cpp" />
-    <ClCompile Include="..\helpers\dialog_resize_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\cue_parser_embedding.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\cuesheet_index_list.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\dialog_resize_helper.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\dropdown_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\dropdown_helper.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\dynamic_bitrate_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\dynamic_bitrate_helper.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\file_info_const_impl.cpp">
+    <ClCompile Include="..\foobar2000\helpers\file_info_const_impl.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\file_list_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\file_list_helper.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\file_move_helper.cpp" />
-    <ClCompile Include="..\helpers\filetimetools.cpp" />
-    <ClCompile Include="..\helpers\file_win32_wrapper.cpp" />
-    <ClCompile Include="..\helpers\IDataObjectUtils.cpp" />
-    <ClCompile Include="..\helpers\input_helpers.cpp" />
-    <ClCompile Include="..\helpers\listview_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\file_move_helper.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\filetimetools.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\file_win32_wrapper.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\IDataObjectUtils.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\input_helpers.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\listview_helper.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\metadb_io_hintlist.cpp" />
-    <ClCompile Include="..\helpers\mp3_utils.cpp" />
-    <ClCompile Include="..\helpers\seekabilizer.cpp" />
-    <ClCompile Include="..\helpers\StdAfx.cpp">
+    <ClCompile Include="..\foobar2000\helpers\metadb_io_hintlist.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\mp3_utils.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\seekabilizer.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\StdAfx.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -241,78 +241,78 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\helpers\stream_buffer_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\stream_buffer_helper.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\text_file_loader.cpp">
+    <ClCompile Include="..\foobar2000\helpers\text_file_loader.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\VisUtils.cpp" />
-    <ClCompile Include="..\helpers\win32_dialog.cpp">
+    <ClCompile Include="..\foobar2000\helpers\VisUtils.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\win32_dialog.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\win32_misc.cpp" />
-    <ClCompile Include="..\helpers\window_placement_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\win32_misc.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\window_placement_helper.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
-    <ClCompile Include="..\helpers\writer_wav.cpp" />
+    <ClCompile Include="..\foobar2000\helpers\writer_wav.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\helpers\CPowerRequest.h" />
-    <ClInclude Include="..\helpers\fb2k_threads.h" />
-    <ClInclude Include="..\helpers\fullFileBuffer.h" />
-    <ClInclude Include="..\helpers\bitreader_helper.h" />
-    <ClInclude Include="..\helpers\CallForwarder.h" />
-    <ClInclude Include="..\helpers\cfg_guidlist.h" />
-    <ClInclude Include="..\helpers\clipboard.h" />
-    <ClInclude Include="..\helpers\COM_utils.h" />
-    <ClInclude Include="..\helpers\create_directory_helper.h" />
-    <ClInclude Include="..\helpers\cue_creator.h" />
-    <ClInclude Include="..\helpers\cue_parser.h" />
-    <ClInclude Include="..\helpers\cuesheet_index_list.h" />
-    <ClInclude Include="..\helpers\dialog_resize_helper.h" />
-    <ClInclude Include="..\helpers\dropdown_helper.h" />
-    <ClInclude Include="..\helpers\dynamic_bitrate_helper.h" />
-    <ClInclude Include="..\helpers\file_cached.h" />
-    <ClInclude Include="..\helpers\file_info_const_impl.h" />
-    <ClInclude Include="..\helpers\file_list_helper.h" />
-    <ClInclude Include="..\helpers\file_move_helper.h" />
-    <ClInclude Include="..\helpers\file_win32_wrapper.h" />
-    <ClInclude Include="..\helpers\filetimetools.h" />
-    <ClInclude Include="..\helpers\helpers.h" />
-    <ClInclude Include="..\helpers\icon_remapping_wildcard.h" />
-    <ClInclude Include="..\helpers\IDataObjectUtils.h" />
-    <ClInclude Include="..\helpers\input_helpers.h" />
-    <ClInclude Include="..\helpers\listview_helper.h" />
-    <ClInclude Include="..\helpers\meta_table_builder.h" />
-    <ClInclude Include="..\helpers\metadb_io_hintlist.h" />
-    <ClInclude Include="..\helpers\mp3_utils.h" />
-    <ClInclude Include="..\helpers\playlist_position_reference_tracker.h" />
-    <ClInclude Include="..\helpers\ProcessUtils.h" />
-    <ClInclude Include="..\helpers\ProfileCache.h" />
-    <ClInclude Include="..\helpers\seekabilizer.h" />
-    <ClInclude Include="..\helpers\StdAfx.h" />
-    <ClInclude Include="..\helpers\stream_buffer_helper.h" />
-    <ClInclude Include="..\helpers\string_filter.h" />
-    <ClInclude Include="..\helpers\text_file_loader.h" />
-    <ClInclude Include="..\helpers\ThreadUtils.h" />
-    <ClInclude Include="..\helpers\VisUtils.h" />
-    <ClInclude Include="..\helpers\win32_dialog.h" />
-    <ClInclude Include="..\helpers\win32_misc.h" />
-    <ClInclude Include="..\helpers\window_placement_helper.h" />
-    <ClInclude Include="..\helpers\writer_wav.h" />
+    <ClInclude Include="..\foobar2000\helpers\CPowerRequest.h" />
+    <ClInclude Include="..\foobar2000\helpers\fb2k_threads.h" />
+    <ClInclude Include="..\foobar2000\helpers\fullFileBuffer.h" />
+    <ClInclude Include="..\foobar2000\helpers\bitreader_helper.h" />
+    <ClInclude Include="..\foobar2000\helpers\CallForwarder.h" />
+    <ClInclude Include="..\foobar2000\helpers\cfg_guidlist.h" />
+    <ClInclude Include="..\foobar2000\helpers\clipboard.h" />
+    <ClInclude Include="..\foobar2000\helpers\COM_utils.h" />
+    <ClInclude Include="..\foobar2000\helpers\create_directory_helper.h" />
+    <ClInclude Include="..\foobar2000\helpers\cue_creator.h" />
+    <ClInclude Include="..\foobar2000\helpers\cue_parser.h" />
+    <ClInclude Include="..\foobar2000\helpers\cuesheet_index_list.h" />
+    <ClInclude Include="..\foobar2000\helpers\dialog_resize_helper.h" />
+    <ClInclude Include="..\foobar2000\helpers\dropdown_helper.h" />
+    <ClInclude Include="..\foobar2000\helpers\dynamic_bitrate_helper.h" />
+    <ClInclude Include="..\foobar2000\helpers\file_cached.h" />
+    <ClInclude Include="..\foobar2000\helpers\file_info_const_impl.h" />
+    <ClInclude Include="..\foobar2000\helpers\file_list_helper.h" />
+    <ClInclude Include="..\foobar2000\helpers\file_move_helper.h" />
+    <ClInclude Include="..\foobar2000\helpers\file_win32_wrapper.h" />
+    <ClInclude Include="..\foobar2000\helpers\filetimetools.h" />
+    <ClInclude Include="..\foobar2000\helpers\helpers.h" />
+    <ClInclude Include="..\foobar2000\helpers\icon_remapping_wildcard.h" />
+    <ClInclude Include="..\foobar2000\helpers\IDataObjectUtils.h" />
+    <ClInclude Include="..\foobar2000\helpers\input_helpers.h" />
+    <ClInclude Include="..\foobar2000\helpers\listview_helper.h" />
+    <ClInclude Include="..\foobar2000\helpers\meta_table_builder.h" />
+    <ClInclude Include="..\foobar2000\helpers\metadb_io_hintlist.h" />
+    <ClInclude Include="..\foobar2000\helpers\mp3_utils.h" />
+    <ClInclude Include="..\foobar2000\helpers\playlist_position_reference_tracker.h" />
+    <ClInclude Include="..\foobar2000\helpers\ProcessUtils.h" />
+    <ClInclude Include="..\foobar2000\helpers\ProfileCache.h" />
+    <ClInclude Include="..\foobar2000\helpers\seekabilizer.h" />
+    <ClInclude Include="..\foobar2000\helpers\StdAfx.h" />
+    <ClInclude Include="..\foobar2000\helpers\stream_buffer_helper.h" />
+    <ClInclude Include="..\foobar2000\helpers\string_filter.h" />
+    <ClInclude Include="..\foobar2000\helpers\text_file_loader.h" />
+    <ClInclude Include="..\foobar2000\helpers\ThreadUtils.h" />
+    <ClInclude Include="..\foobar2000\helpers\VisUtils.h" />
+    <ClInclude Include="..\foobar2000\helpers\win32_dialog.h" />
+    <ClInclude Include="..\foobar2000\helpers\win32_misc.h" />
+    <ClInclude Include="..\foobar2000\helpers\window_placement_helper.h" />
+    <ClInclude Include="..\foobar2000\helpers\writer_wav.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

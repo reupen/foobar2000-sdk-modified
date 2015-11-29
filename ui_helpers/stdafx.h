@@ -14,8 +14,8 @@
 #include <gdiplus.h>
 #include <Usp10.h>
 
-#include "../../pfc/pfc.h"
-#include "../shared/shared.h"
+#include "../pfc/pfc.h"
+#include "../foobar2000/shared/shared.h"
 #include <CommonControls.h>
 
 #include "../mmh/stdafx.h"

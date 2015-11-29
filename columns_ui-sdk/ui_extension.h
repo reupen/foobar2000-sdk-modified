@@ -5,7 +5,7 @@
 
 #define uie ui_extension
 
-#include "../SDK/foobar2000.h"
+#include "../foobar2000/SDK/foobar2000.h"
 
 /**
 * \file ui_extension.h
