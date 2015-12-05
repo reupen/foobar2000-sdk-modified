@@ -15,57 +15,57 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\ATLHelpers\AutoComplete.cpp">
+    <ClCompile Include="..\foobar2000\ATLHelpers\AutoComplete.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ATLHelpers\CDialogResizeHelper.cpp">
+    <ClCompile Include="..\foobar2000\ATLHelpers\CDialogResizeHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ATLHelpers\inplace_edit.cpp">
+    <ClCompile Include="..\foobar2000\ATLHelpers\inplace_edit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ATLHelpers\inplace_edit_v2.cpp">
+    <ClCompile Include="..\foobar2000\ATLHelpers\inplace_edit_v2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ATLHelpers\stdafx.cpp">
+    <ClCompile Include="..\foobar2000\ATLHelpers\misc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ATLHelpers\misc.cpp">
+    <ClCompile Include="..\foobar2000\ATLHelpers\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ATLHelpers\ATLHelpers.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\ATLHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATLHelpers\AutoComplete.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\AutoComplete.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATLHelpers\BumpableElem.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\BumpableElem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATLHelpers\CDialogResizeHelper.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\CDialogResizeHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATLHelpers\GDIUtils.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\GDIUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATLHelpers\inplace_edit.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\inplace_edit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATLHelpers\inplace_edit_v2.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\inplace_edit_v2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATLHelpers\misc.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\misc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATLHelpers\stdafx.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATLHelpers\WindowPositionUtils.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\WindowPositionUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATLHelpers\WTL-PP.h">
+    <ClInclude Include="..\foobar2000\ATLHelpers\WTL-PP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

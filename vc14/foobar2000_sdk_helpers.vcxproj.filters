@@ -11,222 +11,222 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\helpers\clipboard.cpp">
+    <ClCompile Include="..\foobar2000\helpers\clipboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\create_directory_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\CPowerRequest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\cue_creator.cpp">
+    <ClCompile Include="..\foobar2000\helpers\create_directory_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\cue_parser.cpp">
+    <ClCompile Include="..\foobar2000\helpers\cue_creator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\cue_parser_embedding.cpp">
+    <ClCompile Include="..\foobar2000\helpers\cue_parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\cuesheet_index_list.cpp">
+    <ClCompile Include="..\foobar2000\helpers\cue_parser_embedding.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\dialog_resize_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\cuesheet_index_list.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\dropdown_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\dialog_resize_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\dynamic_bitrate_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\dropdown_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\file_info_const_impl.cpp">
+    <ClCompile Include="..\foobar2000\helpers\dynamic_bitrate_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\file_list_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\file_info_const_impl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\file_move_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\file_list_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\filetimetools.cpp">
+    <ClCompile Include="..\foobar2000\helpers\file_move_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\IDataObjectUtils.cpp">
+    <ClCompile Include="..\foobar2000\helpers\filetimetools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\input_helpers.cpp">
+    <ClCompile Include="..\foobar2000\helpers\file_win32_wrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\listview_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\IDataObjectUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\metadb_io_hintlist.cpp">
+    <ClCompile Include="..\foobar2000\helpers\input_helpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\mp3_utils.cpp">
+    <ClCompile Include="..\foobar2000\helpers\listview_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\seekabilizer.cpp">
+    <ClCompile Include="..\foobar2000\helpers\metadb_io_hintlist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\StdAfx.cpp">
+    <ClCompile Include="..\foobar2000\helpers\mp3_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\stream_buffer_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\seekabilizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\text_file_loader.cpp">
+    <ClCompile Include="..\foobar2000\helpers\StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\VisUtils.cpp">
+    <ClCompile Include="..\foobar2000\helpers\stream_buffer_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\win32_dialog.cpp">
+    <ClCompile Include="..\foobar2000\helpers\text_file_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\win32_misc.cpp">
+    <ClCompile Include="..\foobar2000\helpers\VisUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\window_placement_helper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\win32_dialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\file_win32_wrapper.cpp">
+    <ClCompile Include="..\foobar2000\helpers\win32_misc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\CPowerRequest.cpp">
+    <ClCompile Include="..\foobar2000\helpers\window_placement_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\helpers\writer_wav.cpp">
+    <ClCompile Include="..\foobar2000\helpers\writer_wav.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\helpers\bitreader_helper.h">
+    <ClInclude Include="..\foobar2000\helpers\CPowerRequest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\CallForwarder.h">
+    <ClInclude Include="..\foobar2000\helpers\fb2k_threads.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\cfg_guidlist.h">
+    <ClInclude Include="..\foobar2000\helpers\fullFileBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\clipboard.h">
+    <ClInclude Include="..\foobar2000\helpers\bitreader_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\COM_utils.h">
+    <ClInclude Include="..\foobar2000\helpers\CallForwarder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\create_directory_helper.h">
+    <ClInclude Include="..\foobar2000\helpers\cfg_guidlist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\cue_creator.h">
+    <ClInclude Include="..\foobar2000\helpers\clipboard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\cue_parser.h">
+    <ClInclude Include="..\foobar2000\helpers\COM_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\cuesheet_index_list.h">
+    <ClInclude Include="..\foobar2000\helpers\create_directory_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\dialog_resize_helper.h">
+    <ClInclude Include="..\foobar2000\helpers\cue_creator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\dropdown_helper.h">
+    <ClInclude Include="..\foobar2000\helpers\cue_parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\dynamic_bitrate_helper.h">
+    <ClInclude Include="..\foobar2000\helpers\cuesheet_index_list.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\file_cached.h">
+    <ClInclude Include="..\foobar2000\helpers\dialog_resize_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\file_info_const_impl.h">
+    <ClInclude Include="..\foobar2000\helpers\dropdown_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\file_list_helper.h">
+    <ClInclude Include="..\foobar2000\helpers\dynamic_bitrate_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\file_move_helper.h">
+    <ClInclude Include="..\foobar2000\helpers\file_cached.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\file_win32_wrapper.h">
+    <ClInclude Include="..\foobar2000\helpers\file_info_const_impl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\filetimetools.h">
+    <ClInclude Include="..\foobar2000\helpers\file_list_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\helpers.h">
+    <ClInclude Include="..\foobar2000\helpers\file_move_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\icon_remapping_wildcard.h">
+    <ClInclude Include="..\foobar2000\helpers\file_win32_wrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\IDataObjectUtils.h">
+    <ClInclude Include="..\foobar2000\helpers\filetimetools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\input_helpers.h">
+    <ClInclude Include="..\foobar2000\helpers\helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\listview_helper.h">
+    <ClInclude Include="..\foobar2000\helpers\icon_remapping_wildcard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\meta_table_builder.h">
+    <ClInclude Include="..\foobar2000\helpers\IDataObjectUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\metadb_io_hintlist.h">
+    <ClInclude Include="..\foobar2000\helpers\input_helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\mp3_utils.h">
+    <ClInclude Include="..\foobar2000\helpers\listview_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\playlist_position_reference_tracker.h">
+    <ClInclude Include="..\foobar2000\helpers\meta_table_builder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\ProfileCache.h">
+    <ClInclude Include="..\foobar2000\helpers\metadb_io_hintlist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\seekabilizer.h">
+    <ClInclude Include="..\foobar2000\helpers\mp3_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\StdAfx.h">
+    <ClInclude Include="..\foobar2000\helpers\playlist_position_reference_tracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\stream_buffer_helper.h">
+    <ClInclude Include="..\foobar2000\helpers\ProcessUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\string_filter.h">
+    <ClInclude Include="..\foobar2000\helpers\ProfileCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\text_file_loader.h">
+    <ClInclude Include="..\foobar2000\helpers\seekabilizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\ThreadUtils.h">
+    <ClInclude Include="..\foobar2000\helpers\StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\VisUtils.h">
+    <ClInclude Include="..\foobar2000\helpers\stream_buffer_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\win32_dialog.h">
+    <ClInclude Include="..\foobar2000\helpers\string_filter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\win32_misc.h">
+    <ClInclude Include="..\foobar2000\helpers\text_file_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\window_placement_helper.h">
+    <ClInclude Include="..\foobar2000\helpers\ThreadUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\ProcessUtils.h">
+    <ClInclude Include="..\foobar2000\helpers\VisUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\fullFileBuffer.h">
+    <ClInclude Include="..\foobar2000\helpers\win32_dialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\CPowerRequest.h">
+    <ClInclude Include="..\foobar2000\helpers\win32_misc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\fb2k_threads.h">
+    <ClInclude Include="..\foobar2000\helpers\window_placement_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\helpers\writer_wav.h">
+    <ClInclude Include="..\foobar2000\helpers\writer_wav.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
