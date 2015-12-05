@@ -4,7 +4,7 @@ This repository contains libraries common to both Columns UI and iPod manager.
 
 mmh and ui_helpers are are released under the Lesser GNU Public Licence (see COPYING and COPYING.LESSER).
 
-foobar2000 SDK components retain their original licences which can be found in their respective folders.
+The foobar2000 and pfc folders are from the foobar2000 SDK (by Peter Pawlowski); their licences can be found in their respective folders.
 
 VS2015 projects can be found in the vc14 folder.
 
