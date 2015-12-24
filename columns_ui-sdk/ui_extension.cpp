@@ -382,7 +382,7 @@ void uie::splitter_item_t::set(const splitter_item_t & p_source)
 * \section		usage_sec	Usage
 *
 * Insert the columns_ui-sdk project into your solution, and add it as a dependency for your project.
-* Then #include "columns_ui-sdk/ui_extension.h" in your project as needed.
+* Then `#include "columns_ui-sdk/ui_extension.h"` in your project as needed.
 *
 * \section		panel_sec	Panel APIs
 * \subsection	step1		APIs
