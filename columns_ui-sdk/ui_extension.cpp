@@ -367,17 +367,15 @@ void uie::splitter_item_t::set(const splitter_item_t & p_source)
 *
 * The Columns UI SDK provides interfaces you can use to:
 * - Create windows controlled by a host and embedded in the host's window
-* - Provide information about command to be used as a toolbar button
+* - Provide information about commands to be used as a toolbar button
 *
 * The uie namespace is synonymous with the ui_extension namespace.
 *
 * \section		install_sec	Installation
 *
 * You'll need:
-* - <a href="http://msdn.microsoft.com/visualc/">Microsoft Visual C++ 2005</a>
-* - <a href="http://foobar2000.org/">foobar2000 0.9 SDK</a>
-*
-* The latest <a href="http://www.microsoft.com/downloads/details.aspx?FamilyId=0BAF2B35-C656-4969-ACE8-E4C0C0716ADB&displaylang=en">Microsoft Platform SDK</a> may also be helpful.
+* - <a href="https://www.visualstudio.com/downloads/download-visual-studio-vs">Microsoft Visual Studio 2015</a>
+* - <a href="http://www.foobar2000.org/SDK">foobar2000 0.9 SDK</a>
 *
 * To install, extract the columns_ui-sdk.7z archive to the foobar2000 subdirectory of your foobar2000 SDK folder.
 *
@@ -389,38 +387,38 @@ void uie::splitter_item_t::set(const splitter_item_t & p_source)
 * \section		panel_sec	Panel APIs
 * \subsection	step1		APIs
 *
-* Clients should implement ui_extension::window.
+* Clients should implement uie::window.
 * Specific sub-classes exist for
-* - Menus: ui_extension::menu_window
-* - Playlists: ui_extension::playlist_window
-* - Splitter panels: ui_extension::splitter_window
+* - Menus: uie::menu_window
+* - Playlists: uie::playlist_window
+* - Splitter panels: uie::splitter_window
 * 
-* Hosts should implement ui_extension::window_host.
-* Hosts wishing to expose extnernal control methods can implement ui_extension::window_host_with_control instead.
+* Hosts should implement uie::window_host.
+* Hosts wishing to expose extnernal control methods can implement uie::window_host_with_control instead.
 * 
 * \subsection	step2		Helpers
 *
 * The prefered method of implementing the window class is to derive from
-* ui_extension::container_ui_extension.
+* uie::container_ui_extension.
 * Single instance panels or dialog-based panels may wish to derive from
-* ui_extension::window_base_t instead.
+* uie::window_base_t instead.
 *
-* Deriving directly from ui_extension::window is generally not needed.
+* Deriving directly from uie::window is generally not needed.
 *  
 * \section		button_sec	Button APIs
 * \subsection	ss_buttons	APIs
 *
-* The base class for buttons is ui_extension::button.
+* The base class for buttons is uie::button.
 *
 * If you wish to provide default bitmaps and additional information
-* for your menu items, derive from ui_extension::menu_button.
+* for your menu items, derive from uie::menu_button.
 * If you wish to implement a custom button not not based upon a menu item,
-* derive from ui_extension::custom_button.
+* derive from uie::custom_button.
 *
 * \section		columns_sec	Standard windows
 *
-* The GUIDs for the standard panels may be found in the columns_ui::panels nampespace.
-* The GUIDs for the standard toolbars may be found in the columns_ui::toolbars nampespace.
+* The GUIDs for the standard panels may be found in the cui::panels nampespace.
+* The GUIDs for the standard toolbars may be found in the cui::toolbars nampespace.
 *
 * You may use these GUIDs to create the standard windows in your own component;
 * do not use them as GUIDs for your own windows.
