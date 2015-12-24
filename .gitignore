@@ -187,3 +187,4 @@ vc14/Release.Win32/**/*
 *.opendb
 *.db
 .vs
+doxygen

@@ -12,7 +12,7 @@
 * \brief User interface extension API
 * \author musicmusic
 * \author Holger Stenger (original doxygen comments)
-* \version 6.3
+* \version 6.5
 */
 
 //ripped from stream_reader::read_string_raw
