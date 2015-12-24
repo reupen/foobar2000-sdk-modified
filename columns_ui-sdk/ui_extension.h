@@ -1,7 +1,7 @@
 #ifndef _UI_EXTENSION_H_
 #define _UI_EXTENSION_H_
 
-#define UI_EXTENSION_VERSION "6.4"
+#define UI_EXTENSION_VERSION "6.5"
 
 #define uie ui_extension
 
