@@ -1,19 +1,5 @@
-# Common foobar2000 libraries
+# foobar2000 SDK
 
-This repository contains libraries common to both Columns UI and iPod manager.
+This repository contains a copy of main part of Peter Pawlowski's [foobar2000 SDK](http://foobar2000.org/SDK), with minor modifications, and is used by my foobar2000 components as a  git submodule.
 
-mmh and ui_helpers are are released under the Lesser GNU Public Licence (see COPYING and COPYING.LESSER).
-
-The foobar2000 and pfc folders are from the foobar2000 SDK (by Peter Pawlowski); their licences can be found in their respective folders.
-
-VS2015 projects can be found in the vc14 folder.
-
-## Projects
-
-### mmh
-
-This is a helper library containing various non-UI helper classes and functions (e.g. sorting, foobar2000 callback helpers, cryptography, Win32 and COM)
-
-### ui_helpers
-
-This is a helper library containing various UI helper classes and functions. These include a reusable custom list view control, a custom track bar control and various UI related helpers. 
+For copyright information and a copy of the licence please see the original `sdk-license.txt`. 
