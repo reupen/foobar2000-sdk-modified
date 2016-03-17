@@ -80,7 +80,8 @@ public:
 	virtual void run_v2(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort) = 0;
 private:
 	void run(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags) {
-		run_v2(p_chunk_list,p_cur_file,p_flags,abort_callback_dummy());
+		abort_callback_dummy p_abort;
+		run_v2(p_chunk_list,p_cur_file,p_flags,p_abort);
 	}
 
 	FB2K_MAKE_SERVICE_INTERFACE(dsp_v2,dsp);

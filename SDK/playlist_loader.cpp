@@ -142,7 +142,8 @@ static void track_indexer__g_get_tracks_wrap(const char * p_path,const service_p
 		fail = true;
 	} catch(std::exception const & e) {
 		fail = true;
-		console::formatter() << "could not enumerate tracks (" << e << ") on:\n" << file_path_display(p_path);
+		console::formatter formatter;
+		formatter << "could not enumerate tracks (" << e << ") on:\n" << file_path_display(p_path);
 	}
 	if (fail) {
 		if (!got_input && !p_abort.is_aborting()) {

@@ -158,7 +158,8 @@ namespace ProcessUtils {
 				try {
 					WIN32_OP( CreateProcess(pfc::stringcvt::string_os_from_utf8(ExePath), NULL, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi) );
 				} catch(std::exception const & e) {
-					throw failure(pfc::string_formatter() << "Could not start the worker process - " << e);
+					pfc::string_formatter formatter;
+					throw failure(formatter << "Could not start the worker process - " << e);
 				}
 				hProcess = pi.hProcess; _Close(pi.hThread);
 			} catch(...) {
@@ -206,7 +207,8 @@ namespace ProcessUtils {
 				if (!bDetach) {
 					if (WaitForSingleObject(hProcess, TimeOutMS) != WAIT_OBJECT_0) {
 						//PFC_ASSERT( !"Should not get here - worker stuck" );
-						console::formatter() << pfc::string_filename_ext(ExePath) << " unresponsive - terminating";
+						console::formatter formatter;
+						formatter << pfc::string_filename_ext(ExePath) << " unresponsive - terminating";
 						TerminateProcess(hProcess, -1);
 					}
 				}
@@ -226,7 +228,8 @@ namespace ProcessUtils {
 		static pfc::string_formatter makePipeName() {
 			GUID id;
 			CoCreateGuid (&id);
-			return pfc::string_formatter() << "\\\\.\\pipe\\" << pfc::print_guid(id);
+			pfc::string_formatter formatter;
+			return formatter << "\\\\.\\pipe\\" << pfc::print_guid(id);
 		}
 
 		static void myCreatePipeOut(HANDLE & in, HANDLE & out) {

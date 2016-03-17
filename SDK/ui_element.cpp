@@ -35,7 +35,9 @@ service_ptr_t<ui_element_config> ui_element_config::g_create(const GUID & id, st
 
 service_ptr_t<ui_element_config> ui_element_config::g_create(stream_reader * in, t_size bytes, abort_callback & abort) {
 	if (bytes < sizeof(GUID)) throw exception_io_data_truncation();
-	GUID id; stream_reader_formatter<>(*in,abort) >> id;
+	GUID id; 
+	stream_reader_formatter<>reader_formatter(*in, abort);
+	reader_formatter >> id;
 	return g_create(id,in,bytes - sizeof(GUID),abort);
 }
 
@@ -48,7 +50,8 @@ ui_element_config::ptr ui_element_config_parser::subelement(const GUID & id, t_s
 
 service_ptr_t<ui_element_config> ui_element_config::g_create(const void * data, t_size size) {
 	stream_reader_memblock_ref stream(data,size);
-	return g_create(&stream,size,abort_callback_dummy());
+	abort_callback_dummy p_abort;
+	return g_create(&stream,size,p_abort);
 }
 
 bool ui_element_subclass_description(const GUID & id, pfc::string_base & p_out) {

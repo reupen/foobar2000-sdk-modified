@@ -754,7 +754,10 @@ namespace {
 
 	class exception_io_win32_ex : public exception_io_win32 {
 	public:
-		exception_io_win32_ex(DWORD p_code) : m_msg(pfc::string_formatter() << "I/O error (win32 #" << (t_uint32)p_code << ")") {}
+		exception_io_win32_ex(DWORD p_code) {
+			pfc::string_formatter formatter;
+			m_msg = formatter << "I/O error (win32 #" << (t_uint32)p_code << ")";
+		}
 		exception_io_win32_ex(const exception_io_win32_ex & p_other) {*this = p_other;}
 		const char * what() const throw() {return m_msg;}
 	private:

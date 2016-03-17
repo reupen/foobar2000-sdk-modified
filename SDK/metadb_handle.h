@@ -169,7 +169,7 @@ template<template<typename> class t_alloc = pfc::alloc_fast >
 class metadb_handle_list_t : public service_list_t<metadb_handle,t_alloc> {
 private:
 	typedef metadb_handle_list_t<t_alloc> t_self;
-	typedef list_base_const_t<metadb_handle_ptr> t_interface;
+	typedef pfc::list_base_const_t<metadb_handle_ptr> t_interface;
 public:
 	inline void sort_by_format(const char * spec,titleformat_hook * p_hook) {
 		return metadb_handle_list_helper::sort_by_format(*this, spec, p_hook);

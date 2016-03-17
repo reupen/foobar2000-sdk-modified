@@ -436,7 +436,8 @@ public:
 	//! Override to use another description for our menu command. Relevant only when KFlagHavePopupCommand is set.
 	virtual bool get_menu_command_description(pfc::string_base & out) {
 		pfc::string8 name; get_name(name);
-		out = pfc::string_formatter() << "Activates " << name << " window.";
+		pfc::string_formatter formatter;
+		out = formatter << "Activates " << name << " window.";
 		return true;
 	}
 

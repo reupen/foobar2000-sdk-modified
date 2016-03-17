@@ -213,7 +213,10 @@ bool dead_item_filter::run(const pfc::list_base_const_t<metadb_handle_ptr> & p_l
 	valid_handles.sort_by_pointer();
 	for(t_size listidx=0;listidx<p_list.get_count();listidx++) {
 		bool dead = valid_handles.bsearch_by_pointer(p_list[listidx]) == ~0;
-		if (dead) console::formatter() << "Dead item: " << p_list[listidx];
+		if (dead) {
+			console::formatter formatter;
+			formatter << "Dead item: " << p_list[listidx];
+		}
 		p_mask.set(listidx,dead);
 	}
 	return !is_aborting();

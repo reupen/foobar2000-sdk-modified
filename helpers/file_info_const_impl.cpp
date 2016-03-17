@@ -242,7 +242,8 @@ void file_info_const_impl::copy(const file_info & p_source)
 	if (hintmap != NULL) {
 //		profiler(file_info_const_impl__copy__hintmap);
 		for(t_size n=0;n<m_meta_count;n++) hintmap[n]=n;
-		pfc::sort(sort_callback_hintmap_impl(meta,hintmap),m_meta_count);
+		sort_callback_hintmap_impl p_callback(meta, hintmap);
+		pfc::sort(p_callback,m_meta_count);
 	}
 #endif//__file_info_const_impl_have_hintmap__
 }
