@@ -198,7 +198,7 @@ namespace dialog_helper {
 
 
 
-	dialog_modeless_v2::dialog_modeless_v2(unsigned p_id,HWND p_parent,HINSTANCE p_instance,bool p_stealfocus) : m_wnd(0), m_status(status_construction), m_stealfocus(p_stealfocus)
+	dialog_modeless_v2::dialog_modeless_v2(unsigned p_id,HWND p_parent,HINSTANCE p_instance,bool p_stealfocus) : m_status(status_construction), m_wnd(0), m_stealfocus(p_stealfocus)
 	{
 		WIN32_OP( CreateDialogParam(p_instance,MAKEINTRESOURCE(p_id),p_parent,DlgProc,reinterpret_cast<LPARAM>(this)) != NULL );
 		m_status = status_lifetime;

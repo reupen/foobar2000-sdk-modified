@@ -122,7 +122,7 @@ namespace {
 	class cue_parser_callback_retrievelist : public cue_parser_callback
 	{
 	public:
-		cue_parser_callback_retrievelist(cue_parser::t_cue_entry_list & p_out) : m_out(p_out), m_track(0), m_pregap(0), m_index0_set(false), m_index1_set(false)
+		cue_parser_callback_retrievelist(cue_parser::t_cue_entry_list & p_out) : m_index0_set(false), m_index1_set(false), m_pregap(0), m_track(0), m_out(p_out)
 		{
 		}
 		
@@ -205,7 +205,7 @@ namespace {
 	class cue_parser_callback_retrieveinfo : public cue_parser_callback_meta
 	{
 	public:
-		cue_parser_callback_retrieveinfo(file_info & p_out,unsigned p_wanted_track) : m_out(p_out), m_wanted_track(p_wanted_track), m_track(0), m_is_va(false), m_index0_set(false), m_index1_set(false), m_pregap(0), m_totaltracks(0) {}
+		cue_parser_callback_retrieveinfo(file_info & p_out,unsigned p_wanted_track) : m_out(p_out), m_wanted_track(p_wanted_track), m_track(0), m_totaltracks(0), m_is_va(false), m_index0_set(false), m_index1_set(false), m_pregap(0) {}
 
 		void on_file(const char * p_file,t_size p_file_length,const char * p_type,t_size p_type_length) {}
 
@@ -661,7 +661,7 @@ namespace {
 	class cue_parser_callback_retrievecreatorentries : public cue_parser_callback
 	{
 	public:
-		cue_parser_callback_retrievecreatorentries(cue_creator::t_entry_list & p_out) : m_out(p_out), m_track(0), m_pregap(0), m_index0_set(false), m_index1_set(false) {}
+		cue_parser_callback_retrievecreatorentries(cue_creator::t_entry_list & p_out) : m_index0_set(false), m_index1_set(false), m_pregap(0), m_track(0), m_out(p_out) {}
 
 		void on_file(const char * p_file,t_size p_file_length,const char * p_type,t_size p_type_length) {
 			validate_file_type(p_type,p_type_length);

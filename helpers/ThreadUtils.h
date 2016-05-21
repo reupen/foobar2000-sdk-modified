@@ -177,7 +177,7 @@ namespace ThreadUtils {
 	protected:
 		class command {
 		protected:
-			command() : m_status(success), m_abort(), m_completionEvent() {}
+			command() : m_status(success), m_completionEvent(), m_abort() {}
 			virtual void executeImpl(TBase &) {}
 			virtual ~command() {}
 		public:

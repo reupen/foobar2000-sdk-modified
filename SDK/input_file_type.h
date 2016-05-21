@@ -78,7 +78,7 @@ public:
 
 class input_file_type_v2_impl : public input_file_type_v2 {
 public:
-	input_file_type_v2_impl(const char * extensions,const char * name, const char * namePlural) : m_extensions(extensions), m_name(name), m_namePlural(namePlural) {}
+	input_file_type_v2_impl(const char * extensions,const char * name, const char * namePlural) : m_name(name), m_namePlural(namePlural), m_extensions(extensions) {}
 	unsigned get_count() {return 1;}
 	bool is_associatable(unsigned idx) {return true;}
 	void get_format_name(unsigned idx, pfc::string_base & out, bool isPlural) {

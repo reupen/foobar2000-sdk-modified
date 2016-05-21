@@ -148,7 +148,7 @@ void dialog_resize_helper::add_sizegrip()
 
 
 dialog_resize_helper::dialog_resize_helper(const param * src,unsigned count,unsigned p_min_x,unsigned p_min_y,unsigned p_max_x,unsigned p_max_y) 
-	: min_x(p_min_x), min_y(p_min_y), max_x(p_max_x), max_y(p_max_y), parent(0), sizegrip(0)
+	: parent(0), sizegrip(0), min_x(p_min_x), min_y(p_min_y), max_x(p_max_x), max_y(p_max_y)
 {
 	m_table.set_size(count);
 	unsigned n;

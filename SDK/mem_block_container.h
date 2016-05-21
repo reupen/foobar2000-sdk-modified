@@ -70,7 +70,7 @@ private:
 
 class mem_block_container_temp_impl : public mem_block_container {
 public:
-	mem_block_container_temp_impl(void * p_buffer,t_size p_size) : m_buffer(p_buffer), m_buffer_size(p_size), m_size(0) {}
+	mem_block_container_temp_impl(void * p_buffer,t_size p_size) : m_size(0), m_buffer_size(p_size), m_buffer(p_buffer) {}
 	const void * get_ptr() const {return m_buffer;}
 	void * get_ptr() {return m_buffer;}
 	t_size get_size() const {return m_size;}

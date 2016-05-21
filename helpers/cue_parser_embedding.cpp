@@ -100,7 +100,7 @@ namespace {
 
 	class __get_tag__local_field_filter {
 	public:
-		__get_tag__local_field_filter(const file_info_record::t_meta_map & p_globals,file_info_record::t_meta_map & p_output) : m_globals(p_globals), m_output(p_output), m_currenttrack(0) {}
+		__get_tag__local_field_filter(const file_info_record::t_meta_map & p_globals,file_info_record::t_meta_map & p_output) : m_currenttrack(0), m_globals(p_globals), m_output(p_output) {}
 		void operator() (unsigned p_trackno,const track_record & p_track) {
 			if (p_trackno > 0) {
 				m_currenttrack = p_trackno;

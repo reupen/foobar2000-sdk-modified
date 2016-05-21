@@ -4,7 +4,7 @@ namespace ProcessUtils {
 	class PipeIO : public stream_reader, public stream_writer {
 	public:
 		PFC_DECLARE_EXCEPTION(timeout, exception_io, "Timeout");
-		PipeIO(HANDLE handle, HANDLE hEvent, bool processMessages, DWORD timeOut = INFINITE) : m_handle(handle), m_event(hEvent), m_processMessages(processMessages), m_timeOut(timeOut) {
+		PipeIO(HANDLE handle, HANDLE hEvent, bool processMessages, DWORD timeOut = INFINITE) : m_handle(handle), m_event(hEvent), m_timeOut(timeOut), m_processMessages(processMessages) {
 		}
 		~PipeIO() {
 		}
@@ -134,7 +134,7 @@ namespace ProcessUtils {
 	public:
 		PFC_DECLARE_EXCEPTION(failure, std::exception, "Unexpected failure");
 
-		SubProcess(const char * exePath, DWORD timeOutMS = 60*1000) : ExePath(exePath), hStdIn(), hStdOut(), hProcess(), ProcessMessages(false), TimeOutMS(timeOutMS) {
+		SubProcess(const char * exePath, DWORD timeOutMS = 60*1000) : ProcessMessages(false), TimeOutMS(timeOutMS), hStdIn(), hStdOut(), hProcess(), ExePath(exePath) {
 			HANDLE ev;
 			WIN32_OP( (ev = CreateEvent(NULL, TRUE, FALSE, NULL)) != NULL );
 			hEventRead = ev;

@@ -68,7 +68,7 @@ namespace {
 	{
 		t_size m_counter,m_max;
 	public:
-		enum_items_callback_count_selection(t_size p_max) : m_max(p_max), m_counter(0) {}
+		enum_items_callback_count_selection(t_size p_max) : m_counter(0), m_max(p_max) {}
 		bool on_item(t_size p_index,const metadb_handle_ptr & p_location,bool b_selected)
 		{
 			if (b_selected) 
@@ -790,7 +790,7 @@ t_size playlist_manager::playlist_get_selected_count(t_size p_playlist,bit_array
 namespace {
 	class enum_items_callback_find_item : public playlist_manager::enum_items_callback {
 	public:
-		enum_items_callback_find_item(metadb_handle_ptr p_lookingFor) : m_result(pfc_infinite), m_lookingFor(p_lookingFor) {}
+		enum_items_callback_find_item(metadb_handle_ptr p_lookingFor) : m_lookingFor(p_lookingFor), m_result(pfc_infinite) {}
 		t_size result() const {return m_result;}
 		bool on_item(t_size p_index,const metadb_handle_ptr & p_location,bool b_selected) {
 			if (p_location == m_lookingFor) {
@@ -806,7 +806,7 @@ namespace {
 	};
 	class enum_items_callback_find_item_selected : public playlist_manager::enum_items_callback {
 	public:
-		enum_items_callback_find_item_selected(metadb_handle_ptr p_lookingFor) : m_result(pfc_infinite), m_lookingFor(p_lookingFor) {}
+		enum_items_callback_find_item_selected(metadb_handle_ptr p_lookingFor) : m_lookingFor(p_lookingFor), m_result(pfc_infinite) {}
 		t_size result() const {return m_result;}
 		bool on_item(t_size p_index,const metadb_handle_ptr & p_location,bool b_selected) {
 			if (b_selected && p_location == m_lookingFor) {

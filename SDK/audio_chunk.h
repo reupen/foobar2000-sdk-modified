@@ -245,11 +245,11 @@ class audio_chunk_impl_t : public audio_chunk {
 	unsigned m_srate,m_nch,m_setup;
 	t_size m_samples;
 public:
-	audio_chunk_impl_t() : m_srate(0), m_nch(0), m_samples(0), m_setup(0) {}
+	audio_chunk_impl_t() : m_srate(0), m_nch(0), m_setup(0), m_samples(0) {}
 	audio_chunk_impl_t(const audio_sample * src,unsigned samples,unsigned nch,unsigned srate) : m_srate(0), m_nch(0), m_samples(0)
 	{set_data(src,samples,nch,srate);}
-	audio_chunk_impl_t(const audio_chunk & p_source) : m_srate(0), m_nch(0), m_samples(0), m_setup(0) {copy(p_source);}
-	audio_chunk_impl_t(const t_self & p_source) : m_srate(0), m_nch(0), m_samples(0), m_setup(0) {copy(p_source);}
+	audio_chunk_impl_t(const audio_chunk & p_source) : m_srate(0), m_nch(0), m_setup(0), m_samples(0) {copy(p_source);}
+	audio_chunk_impl_t(const t_self & p_source) : m_srate(0), m_nch(0), m_setup(0), m_samples(0) {copy(p_source);}
 	
 	virtual audio_sample * get_data() {return m_data.get_ptr();}
 	virtual const audio_sample * get_data() const {return m_data.get_ptr();}
@@ -277,7 +277,7 @@ typedef audio_chunk_impl_t<pfc::mem_block_aligned_incremental_t<audio_sample, 16
 class audio_chunk_memref_impl : public audio_chunk {
 public:
 	audio_chunk_memref_impl(const audio_sample * p_data,t_size p_samples,t_uint32 p_sample_rate,t_uint32 p_channels,t_uint32 p_channel_config) :
-	m_data(p_data), m_samples(p_samples), m_sample_rate(p_sample_rate), m_channels(p_channels), m_channel_config(p_channel_config)
+	m_samples(p_samples), m_sample_rate(p_sample_rate), m_channels(p_channels), m_channel_config(p_channel_config), m_data(p_data)
 	{
 		PFC_ASSERT(is_valid());
 	}

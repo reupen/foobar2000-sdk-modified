@@ -590,7 +590,7 @@ namespace foobar2000_io
 	template<typename t_list>
 	class directory_callback_retrieveList : public directory_callback {
 	public:
-		directory_callback_retrieveList(t_list & p_list,bool p_getFiles,bool p_getSubDirectories) : m_list(p_list), m_getFiles(p_getFiles), m_getSubDirectories(p_getSubDirectories) {}
+		directory_callback_retrieveList(t_list & p_list,bool p_getFiles,bool p_getSubDirectories) : m_getSubDirectories(p_getSubDirectories), m_getFiles(p_getFiles), m_list(p_list) {}
 		bool on_entry(filesystem * p_owner,abort_callback & p_abort,const char * p_url,bool p_is_subdirectory,const t_filestats & p_stats) {
 			p_abort.check();
 			if (p_is_subdirectory ? m_getSubDirectories : m_getFiles) {

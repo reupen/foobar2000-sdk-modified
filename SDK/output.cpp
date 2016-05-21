@@ -9,7 +9,7 @@ pfc::string8 output_entry::get_device_name( const GUID & deviceID ) {
 namespace {
 	class output_device_enum_callback_getname : public output_device_enum_callback {
 	public:
-		output_device_enum_callback_getname( const GUID & wantID, pfc::string_base & strOut ) : m_wantID(wantID), m_got(), m_strOut(strOut) {}
+		output_device_enum_callback_getname( const GUID & wantID, pfc::string_base & strOut ) : m_got(), m_strOut(strOut), m_wantID(wantID) {}
 		void on_device(const GUID & p_guid,const char * p_name,unsigned p_name_length) {
 			if (!m_got && p_guid == m_wantID) {
 				m_strOut.set_string(p_name, p_name_length);

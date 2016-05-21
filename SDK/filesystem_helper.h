@@ -56,7 +56,7 @@ private:
 
 class reader_membuffer_simple : public reader_membuffer_base {
 public:
-	reader_membuffer_simple(const void * ptr, t_size size, t_filetimestamp ts = filetimestamp_invalid, bool is_remote = false) : m_isRemote(is_remote), m_ts(ts) {
+	reader_membuffer_simple(const void * ptr, t_size size, t_filetimestamp ts = filetimestamp_invalid, bool is_remote = false) : m_ts(ts), m_isRemote(is_remote) {
 		m_data.set_size_discard(size);
 		memcpy(m_data.get_ptr(), ptr, size);
 	}

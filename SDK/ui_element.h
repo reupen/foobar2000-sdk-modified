@@ -32,7 +32,7 @@ public:
 //! Helper.
 class ui_element_config_parser : public stream_reader_formatter<> {
 public:
-	ui_element_config_parser(ui_element_config::ptr in) : m_data(in), _m_stream(in->get_data(),in->get_data_size()), stream_reader_formatter(_m_stream,_m_abort) {}
+	ui_element_config_parser(ui_element_config::ptr in) : stream_reader_formatter(_m_stream,_m_abort), m_data(in), _m_stream(in->get_data(),in->get_data_size()) {}
 
 	void reset() {_m_stream.reset();}
 	t_size get_remaining() const {return _m_stream.get_remaining();}

@@ -158,7 +158,7 @@ typedef advconfig_checkbox_factory_t<true> advconfig_radio_factory;
 class advconfig_entry_string_impl : public advconfig_entry_string_v2 {
 public:
 	advconfig_entry_string_impl(const char * p_name,const GUID & p_guid,const GUID & p_parent,double p_priority,const char * p_initialstate, t_uint32 p_prefFlags)
-		: m_name(p_name), m_parent(p_parent), m_priority(p_priority), m_initialstate(p_initialstate), m_state(p_guid,p_initialstate), m_prefFlags(p_prefFlags) {}
+		: m_initialstate(p_initialstate), m_name(p_name), m_state(p_guid,p_initialstate), m_priority(p_priority), m_parent(p_parent), m_prefFlags(p_prefFlags) {}
 	void get_name(pfc::string_base & p_out) {p_out = m_name;}
 	GUID get_guid() {return m_state.get_guid();}
 	GUID get_parent() {return m_parent;}
@@ -193,7 +193,7 @@ public:
 class advconfig_entry_integer_impl : public advconfig_entry_string_v2 {
 public:
 	advconfig_entry_integer_impl(const char * p_name,const GUID & p_guid,const GUID & p_parent,double p_priority,t_uint64 p_initialstate,t_uint64 p_min,t_uint64 p_max, t_uint32 p_prefFlags)
-		: m_name(p_name), m_parent(p_parent), m_priority(p_priority), m_initval(p_initialstate), m_min(p_min), m_max(p_max), m_state(p_guid,p_initialstate), m_prefFlags(p_prefFlags) {}
+		: m_state(p_guid,p_initialstate), m_priority(p_priority), m_initval(p_initialstate), m_min(p_min), m_max(p_max), m_parent(p_parent), m_name(p_name), m_prefFlags(p_prefFlags) {}
 	void get_name(pfc::string_base & p_out) {p_out = m_name;}
 	GUID get_guid() {return m_state.get_guid();}
 	GUID get_parent() {return m_parent;}
@@ -255,7 +255,7 @@ public:
 class advconfig_entry_string_impl_MT : public advconfig_entry_string_v2 {
 public:
 	advconfig_entry_string_impl_MT(const char * p_name,const GUID & p_guid,const GUID & p_parent,double p_priority,const char * p_initialstate, t_uint32 p_prefFlags)
-		: m_name(p_name), m_parent(p_parent), m_priority(p_priority), m_initialstate(p_initialstate), m_state(p_guid,p_initialstate), m_prefFlags(p_prefFlags) {}
+		: m_initialstate(p_initialstate), m_name(p_name), m_state(p_guid,p_initialstate), m_priority(p_priority), m_parent(p_parent), m_prefFlags(p_prefFlags) {}
 	void get_name(pfc::string_base & p_out) {p_out = m_name;}
 	GUID get_guid() {return m_state.get_guid();}
 	GUID get_parent() {return m_parent;}

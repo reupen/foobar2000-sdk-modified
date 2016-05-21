@@ -244,7 +244,7 @@ public:
 template<typename TObj, typename TImport> class cfg_objListImporter : private cfg_var_reader {
 public:
 	typedef cfg_objList<TObj> TMasterVar;
-	cfg_objListImporter(TMasterVar & var, const GUID & guid) : m_var(var), cfg_var_reader(guid) {}
+	cfg_objListImporter(TMasterVar & var, const GUID & guid) : cfg_var_reader(guid), m_var(var) {}
 
  private:
 	void set_data_raw(stream_reader * p_stream,t_size p_sizehint,abort_callback & p_abort) {

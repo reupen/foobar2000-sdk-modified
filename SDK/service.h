@@ -686,7 +686,7 @@ static bool service_by_guid_fallback(service_ptr_t<what> & out, const GUID & id)
 template<typename what>
 class service_by_guid_data {
 public:
-	service_by_guid_data() : m_servClass(), m_inited() {}
+	service_by_guid_data() : m_inited(), m_servClass() {}
 
 	bool ready() const {return m_inited;}
 

@@ -110,7 +110,7 @@ protected:
 	//! May return false when there's no known track and the metadb_handle ptr will be empty/null.
 	bool get_cur_file(metadb_handle_ptr & p_out) {p_out = m_cur_file; return p_out.is_valid();}
 	
-	dsp_impl_base_t() : m_list(NULL), m_cur_file(NULL), m_chunk_ptr(0) {}
+	dsp_impl_base_t() : m_list(NULL), m_chunk_ptr(0), m_cur_file(NULL) {}
 	
 	//! Inserts a new chunk of audio data. \n
 	//! You can call this only from on_chunk(), on_endofplayback() and on_endoftrack(). You're NOT allowed to call this from flush() which should just drop any queued data.
@@ -466,7 +466,7 @@ private:
 //! Helper.
 class dsp_preset_parser : public stream_reader_formatter<> {
 public:
-	dsp_preset_parser(const dsp_preset & in) : m_data(in), _m_stream(in.get_data(),in.get_data_size()), stream_reader_formatter(_m_stream,_m_abort) {}
+	dsp_preset_parser(const dsp_preset & in) : stream_reader_formatter(_m_stream,_m_abort), m_data(in), _m_stream(in.get_data(),in.get_data_size()) {}
 
 	void reset() {_m_stream.reset();}
 	t_size get_remaining() const {return _m_stream.get_remaining();}

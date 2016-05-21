@@ -124,7 +124,7 @@ public:
 class titleformat_hook_impl_file_info : public titleformat_hook
 {
 public:
-	titleformat_hook_impl_file_info(const playable_location & p_location,const file_info * p_info) : m_location(p_location), m_info(p_info) {}//caller must ensure that referenced file_info object is alive as long as the titleformat_hook_impl_file_info instance
+	titleformat_hook_impl_file_info(const playable_location & p_location,const file_info * p_info) : m_info(p_info), m_location(p_location) {}//caller must ensure that referenced file_info object is alive as long as the titleformat_hook_impl_file_info instance
 	bool process_field(titleformat_text_out * p_out,const char * p_name,t_size p_name_length,bool & p_found_flag);
 	bool process_function(titleformat_text_out * p_out,const char * p_name,t_size p_name_length,titleformat_hook_function_params * p_params,bool & p_found_flag);
 protected:
