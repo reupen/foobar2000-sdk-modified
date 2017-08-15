@@ -588,8 +588,8 @@ bool ui_element_subclass_description(const GUID & id, pfc::string_base & out);
 #define AddNewUIElementDescription "Replaces the selected empty space with a new UI Element."
 
 
-
-
+// Disable this code if ATL isn't available (window_service_impl_t<> is from the ATLHelpers project)
+#ifdef __ATLWIN_H__
 template<typename TImpl, typename TInterface = ui_element> class ui_element_impl : public TInterface {
 public:
 	GUID get_guid() { return TImpl::g_get_guid();}
@@ -617,3 +617,4 @@ public:
 	typedef ui_element_instance_impl_helper TInstance;
 	static TInstance const & instanceGlobals() {return *reinterpret_cast<const TInstance*>(NULL);}
 };
+#endif
