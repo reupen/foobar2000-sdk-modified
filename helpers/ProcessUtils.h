@@ -1,10 +1,12 @@
-#ifdef _WIN32
+#pragma once
+
+#ifdef FOOBAR2000_DESKTOP_WINDOWS
 
 namespace ProcessUtils {
 	class PipeIO : public stream_reader, public stream_writer {
 	public:
 		PFC_DECLARE_EXCEPTION(timeout, exception_io, "Timeout");
-		PipeIO(HANDLE handle, HANDLE hEvent, bool processMessages, DWORD timeOut = INFINITE) : m_handle(handle), m_event(hEvent), m_timeOut(timeOut), m_processMessages(processMessages) {
+		PipeIO(HANDLE handle, HANDLE hEvent, bool processMessages, DWORD timeOut = INFINITE) : m_handle(handle), m_event(hEvent), m_processMessages(processMessages), m_timeOut(timeOut) {
 		}
 		~PipeIO() {
 		}
@@ -134,7 +136,7 @@ namespace ProcessUtils {
 	public:
 		PFC_DECLARE_EXCEPTION(failure, std::exception, "Unexpected failure");
 
-		SubProcess(const char * exePath, DWORD timeOutMS = 60*1000) : ProcessMessages(false), TimeOutMS(timeOutMS), hStdIn(), hStdOut(), hProcess(), ExePath(exePath) {
+		SubProcess(const char * exePath, DWORD timeOutMS = 60*1000) : ExePath(exePath), hStdIn(), hStdOut(), hProcess(), ProcessMessages(false), TimeOutMS(timeOutMS) {
 			HANDLE ev;
 			WIN32_OP( (ev = CreateEvent(NULL, TRUE, FALSE, NULL)) != NULL );
 			hEventRead = ev;
@@ -158,8 +160,7 @@ namespace ProcessUtils {
 				try {
 					WIN32_OP( CreateProcess(pfc::stringcvt::string_os_from_utf8(ExePath), NULL, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi) );
 				} catch(std::exception const & e) {
-					pfc::string_formatter formatter;
-					throw failure(formatter << "Could not start the worker process - " << e);
+					throw failure(PFC_string_formatter() << "Could not start the worker process - " << e);
 				}
 				hProcess = pi.hProcess; _Close(pi.hThread);
 			} catch(...) {
@@ -207,8 +208,7 @@ namespace ProcessUtils {
 				if (!bDetach) {
 					if (WaitForSingleObject(hProcess, TimeOutMS) != WAIT_OBJECT_0) {
 						//PFC_ASSERT( !"Should not get here - worker stuck" );
-						console::formatter formatter;
-						formatter << pfc::string_filename_ext(ExePath) << " unresponsive - terminating";
+						FB2K_console_formatter() << pfc::string_filename_ext(ExePath) << " unresponsive - terminating";
 						TerminateProcess(hProcess, -1);
 					}
 				}
@@ -228,8 +228,7 @@ namespace ProcessUtils {
 		static pfc::string_formatter makePipeName() {
 			GUID id;
 			CoCreateGuid (&id);
-			pfc::string_formatter formatter;
-			return formatter << "\\\\.\\pipe\\" << pfc::print_guid(id);
+			return PFC_string_formatter() << "\\\\.\\pipe\\" << pfc::print_guid(id);
 		}
 
 		static void myCreatePipeOut(HANDLE & in, HANDLE & out) {
@@ -274,5 +273,5 @@ namespace ProcessUtils {
 	};
 }
 
-#endif // _WIN32
+#endif // FOOBAR2000_DESKTOP_WINDOWS
 

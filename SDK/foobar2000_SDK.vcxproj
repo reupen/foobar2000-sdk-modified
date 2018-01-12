@@ -133,10 +133,10 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>foobar2000.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <AdditionalOptions>/Zc:threadSafeInit- %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -157,11 +157,11 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>foobar2000.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <AdditionalOptions>/Zc:threadSafeInit- %(AdditionalOptions)</AdditionalOptions>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -176,11 +176,13 @@
     <ClInclude Include="album_art_helpers.h" />
     <ClInclude Include="app_close_blocker.h" />
     <ClInclude Include="audio_chunk.h" />
+    <ClInclude Include="audio_chunk_impl.h" />
     <ClInclude Include="audio_postprocessor.h" />
     <ClInclude Include="autoplaylist.h" />
     <ClInclude Include="cfg_var.h" />
     <ClInclude Include="chapterizer.h" />
     <ClInclude Include="commandline.h" />
+    <ClInclude Include="commonObjects.h" />
     <ClInclude Include="completion_notify.h" />
     <ClInclude Include="component.h" />
     <ClInclude Include="componentversion.h" />
@@ -197,11 +199,15 @@
     <ClInclude Include="dsp_manager.h" />
     <ClInclude Include="event_logger.h" />
     <ClInclude Include="exceptions.h" />
+    <ClInclude Include="file_format_sanitizer.h" />
     <ClInclude Include="file_info.h" />
     <ClInclude Include="file_info_impl.h" />
     <ClInclude Include="file_operation_callback.h" />
     <ClInclude Include="filesystem.h" />
     <ClInclude Include="filesystem_helper.h" />
+    <ClInclude Include="foobar2000-dsp.h" />
+    <ClInclude Include="foobar2000-pfc.h" />
+    <ClInclude Include="foobar2000-winver.h" />
     <ClInclude Include="foobar2000.h" />
     <ClInclude Include="genrand.h" />
     <ClInclude Include="hasher_md5.h" />
@@ -239,6 +245,8 @@
     <ClInclude Include="resampler.h" />
     <ClInclude Include="search_tools.h" />
     <ClInclude Include="service.h" />
+    <ClInclude Include="service_by_guid.h" />
+    <ClInclude Include="service_factory.h" />
     <ClInclude Include="service_impl.h" />
     <ClInclude Include="system_time_keeper.h" />
     <ClInclude Include="tag_processor.h" />
@@ -344,6 +352,7 @@
     <ClCompile Include="ui.cpp">
     </ClCompile>
     <ClCompile Include="ui_element.cpp" />
+    <ClCompile Include="utility.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

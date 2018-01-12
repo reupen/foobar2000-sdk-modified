@@ -131,10 +131,10 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <AdditionalOptions>/Zc:threadSafeInit- %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -154,11 +154,11 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>

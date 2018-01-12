@@ -147,9 +147,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ATLHelpers.h" />
+    <ClInclude Include="ATLHelpersLean.h" />
     <ClInclude Include="AutoComplete.h" />
     <ClInclude Include="BumpableElem.h" />
+    <ClInclude Include="CButtonLite.h" />
     <ClInclude Include="CDialogResizeHelper.h" />
+    <ClInclude Include="CEditWithButtons.h" />
+    <ClInclude Include="CFlashWindow.h" />
+    <ClInclude Include="CIconOverlayWindow.h" />
+    <ClInclude Include="CMiddleDragImpl.h" />
+    <ClInclude Include="Controls.h" />
     <ClInclude Include="GDIUtils.h" />
     <ClInclude Include="inplace_edit.h" />
     <ClInclude Include="inplace_edit_v2.h" />
