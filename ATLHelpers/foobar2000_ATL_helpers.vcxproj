@@ -144,6 +144,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ui_element_helpers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ATLHelpers.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="inplace_edit_v2.h" />
     <ClInclude Include="misc.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ui_element_helpers.h" />
     <ClInclude Include="WindowPositionUtils.h" />
     <ClInclude Include="WTL-PP.h" />
   </ItemGroup>
