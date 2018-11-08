@@ -207,6 +207,7 @@
     <ClInclude Include="file_format_sanitizer.h" />
     <ClInclude Include="file_info.h" />
     <ClInclude Include="file_info_impl.h" />
+    <ClInclude Include="file_lock_manager.h" />
     <ClInclude Include="file_operation_callback.h" />
     <ClInclude Include="filesystem.h" />
     <ClInclude Include="filesystem_helper.h" />
@@ -214,6 +215,7 @@
     <ClInclude Include="foobar2000-pfc.h" />
     <ClInclude Include="foobar2000-winver.h" />
     <ClInclude Include="foobar2000.h" />
+    <ClInclude Include="foosort.h" />
     <ClInclude Include="genrand.h" />
     <ClInclude Include="hasher_md5.h" />
     <ClInclude Include="http_client.h" />
@@ -297,6 +299,7 @@
     </ClCompile>
     <ClCompile Include="filesystem_helper.cpp">
     </ClCompile>
+    <ClCompile Include="foosort.cpp" />
     <ClCompile Include="guids.cpp">
     </ClCompile>
     <ClCompile Include="hasher_md5.cpp">

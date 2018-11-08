@@ -57,6 +57,7 @@ public:
 	static ioFilter_t ioFilter_full_buffer(t_filesize val );
     static ioFilter_t ioFilter_block_buffer(size_t val);
     static ioFilter_t ioFilter_remote_read_ahead( size_t val );
+	static ioFilter_t ioFilter_local_read_ahead(size_t val);
 
 	void on_idle(abort_callback & p_abort);
 	bool get_dynamic_info(file_info & p_out,double & p_timestamp_delta);

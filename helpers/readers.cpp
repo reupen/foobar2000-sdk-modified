@@ -3,6 +3,8 @@
 #include "fullFileBuffer.h"
 #include "fileReadAhead.h"
 
+#include <list>
+
 t_size reader_membuffer_base::read(void * p_buffer, t_size p_bytes, abort_callback & p_abort) {
 	p_abort.check_e();
 	t_size max = get_buffer_size();
@@ -58,6 +60,10 @@ file::ptr fullFileBuffer::open(const char * path, abort_callback & abort, file::
 #include <pfc/threads.h>
 
 namespace {
+	struct dynInfoEntry_t {
+		file_info_impl m_info;
+		t_filesize m_offset;
+	};
 	struct readAheadInstance_t {
 		file::ptr m_file;
 		size_t m_readAhead;
@@ -69,10 +75,14 @@ namespace {
 		ThreadUtils::CRethrow m_error;
 		t_filesize m_seekto;
 		abort_callback_impl m_abort;
+		bool m_remote;
+
+		bool m_haveDynamicInfo;
+		std::list<dynInfoEntry_t> m_dynamicInfo;
 	};
 	typedef std::shared_ptr<readAheadInstance_t> readAheadInstanceRef;
 	static const t_filesize seek_reopen = (filesize_invalid-1);
-	class fileReadAhead : public file_readonly_t<file> {
+	class fileReadAhead : public file_readonly_t<file_dynamicinfo_v2> {
 	public:
 		readAheadInstanceRef m_instance;
 		~fileReadAhead() {
@@ -84,26 +94,37 @@ namespace {
 			}
 		}
 		void initialize( file::ptr chain, size_t readAhead, abort_callback & aborter ) {
-			m_remote = chain->is_remote();
 			m_stats = chain->get_stats( aborter );
 			if (!chain->get_content_type(m_contentType)) m_contentType = "";
 			m_canSeek = chain->can_seek();
 			m_position = chain->get_position( aborter );
 
+
 			auto i = std::make_shared<readAheadInstance_t>();;
 			i->m_file = chain;
+			i->m_remote = chain->is_remote();
 			i->m_readAhead = readAhead;
 			i->m_buffer.set_size_discard( readAhead * 2 );
 			i->m_bufferBegin = 0; i->m_bufferEnd = 0;
 			i->m_canWrite.set_state(true);
 			i->m_seekto = filesize_invalid;
 			m_instance = i;
+
+			{
+				file_dynamicinfo::ptr dyn;
+				if (dyn &= chain) {
+					m_haveStaticInfo = dyn->get_static_info(m_staticInfo);
+					i->m_haveDynamicInfo = dyn->is_dynamic_info_enabled();
+				}
+			}
+
 			pfc::splitThread( [i] {
 				worker(*i);
 			} );
 		}
 		static void waitHelper( pfc::event & evt, abort_callback & aborter ) {
-			if (pfc::event::g_twoEventWait( evt.get_handle(), aborter.get_abort_event(), -1) == 2) throw exception_aborted();
+            pfc::event::g_twoEventWait( evt.get_handle(), aborter.get_abort_event(), -1);
+            aborter.check();
 		}
 		t_size read(void * p_buffer,t_size p_bytes,abort_callback & p_abort) {
 			auto & i = * m_instance;
@@ -167,7 +188,7 @@ namespace {
 			return m_stats.m_timestamp;
 		}
 		bool is_remote() {
-			return m_remote;
+			return m_instance->m_remote;
 		}
 
 		void reopen( abort_callback & p_abort ) {
@@ -175,6 +196,34 @@ namespace {
 			seekInternal( seek_reopen );
 		}
 
+		bool get_static_info(class file_info & p_out) {
+			if ( ! m_haveStaticInfo ) return false;
+			p_out = m_staticInfo;
+			return true;
+		}
+		bool is_dynamic_info_enabled() {
+			return m_instance->m_haveDynamicInfo;
+
+		}
+		bool get_dynamic_info_v2(class file_info & out, t_filesize & outOffset) {
+			auto & i = * m_instance;
+			if ( ! i.m_haveDynamicInfo ) return false;
+			
+			insync( i.m_guard );
+			auto ptr = i.m_dynamicInfo.begin();
+			for ( ;; ) {
+				if ( ptr == i.m_dynamicInfo.end() ) break;
+				if ( ptr->m_offset > m_position ) break;
+				++ ptr;
+			}
+
+			if ( ptr == i.m_dynamicInfo.begin() ) return false;
+
+			auto iter = ptr; --iter;
+			out = iter->m_info; outOffset = iter->m_offset;
+			i.m_dynamicInfo.erase( i.m_dynamicInfo.begin(), ptr );
+			return true;
+		}
 	private:
 		void seekInternal( t_filesize p_position ) {
 			auto & i = * m_instance;
@@ -191,6 +240,7 @@ namespace {
 			ThreadUtils::CRethrow err;
 			err.exec( [&i] {
 				uint8_t* bufptr = i.m_buffer.get_ptr();
+				const size_t readAtOnceLimit = i.m_remote ? 256 : 64*1024;
 				for ( ;; ) {
 					i.m_canWrite.wait_for(-1);
 					size_t readHowMuch = 0, readOffset = 0;
@@ -220,8 +270,30 @@ namespace {
 						}
 					}
 
+					if ( readHowMuch > readAtOnceLimit ) {
+						readHowMuch = readAtOnceLimit;
+					}
+
+					bool dynInfoGot = false;
+					dynInfoEntry_t dynInfo;
+
 					if ( readHowMuch > 0 ) {
 						readHowMuch = i.m_file->read( bufptr + readOffset, readHowMuch, i.m_abort );
+
+						if ( i.m_haveDynamicInfo ) {
+							file_dynamicinfo::ptr dyn;
+							if ( dyn &= i.m_file ) {
+								file_dynamicinfo_v2::ptr dyn2;
+								if ( dyn2 &= dyn ) {
+									dynInfoGot = dyn2->get_dynamic_info_v2(dynInfo.m_info, dynInfo.m_offset);
+								} else {
+									dynInfoGot = dyn->get_dynamic_info( dynInfo.m_info );
+									if (dynInfoGot) {
+										dynInfo.m_offset = dyn->get_position( i.m_abort );
+									}
+								}
+							}
+						}
 					}
 
 					{
@@ -234,6 +306,11 @@ namespace {
 						i.m_bufferEnd += readHowMuch;
 						size_t got = i.m_bufferEnd - i.m_bufferBegin;
 						if ( got >= i.m_readAhead ) i.m_canWrite.set_state(false);
+
+						if ( dynInfoGot ) {
+							i.m_dynamicInfo.push_back( std::move(dynInfo) );
+						}
+
 					}
 				}
 			} );
@@ -245,17 +322,21 @@ namespace {
 			}
 		}
 
-		bool m_remote, m_canSeek;
+		bool m_canSeek;
 		t_filestats m_stats;
 		pfc::string8 m_contentType;
 		t_filesize m_position;
+
+
+		bool m_haveStaticInfo;
+		file_info_impl m_staticInfo;
 	};
 
 }
 
 
 file::ptr fileCreateReadAhead(file::ptr chain, size_t readAheadBytes, abort_callback & aborter ) {
-	service_ptr_t<fileReadAhead> obj = new service_impl_t<fileReadAhead>();
+	auto obj = fb2k::service_new<fileReadAhead>();
 	obj->initialize( chain, readAheadBytes, aborter );
 	return obj;
 }
