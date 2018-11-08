@@ -263,12 +263,12 @@ namespace ui_element_helpers {
 
 		double get_focus_priority() {
 			ui_element_instance_ptr item; double priority; t_size which;
-			if (!grabTopPriorityChild(item,which,priority)) return 0;
+			if (!grabTopPriorityVisibleChild(item,which,priority)) return 0;
 			return priority;
 		}
 		void set_default_focus() {
 			ui_element_instance_ptr item; double priority; t_size which;
-			if (!grabTopPriorityChild(item,which,priority)) {
+			if (!grabTopPriorityVisibleChild(item,which,priority)) {
 				this->set_default_focus_fallback();
 			} else {
 				host_bring_to_front(which);
@@ -358,42 +358,8 @@ namespace ui_element_helpers {
 			if (host_is_child_visible(which)) return priority >= bestPriority;
 			else return priority > bestPriority;
 		}
-		bool grabTopPriorityChild(ui_element_instance_ptr & out,t_size & outWhich,double & outPriority) {
-			double bestPriority = 0;
-			ui_element_instance_ptr best;
-			t_size bestWhich = ~0;
-			const t_size count = host_get_children_count();
-			for(t_size walk = 0; walk < count; ++walk) {
-				ui_element_instance_ptr item = host_get_child(walk);
-				if (item.is_valid()) {
-					const double priority = item->get_focus_priority();
-					if (best.is_empty() || childPriorityCompare(walk, priority, bestPriority)) {
-						best = item; bestPriority = priority; bestWhich = walk;
-					}
-				}
-			}
-			if (best.is_empty()) return false;
-			out = best; outPriority = bestPriority; outWhich = bestWhich; return true;
-		}
-		bool grabTopPriorityChild(ui_element_instance_ptr & out,t_size & outWhich,double & outPriority,const GUID & subclass) {
-			double bestPriority = 0;
-			ui_element_instance_ptr best;
-			t_size bestWhich = ~0;
-			const t_size count = host_get_children_count();
-			for(t_size walk = 0; walk < count; ++walk) {
-				ui_element_instance_ptr item = host_get_child(walk);
-				if (item.is_valid()) {
-					double priority;
-					if (item->get_focus_priority_subclass(priority,subclass)) {
-						if (best.is_empty() || childPriorityCompare(walk, priority, bestPriority)) {
-							best = item; bestPriority = priority; bestWhich = walk;
-						}
-					}
-				}
-			}
-			if (best.is_empty()) return false;
-			out = best; outPriority = bestPriority; outWhich = bestWhich; return true;
-		}
+		bool grabTopPriorityVisibleChild(ui_element_instance_ptr & out,t_size & outWhich,double & outPriority);
+		bool grabTopPriorityChild(ui_element_instance_ptr & out,t_size & outWhich,double & outPriority,const GUID & subclass);
 	protected:
 		ui_element_instance_host_base(ui_element_instance_callback::ptr callback) : m_callback(callback) {}
 		const ui_element_instance_callback::ptr m_callback;

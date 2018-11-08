@@ -7,13 +7,12 @@ typedef CWinTraits<WS_CHILD|WS_TABSTOP,0> CButtonLiteTraits;
 
 class CButtonLite : public CWindowImpl<CButtonLite, CWindow, CButtonLiteTraits > {
 public:
-	CButtonLite() : m_pressed(), m_captured(), m_focused() {}
 	BEGIN_MSG_MAP_EX(CButtonLite)
+		MESSAGE_RANGE_HANDLER_EX(WM_MOUSEFIRST, WM_MOUSELAST, MousePassThru);
 		MSG_WM_SETTEXT(OnSetText)
 		MSG_WM_PAINT( OnPaint )
-		MSG_WM_LBUTTONDOWN(OnLButtonDown)
 		MSG_WM_MOUSEMOVE(OnMouseMove)
-		MSG_WM_LBUTTONUP(OnLButtonUp)
+		MSG_WM_LBUTTONDOWN(OnLButtonDown)
 		MSG_WM_SETFOCUS(OnSetFocus)
 		MSG_WM_KILLFOCUS(OnKillFocus)
 		MSG_WM_KEYDOWN(OnKeyDown)
@@ -108,9 +107,24 @@ protected:
 		lf.lfWeight += 300;
 		if (lf.lfWeight > 1000 ) lf.lfWeight = 1000;
 	}
+
 	virtual void DrawBackground( CDCHandle dc, CRect rcClient ) {
-		HBRUSH brush;
-		if ( CtlColorHandler ) {
+		HBRUSH brush = NULL;
+		if ( IsPressed() ) {
+			CTheme theme;
+			if (theme.OpenThemeData(*this, L"BUTTON" )) {
+				DrawThemeBackground(theme, dc, BP_PUSHBUTTON, PBS_PRESSED, rcClient, rcClient );
+			} else {
+				DrawFrameControl( dc, rcClient, DFC_BUTTON, DFCS_PUSHED );
+			}
+		} else if (m_hot) {
+			CTheme theme;
+			if (theme.OpenThemeData(*this, L"BUTTON")) {
+				DrawThemeBackground(theme, dc, BP_PUSHBUTTON, PBS_HOT, rcClient, rcClient);
+			} else {
+				DrawFrameControl(dc, rcClient, DFC_BUTTON, DFCS_HOT);
+			}
+		} else if ( CtlColorHandler ) {
 			brush = CtlColorHandler( dc );
 		} else {
 			CWindow target = WndCtlColorTarget;
@@ -122,6 +136,7 @@ protected:
 			dc.SetBkMode( TRANSPARENT );
 		}
 	}
+
 	virtual void OnPaint(CDCHandle) {
 		CPaintDC pdc(*this);
 
@@ -129,6 +144,7 @@ protected:
 		if (! GetClientRect( &rcClient ) ) return;
 
 		auto font = myGetFont();
+		/*
 		CFont fontOverride;
 		if ( IsPressed() ) {
 			LOGFONT lf;
@@ -137,10 +153,12 @@ protected:
 			fontOverride.CreateFontIndirect( & lf );
 			font = fontOverride;
 		}
+		*/
 		HFONT oldFont = pdc.SelectFont( font );
 
 		DrawBackground( pdc.m_hDC, rcClient );
 
+		pdc.SetBkMode( TRANSPARENT );
 		if ( !IsWindowEnabled() ) {
 			pdc.SetTextColor( ::GetSysColor(COLOR_GRAYTEXT) );
 		} else if ( m_focused ) {
@@ -166,35 +184,56 @@ private:
 	void OnEnable(BOOL bEnable) {
 		Invalidate(); SetMsgHandled(FALSE);
 	}
-	void OnLButtonDown(UINT nFlags, CPoint point) {
-		ToggleCapture( true );
-		TogglePressed( true );
-	}
-	void OnLButtonUp(UINT nFlags, CPoint point) {
-		if ( m_pressed ) {
-			OnClicked();
+	void ToggleHot( bool bHot ) {
+		if ( bHot != m_hot ) {
+			m_hot = bHot; Invalidate();
 		}
-		ToggleCapture( false );
-		TogglePressed( false );
 	}
 	void OnMouseMove(UINT nFlags, CPoint point) {
-		if ( m_captured ) {
-			CRect rcClient;
-			if (GetClientRect( rcClient )) {
-				TogglePressed( !! rcClient.PtInRect(point) );
+		const DWORD maskButtons = MK_LBUTTON | MK_RBUTTON | MK_MBUTTON | MK_XBUTTON1 | MK_XBUTTON2;
+		if ((nFlags & maskButtons) != 0) return;
+		CRect rcClient;
+		if (!GetClientRect(rcClient)) return;
+		if (!rcClient.PtInRect( point ) ) return;
+		ToggleHot( true );
+		SetCaptureEx([=](UINT cMsg, DWORD cFlags, CPoint cPoint) {
+			CRect rcClient; 
+			if (!GetClientRect(rcClient)) return false;
+			if ( cMsg == WM_MOUSEWHEEL || cMsg == WM_MOUSEHWHEEL || (cFlags & maskButtons) != 0 || !rcClient.PtInRect(cPoint) ) {
+				ToggleHot(false);
+				SetMsgHandled( FALSE );
+				return false;
 			}
-		}
+			return true;
+		} );
+	}
+	void OnLButtonDown(UINT nFlags, CPoint point) {
+		const DWORD maskButtons = MK_LBUTTON | MK_RBUTTON | MK_MBUTTON | MK_XBUTTON1 | MK_XBUTTON2;
+		if ( ( nFlags & maskButtons ) != MK_LBUTTON ) return;
+		TogglePressed( true );
+		SetCaptureEx([=] (UINT cMsg, DWORD cFlags, CPoint cPoint) {
+			if (cMsg == WM_MOUSEWHEEL || cMsg == WM_MOUSEHWHEEL) {
+				TogglePressed(false);
+				SetMsgHandled(FALSE);
+				return false;
+			}
+			if ( cMsg == WM_LBUTTONUP ) {
+				if ( m_pressed ) OnClicked();
+				TogglePressed(false);
+				return false;
+			}
+			CRect rcClient; 
+			if (!GetClientRect( rcClient )) return false;
+			if ( (cFlags & maskButtons) != (nFlags & maskButtons ) || ! rcClient.PtInRect( cPoint ) ) {
+				TogglePressed(false);
+				SetMsgHandled( FALSE ); return false;
+			}
+			return true;
+		} );
 	}
 	void TogglePressed( bool bPressed ) {
 		if ( bPressed != m_pressed ) {
 			m_pressed = bPressed; Invalidate();
-		}
-	}
-	void ToggleCapture( bool bCapture ) {
-		if ( bCapture != m_captured ) {
-			if ( bCapture ) SetCapture();
-			else ReleaseCapture();
-			m_captured = bCapture;
 		}
 	}
 	int OnSetText(LPCTSTR lpstrText) {
@@ -202,6 +241,27 @@ private:
 		Invalidate(); SetMsgHandled(FALSE);
 		return 0;
 	}
-	bool m_pressed, m_captured, m_focused;
+	typedef std::function< bool(UINT, DWORD, CPoint) > CaptureProc_t;
+	void SetCaptureEx( CaptureProc_t proc ) {
+		m_captureProc = proc; SetCapture();
+	}
+	LRESULT MousePassThru(UINT msg, WPARAM wp, LPARAM lp) {
+		auto p = m_captureProc; // create local ref in case something in mid-captureproc clears it
+		if (p) {
+			CPoint pt(lp);
+			if (!p(msg, (DWORD)wp, pt)) {
+				::ReleaseCapture();
+				m_captureProc = nullptr;
+			}
+			return 0;
+		}
+
+		SetMsgHandled(FALSE);
+		return 0;
+	}
+
+	CaptureProc_t m_captureProc;
+
+	bool m_pressed = false, m_focused = false, m_hot = false;
 	CString m_textDrawMe;
 };

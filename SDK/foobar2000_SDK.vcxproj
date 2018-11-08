@@ -214,6 +214,7 @@
     <ClInclude Include="foobar2000-pfc.h" />
     <ClInclude Include="foobar2000-winver.h" />
     <ClInclude Include="foobar2000.h" />
+    <ClInclude Include="foosort.h" />
     <ClInclude Include="genrand.h" />
     <ClInclude Include="hasher_md5.h" />
     <ClInclude Include="http_client.h" />
@@ -297,6 +298,7 @@
     </ClCompile>
     <ClCompile Include="filesystem_helper.cpp">
     </ClCompile>
+    <ClCompile Include="foosort.cpp" />
     <ClCompile Include="guids.cpp">
     </ClCompile>
     <ClCompile Include="hasher_md5.cpp">

@@ -18,34 +18,42 @@ input_helper::ioFilter_t input_helper::ioFilter_full_buffer(t_filesize val ) {
 }
 
 input_helper::ioFilter_t input_helper::ioFilter_block_buffer(size_t arg) {
-    if ( arg == 0 ) return nullptr;
-    
-    return [arg] ( file_ptr & p_file, const char * p_path, abort_callback & p_abort ) {
-        if ( !filesystem::g_is_remote_or_unrecognized(p_path)) {
-            if (p_file.is_empty()) filesystem::g_open_read( p_file, p_path, p_abort );
-            if (!p_file->is_in_memory() && !p_file->is_remote() && p_file->can_seek()) {
-                file_cached::g_create( p_file, p_file, p_abort, (size_t) arg );
-                return true;
-            }
-        }
-        return false;
-    };
+	if (arg == 0) return nullptr;
+
+	return [arg](file_ptr & p_file, const char * p_path, abort_callback & p_abort) {
+		if (!filesystem::g_is_remote_or_unrecognized(p_path)) {
+			if (p_file.is_empty()) filesystem::g_open_read(p_file, p_path, p_abort);
+			if (!p_file->is_in_memory() && !p_file->is_remote() && p_file->can_seek()) {
+				file_cached::g_create(p_file, p_file, p_abort, (size_t)arg);
+				return true;
+			}
+		}
+		return false;
+	};
 }
 
-input_helper::ioFilter_t input_helper::ioFilter_remote_read_ahead( size_t arg ) {
-    if ( arg == 0 ) return nullptr;
-    
-    return [arg] ( file_ptr & p_file, const char * p_path, abort_callback & p_abort ) {
-        if ( p_file.is_empty() ) {
-            filesystem::ptr fs;
-            if (!filesystem::g_get_interface( fs, p_path )) return false;
-            if (! fs->is_remote( p_path ) ) return false;
-            fs->open( p_file, p_path, filesystem::open_mode_read, p_abort );
-        } else if ( ! p_file->is_remote() ) return false;
-        if ( p_file->is_in_memory() ) return false;
-        p_file = fileCreateReadAhead( p_file, (size_t) arg, p_abort );
-        return true;
-    };
+static input_helper::ioFilter_t makeReadAhead(size_t arg, bool bRemote) {
+	if (arg == 0) return nullptr;
+
+	return [arg, bRemote](file_ptr & p_file, const char * p_path, abort_callback & p_abort) {
+		if (p_file.is_empty()) {
+			filesystem::ptr fs;
+			if (!filesystem::g_get_interface(fs, p_path)) return false;
+			if (bRemote != fs->is_remote(p_path)) return false;
+			fs->open(p_file, p_path, filesystem::open_mode_read, p_abort);
+		} else if (bRemote != p_file->is_remote()) return false;
+		if (p_file->is_in_memory()) return false;
+		p_file = fileCreateReadAhead(p_file, (size_t)arg, p_abort);
+		return true;
+	};
+}
+
+input_helper::ioFilter_t input_helper::ioFilter_remote_read_ahead(size_t arg) {
+	return makeReadAhead(arg, true);
+}
+
+input_helper::ioFilter_t input_helper::ioFilter_local_read_ahead(size_t arg) {
+	return makeReadAhead(arg, false);
 }
 
 void input_helper::open(service_ptr_t<file> p_filehint,metadb_handle_ptr p_location,unsigned p_flags,abort_callback & p_abort,bool p_from_redirect,bool p_skip_hints)

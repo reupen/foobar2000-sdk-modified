@@ -249,4 +249,6 @@ private:
 
 LRESULT RelayEraseBkgnd(HWND p_from, HWND p_to, HDC p_dc);
 
+bool IsWindowsS();
+
 #endif // _WIN32

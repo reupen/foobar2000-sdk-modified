@@ -18,6 +18,7 @@ public:
 		MSG_CHECKCONDITIONS_MAGIC2 = 0x180c2f35,
 
 	};
+
 	BEGIN_MSG_MAP_EX(CEditWithButtons)
 		MSG_WM_SETFONT(OnSetFont)
 		MSG_WM_WINDOWPOSCHANGED(OnPosChanged)
@@ -44,12 +45,16 @@ public:
 	typedef std::function<void () > handler_t;
 	typedef std::function<bool (const wchar_t*) > condition_t;
 
-	void AddClearButton() {
-		auto handler = [this] {
-			this->SetWindowText(L"");
+	void AddMoreButton( std::function<void ()> f ) {
+		AddButton(L"\x2026", f);
+	}
+	void AddClearButton( const wchar_t * clearVal = L"") {
+		std::wstring clearValCopy ( clearVal );
+		auto handler = [this, clearValCopy] {
+			this->SetWindowText(clearValCopy.c_str());
 		};
-		auto condition = [] ( const wchar_t * txt ) -> bool {
-			return * txt != 0;
+		auto condition = [clearValCopy] ( const wchar_t * txt ) -> bool {
+			return clearValCopy != txt;
 		};
 		// Present "clear" to accessibility APIs but actually draw a multiplication x sign
 		AddButton(L"clear", handler, condition, L"\x00D7");
@@ -92,12 +97,25 @@ public:
 			if (i->wnd != NULL) i->wnd.Invalidate();
 		}
 	}
+	void SetShellFolderAutoComplete() {
+		SetShellAutoComplete(SHACF_FILESYS_DIRS);
+	}
+	void SetShellFileAutoComplete() {
+		SetShellAutoComplete(SHACF_FILESYS_ONLY);
+	}
+	void SetShellAutoComplete(DWORD flags) {
+		SHAutoComplete(*this, flags);
+		SetHasAutoComplete();
+	}
+	void SetHasAutoComplete(bool bValue = true) {
+		m_hasAutoComplete = bValue;
+	}
 private:
 	LRESULT OnCheckConditions( UINT msg, WPARAM wp, LPARAM lp ) {
 		if ( msg == MSG_CHECKCONDITIONS && wp == MSG_CHECKCONDITIONS_MAGIC1 && lp == MSG_CHECKCONDITIONS_MAGIC2 ) {
 			this->RefreshConditions(nullptr);
 		} else {
-			SetMsgHandled(0);
+			SetMsgHandled(FALSE);
 		}		
 		return 0;
 	}
@@ -143,8 +161,14 @@ private:
 		}
 		SetMsgHandled(FALSE);
 	}
+	bool canStealTab() {
+		if (m_hasAutoComplete) return false;
+		if (IsShiftPressed()) return false;
+		if (m_buttons.size() == 0) return false;
+		return true;
+	}
 	UINT OnGetDlgCode(UINT, WPARAM wp, LPARAM lp) {
-		if ( wp == VK_TAB && !IsShiftPressed() && m_buttons.size() > 0 ) {
+		if ( wp == VK_TAB && canStealTab() ) {
 			for (auto i = m_buttons.begin(); i != m_buttons.end(); ++ i ) {
 				if ( i->visible ) {
 					TabFocusThis(i->wnd);
@@ -159,7 +183,6 @@ private:
 	}
 	void OnKillFocus(HWND) {
 		this->ModifyStyleEx(WS_EX_CONTROLPARENT, 0 ); SetMsgHandled(FALSE);
-
 	}
 	HBRUSH OnColorBtn(CDCHandle dc, CButton button) {
 		if ( (this->GetStyle() & ES_READONLY) != 0 || !this->IsWindowEnabled() ) {
@@ -339,4 +362,5 @@ private:
 	}
 	unsigned m_fixedWidth;
 	std::list< Button_t > m_buttons;
+	bool m_hasAutoComplete = false;
 };

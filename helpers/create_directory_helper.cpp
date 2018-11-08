@@ -121,12 +121,13 @@ pfc::string create_directory_helper::sanitize_formatted_path(pfc::stringp format
 	t_size curSegBase = 0;
 	for(t_size walk = 0; ; ++walk) {
 		const char c = formatted[walk];
-		if (c == 0 || pfc::io::path::isSeparator(c)) {
+		const bool end = (c == 0);
+		if (end || pfc::io::path::isSeparator(c)) {
 			if (curSegBase < walk) {
 				pfc::string seg( formatted + curSegBase, walk - curSegBase );
-				out = pfc::io::path::combine(out, pfc::io::path::validateFileName(seg, allowWC));
+				out = pfc::io::path::combine(out, pfc::io::path::validateFileName(seg, allowWC, end /*preserve ext*/));
 			}
-			if (c == 0) break;
+			if ( end ) break;
 			curSegBase = walk + 1;
 		}
 	}

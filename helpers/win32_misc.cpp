@@ -342,6 +342,30 @@ LRESULT RelayEraseBkgnd(HWND p_from, HWND p_to, HDC p_dc) {
 	return status;
 }
 
+bool IsWindowsS() {
+	bool ret = false;
+#if FB2K_TARGET_MICROSOFT_STORE
+	static bool cached = false;
+	static bool inited = false;
+	if ( inited ) {
+		ret = cached;
+	} else {
+		HKEY key;
+		if (RegOpenKey(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\CI\\Policy", &key) == 0) {
+			DWORD dwVal = 0, dwType;
+			DWORD valSize;
+			valSize = sizeof(dwVal);
+			if (RegQueryValueEx(key, L"SkuPolicyRequired", nullptr, &dwType, (LPBYTE)&dwVal, &valSize) == 0) {
+				if (dwType == REG_DWORD && dwVal != 0) ret = true;
+			}
+			RegCloseKey(key);
+		}
+		cached = ret;
+		inited = true;
+	}
+#endif
+	return ret;
+}
 
 
 // TYPEFIND IMPLEMENTATION

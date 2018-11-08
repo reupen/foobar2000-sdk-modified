@@ -314,4 +314,40 @@ bool ui_element_helpers::recurse_for_elem_config(ui_element_config::ptr root, ui
 	return false;
 }
 
+bool ui_element_helpers::ui_element_instance_host_base::grabTopPriorityVisibleChild(ui_element_instance_ptr & out, t_size & outWhich, double & outPriority) {
+	double bestPriority = 0;
+	ui_element_instance_ptr best;
+	t_size bestWhich = ~0;
+	const t_size count = host_get_children_count();
+	for (t_size walk = 0; walk < count; ++walk) if (this->host_is_child_visible(walk) ) {
+		ui_element_instance_ptr item = host_get_child(walk);
+		if (item.is_valid() ) {
+			const double priority = item->get_focus_priority();
+			if (best.is_empty() || childPriorityCompare(walk, priority, bestPriority)) {
+				best = item; bestPriority = priority; bestWhich = walk;
+			}
+		}
+	}
+	if (best.is_empty()) return false;
+	out = best; outPriority = bestPriority; outWhich = bestWhich; return true;
+}
+bool ui_element_helpers::ui_element_instance_host_base::grabTopPriorityChild(ui_element_instance_ptr & out, t_size & outWhich, double & outPriority, const GUID & subclass) {
+	double bestPriority = 0;
+	ui_element_instance_ptr best;
+	t_size bestWhich = ~0;
+	const t_size count = host_get_children_count();
+	for (t_size walk = 0; walk < count; ++walk) {
+		ui_element_instance_ptr item = host_get_child(walk);
+		if (item.is_valid()) {
+			double priority;
+			if (item->get_focus_priority_subclass(priority, subclass)) {
+				if (best.is_empty() || childPriorityCompare(walk, priority, bestPriority)) {
+					best = item; bestPriority = priority; bestWhich = walk;
+				}
+			}
+		}
+	}
+	if (best.is_empty()) return false;
+	out = best; outPriority = bestPriority; outWhich = bestWhich; return true;
+}
 #endif // FOOBAR2000_TARGET_VERSION >= 79
