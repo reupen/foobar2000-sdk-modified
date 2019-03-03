@@ -804,7 +804,8 @@ PFC_NORETURN void foobar2000_io::win32_file_write_failure(DWORD p_code, const ch
 
 PFC_NORETURN void foobar2000_io::exception_io_from_win32(DWORD p_code) {
 #if PFC_DEBUG
-	pfc::debugLog() << "exception_io_from_win32: " << p_code;
+	pfc::debugLog debugLog;
+	debugLog << "exception_io_from_win32: " << p_code;
 #endif
 	//pfc::string_fixed_t<32> debugMsg; debugMsg << "Win32 I/O error #" << (t_uint32)p_code;
 	//TRACK_CALL_TEXT(debugMsg);
