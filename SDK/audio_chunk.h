@@ -39,6 +39,8 @@ public:
 
 		channel_config_mono = channel_front_center,
 		channel_config_stereo = channel_front_left | channel_front_right,
+		channel_config_4point0 = channel_front_left | channel_front_right | channel_back_left | channel_back_right,
+		channel_config_5point0 = channel_front_left | channel_front_right | channel_front_center | channel_back_left | channel_back_right,
 		channel_config_5point1 = channel_front_left | channel_front_right | channel_front_center | channel_lfe | channel_back_left | channel_back_right,
 		channel_config_5point1_side = channel_front_left | channel_front_right | channel_front_center | channel_lfe | channel_side_left | channel_side_right,
 		channel_config_7point1 = channel_config_5point1 | channel_side_left | channel_side_right,
@@ -67,6 +69,7 @@ public:
 	static const char * g_channel_name_byidx(unsigned p_index);
 	static unsigned g_find_channel_idx(unsigned p_flag);
 	static void g_formatChannelMaskDesc(unsigned flags, pfc::string_base & out);
+	static pfc::string8 g_formatChannelMaskDesc(unsigned flags);
 
 	
 

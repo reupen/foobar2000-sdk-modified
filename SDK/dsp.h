@@ -100,7 +100,7 @@ private:
 	dsp_chunk_list * m_list;
 	t_size m_chunk_ptr;
 	metadb_handle* m_cur_file;
-	void run_v2(dsp_chunk_list * p_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort);
+	void run_v2(dsp_chunk_list * p_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort) override;
 protected:
 	//! Call only from on_chunk / on_endoftrack (on_endoftrack will give info on track being finished).\n
 	//! May return false when there's no known track and the metadb_handle ptr will be empty/null.
@@ -155,8 +155,8 @@ public:
 	//! Signaling this may interfere with gapless playback in certain scenarios (forces flush of DSPs placed before you) so don't use it unless you have reasons to.
 	virtual bool need_track_change_mark() = 0;
 private:
-	dsp_impl_base_t(const t_self&);
-	const t_self & operator=(const t_self &);
+	dsp_impl_base_t(const t_self&) = delete;
+	const t_self & operator=(const t_self &) = delete;
 };
 
 template<class t_baseclass>

@@ -183,6 +183,12 @@ bool fb2kFileSelfTest(file::ptr f, abort_callback & aborter) {
 
 
 namespace foobar2000_io {
+	void retryFileDelete(double timeout, abort_callback & a, std::function<void()> f) {
+		FB2K_RETRY_ON_EXCEPTION3(f(), a, timeout, exception_io_sharing_violation, exception_io_denied, exception_io_directory_not_empty);
+	}
+	void retryFileMove(double timeout, abort_callback & a, std::function<void() > f) {
+		FB2K_RETRY_FILE_MOVE( f(), a, timeout );
+	}
 	void retryOnSharingViolation(double timeout, abort_callback & a, std::function<void() > f) {
 		FB2K_RETRY_ON_SHARING_VIOLATION(f(), a, timeout);
 	}

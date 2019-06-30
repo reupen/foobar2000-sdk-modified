@@ -49,6 +49,9 @@ class replaygain_scanner_entry : public service_base {
 public:
 	//! Instantiates a replaygain_scanner object.
 	virtual replaygain_scanner::ptr instantiate() = 0;
+
+	//! Helper; uses replaygain_scanner_entry_v2 if available; see replaygain_scanner_entry_v2.
+	replaygain_scanner::ptr instantiate( uint32_t flags );
 };
 
 //! \since 1.4

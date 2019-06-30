@@ -5,6 +5,7 @@
 //! Object cannot be opened in transacted mode.
 PFC_DECLARE_EXCEPTION(exception_io_transactions_unsupported, exception_io, "Transactions unsupported on this volume");
 PFC_DECLARE_EXCEPTION(exception_io_transactional_conflict, exception_io, "Transactional conflict");
+PFC_DECLARE_EXCEPTION(exception_io_transaction_aborted, exception_io, "Transaction aborted");
 
 //! An instance of a filesystem transaction. Inherits from filesystem API and provides all the methods. \n
 //! To perform a transacted filesystem update, you must call methods on this object specifically - not static methods of filesystem class, not methods of a filesystem instance obtained from someplace else. \n
@@ -36,3 +37,6 @@ public:
 
 	virtual bool is_our_path( const char * path ) = 0;
 };
+
+// Defined but not actually provided for MS Store target - because it plainly doesn't work there
+#define FB2K_SUPPORT_TRANSACTED_FILESYSTEM (!FB2K_TARGET_MICROSOFT_STORE)

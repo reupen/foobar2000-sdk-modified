@@ -1,5 +1,13 @@
 #include "foobar2000.h"
 
+bool album_art_extractor_instance::query(const GUID & what, album_art_data::ptr & out, abort_callback & abort) {
+	try { out = query(what, abort); return true; } catch (exception_album_art_not_found) { return false; }
+}
+
+bool album_art_extractor_instance::have_entry(const GUID & what, abort_callback & abort) {
+	try { query(what, abort); return true; } catch(exception_album_art_not_found) { return false; }
+}
+
 bool album_art_editor::g_get_interface(service_ptr_t<album_art_editor> & out,const char * path) {
 	service_enum_t<album_art_editor> e; ptr ptr;
 	pfc::string_extension ext(path);

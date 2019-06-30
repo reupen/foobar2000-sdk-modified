@@ -56,6 +56,9 @@ public:
 	virtual void run(threaded_process_status & p_status,abort_callback & p_abort) = 0;
 	//! Called after the worker thread has finished executing.
 	virtual void on_done(ctx_t p_wnd,bool p_was_aborted) {}
+	
+	//! Safely prevent destruction from worker threads.
+	static bool serviceRequiresMainThreadDestructor() { return true; }
 
 	FB2K_MAKE_SERVICE_INTERFACE(threaded_process_callback,service_base);
 };
