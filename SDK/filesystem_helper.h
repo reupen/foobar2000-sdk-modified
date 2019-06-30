@@ -13,6 +13,14 @@ namespace foobar2000_io {
 	void retryOnSharingViolation( std::function<void () > f, double timeout, abort_callback & a);
 	void retryOnSharingViolation( double timeout, abort_callback & a, std::function<void() > f);
 
+	// **** WINDOWS SUCKS ****
+	// Special version of retryOnSharingViolation with workarounds for known MoveFile() bugs.
+	void retryFileMove( double timeout, abort_callback & a, std::function<void()> f);
+
+	// **** WINDOWS SUCKS ****
+	// Special version of retryOnSharingViolation with workarounds for known idiotic problems with folder removal.
+	void retryFileDelete( double timeout, abort_callback & a, std::function<void()> f);
+
 	class listDirectoryCallbackImpl : public directory_callback {
 	public:
 		listDirectoryCallbackImpl() {}
@@ -585,7 +593,7 @@ private:
 #define FB2K_RETRY_ON_SHARING_VIOLATION(OP, ABORT, TIMEOUT) FB2K_RETRY_ON_EXCEPTION(OP, ABORT, TIMEOUT, exception_io_sharing_violation)
 
 // **** WINDOWS SUCKS ****
-// File move ops must be retried on all these because you get access-denied when some idiot is holding open handles to something you're trying to move, or already-exists on something you just told Windows to move away
+// File move ops must be retried on all these because you get access-denied when someone is holding open handles to something you're trying to move, or already-exists on something you just told Windows to move away
 #define FB2K_RETRY_FILE_MOVE(OP, ABORT, TIMEOUT) FB2K_RETRY_ON_EXCEPTION3(OP, ABORT, TIMEOUT, exception_io_sharing_violation, exception_io_denied, exception_io_already_exists)
 	
 class fileRestorePositionScope {

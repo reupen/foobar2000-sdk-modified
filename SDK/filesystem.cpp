@@ -871,6 +871,11 @@ PFC_NORETURN void foobar2000_io::exception_io_from_win32(DWORD p_code) {
 		throw exception_io_transactions_unsupported();
 	case ERROR_TRANSACTIONAL_CONFLICT:
 		throw exception_io_transactional_conflict();
+	case ERROR_TRANSACTION_ALREADY_ABORTED:
+		throw exception_io_transaction_aborted();
+	case ERROR_UNEXP_NET_ERR:
+		// QNAP threw this when messing with very long file paths and concurrent conversion, probably SMB daemon crashed
+		throw exception_io("Unexpected netwrok error");
 	default:
 		throw exception_io_win32_ex(p_code);
 	}
@@ -1350,7 +1355,7 @@ void filesystem::rewrite_file(const char * path, abort_callback & abort, double 
 		auto f = this->openWriteNew( path, abort, opTimeout );
 		worker(f);
 	} else {
-		pfc::string_formatter temp(path); temp << ".temp";
+		pfc::string_formatter temp(path); temp << ".new.tmp";
 		try {
 			{
 				auto f = this->openWriteNew( temp, abort, opTimeout );
@@ -1375,18 +1380,18 @@ void filesystem::rewrite_directory(const char * path, abort_callback & abort, do
 	if ( this->is_transacted() ) {
 		// so simple
 		if ( ! this->make_directory_check( path, abort)  ) {
-			retryOnSharingViolation(opTimeout, abort, [&] { this->remove_directory_content(path, abort); });
+			retryFileDelete(opTimeout, abort, [&] { this->remove_directory_content(path, abort); });
 		}
 		worker( path );
 	} else {
 		// so complex
-		pfc::string8 fnNew( path ); fnNew += ".new";
-		pfc::string8 fnOld( path ); fnOld += ".old";
+		pfc::string8 fnNew( path ); fnNew += ".new.tmp";
+		pfc::string8 fnOld( path ); fnOld += ".old.tmp";
 
 		if ( !this->make_directory_check( fnNew, abort ) ) {
 			// folder.new folder already existed? clear contents
 			try {
-				retryOnSharingViolation(opTimeout, abort, [&] { this->remove_directory_content(fnNew, abort); });
+				retryFileDelete(opTimeout, abort, [&] { this->remove_directory_content(fnNew, abort); });
 			} catch(exception_io_not_found) {}
 		}
 
@@ -1398,24 +1403,24 @@ void filesystem::rewrite_directory(const char * path, abort_callback & abort, do
 			// move folder to folder.old
 			if (this->directory_exists(fnOld, abort)) {
 				try {
-					retryOnSharingViolation(opTimeout, abort, [&] { this->remove_object_recur(fnOld, abort); });
+					retryFileDelete(opTimeout, abort, [&] { this->remove_object_recur(fnOld, abort); });
 				} catch (exception_io_not_found) {}
 			}
 			try {
-				retryOnSharingViolation(opTimeout, abort, [&] { this->move( path, fnOld, abort ); } ) ;
+				retryFileMove(opTimeout, abort, [&] { this->move( path, fnOld, abort ); } ) ;
 				haveOld = true;
 			} catch(exception_io_not_found) {}
 		}
 
 		// move folder.new to folder
-		retryOnSharingViolation( opTimeout, abort, [&] {
+		retryFileMove( opTimeout, abort, [&] {
 			this->move( fnNew, path, abort );
 		} );
 
 		if ( haveOld ) {
 			// delete folder.old if we made one
 			try {
-				retryOnSharingViolation( opTimeout, abort, [&] { this->remove_object_recur( fnOld, abort); } );
+				retryFileDelete( opTimeout, abort, [&] { this->remove_object_recur( fnOld, abort); } );
 			} catch (exception_io_not_found) {}
 		}
 	}

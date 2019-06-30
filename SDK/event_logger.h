@@ -25,3 +25,9 @@ public:
 	
 	static event_logger_recorder::ptr create();
 };
+
+#define FB2K_LOG_STATUS(X,Y) (X)->log_status(Y)
+#define FB2K_LOG_WARNING(X,Y) (X)->log_warning(Y)
+#define FB2K_LOG_ERROR(X,Y) (X)->log_error(Y)
+
+#define FB2K_HAVE_EVENT_LOGGER

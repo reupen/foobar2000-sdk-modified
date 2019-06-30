@@ -32,6 +32,10 @@ public:
 	virtual int service_release() throw() = 0;
 	virtual int service_add_ref() throw() = 0;
 	virtual bool service_query(service_ptr & p_out, const GUID & p_guid) = 0;
+
+	static bool serviceRequiresMainThreadDestructor() { 
+		return class1_t::serviceRequiresMainThreadDestructor() || class2_t::serviceRequiresMainThreadDestructor(); 
+	}
 };
 
 //! Template implementing service_query walking the inheritance chain. \n

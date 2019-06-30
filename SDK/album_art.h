@@ -53,9 +53,8 @@ public:
 	//! Throws exception_album_art_not_found when the requested album art entry could not be found in the referenced media file.
 	virtual album_art_data_ptr query(const GUID & p_what,abort_callback & p_abort) = 0;
 
-	bool query(const GUID & what, album_art_data::ptr & out, abort_callback & abort) {
-		try { out = query(what, abort); return true; } catch(exception_album_art_not_found) { return false; }
-	}
+	bool have_entry( const GUID & what, abort_callback & abort );
+	bool query(const GUID & what, album_art_data::ptr & out, abort_callback & abort);
 };
 
 //! Class encapsulating access to album art stored in a media file. Use album_art_editor class to obtain album_art_editor_instance referring to specified media file.
