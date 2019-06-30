@@ -302,7 +302,7 @@ public:
 // class myClass : public CWindowRegisteredT<myClass> {...};
 // Call myClass::Register() before first use
 template<typename TClass, typename TBaseClass = CWindow>
-class CWindowRegisteredT : public TBaseClass {
+class CWindowRegisteredT : public TBaseClass, public CMessageMap {
 public:
 	static UINT GetClassStyle() {
 		return CS_VREDRAW | CS_HREDRAW;
