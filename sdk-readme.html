@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
  lang="en" dir="ltr">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>foobar2000 SDK Readme</title>
 	<link rel="stylesheet" type="text/css" href="sdk-readme.css" />
 </head>
@@ -14,13 +14,18 @@
 <div id="toc__inside">
 
 <ul class="toc">
-<li class="level1"><div class="li"><span class="li"><a href="#foobar2000_v1.4_sdk_readme" class="toc">foobar2000 v1.4 SDK readme</a></span></div>
+<li class="level1"><div class="li"><span class="li"><a href="#foobar2000_v1.5_sdk_readme" class="toc">foobar2000 v1.5 SDK readme</a></span></div>
 <ul class="toc">
 <li class="level2"><div class="li"><span class="li"><a href="#compatibility" class="toc">Compatibility</a></span></div></li>
 <li class="level2"><div class="li"><span class="li"><a href="#microsoft_visual_studio_compatibility" class="toc">Microsoft Visual Studio compatibility</a></span></div>
 <ul class="toc">
 <li class="level3"><div class="li"><span class="li"><a href="#ill_behavior_of_visual_c_whole_program_optimization" class="toc">Ill behavior of Visual C whole program optimization</a></span></div></li>
 <li class="level3"><div class="li"><span class="li"><a href="#virtual_memory_range_for_pch_exceeded_error" class="toc">&quot;virtual memory range for PCH exceeded&quot; error</a></span></div></li>
+</ul>
+</li>
+<li class="level2"><div class="li"><span class="li"><a href="#version_1.5_notes" class="toc">Version 1.5 notes</a></span></div>
+<ul class="toc">
+<li class="level3"><div class="li"><span class="li"><a href="#libppui" class="toc">libPPUI</a></span></div></li>
 </ul>
 </li>
 <li class="level2"><div class="li"><span class="li"><a href="#version_1.4_notes" class="toc">Version 1.4 notes</a></span></div>
@@ -55,20 +60,20 @@
 
 
 
-<h1><a name="foobar2000_v1.4_sdk_readme" id="foobar2000_v1.4_sdk_readme">foobar2000 v1.4 SDK readme</a></h1>
+<h1><a name="foobar2000_v1.5_sdk_readme" id="foobar2000_v1.5_sdk_readme">foobar2000 v1.5 SDK readme</a></h1>
 <div class="level1">
 
 </div>
-<!-- SECTION "foobar2000 v1.4 SDK readme" [1-42] -->
+<!-- SECTION "foobar2000 v1.5 SDK readme" [1-42] -->
 <h2><a name="compatibility" id="compatibility">Compatibility</a></h2>
 <div class="level2">
 
 <p>
- Components built with this <acronym title="Software Development Kit">SDK</acronym> are compatible with foobar2000 1.3 and 1.4 series. They are not compatible with any earlier versions (will fail to load), and not guaranteed to be compatible with any future versions, though upcoming releases will aim to maintain compatibility as far as possible without crippling newly added functionality.
+ Components built with this <acronym title="Software Development Kit">SDK</acronym> are compatible with foobar2000 1.3, 1.4 and 1.5 series. They are not compatible with any earlier versions (will fail to load), and not guaranteed to be compatible with any future versions, though upcoming releases will aim to maintain compatibility as far as possible without crippling newly added functionality.
 </p>
 
 <p>
-Note that components built with this <acronym title="Software Development Kit">SDK</acronym> can provide foobar2000 1.4 functionality while maintaining compatibility with the 1.3 series.
+Note that components built with this <acronym title="Software Development Kit">SDK</acronym> can provide foobar2000 1.4/1.5 functionality while maintaining compatibility with the 1.3 series.
 </p>
 
 <p>
@@ -76,15 +81,15 @@ You can alter the targeted foobar2000 <acronym title="Application Programming In
 </p>
 
 <p>
-Currently supported values are 78 (for 1.3 series) and 79 (for 1.4 series).
+Currently supported values are 78 (for 1.3 series), 79 (for 1.4 series) and 80 (for 1.5 series).
 </p>
 
 <p>
-<acronym title="Application Programming Interface">API</acronym> 78 components load in foobar2000 1.3 and 1.4; <acronym title="Application Programming Interface">API</acronym> 79 components load in 1.4 only.
+<acronym title="Application Programming Interface">API</acronym> 78 components load in foobar2000 1.3 and newer; <acronym title="Application Programming Interface">API</acronym> 79 components load in 1.4 and newer, <acronym title="Application Programming Interface">API</acronym> 80 components load in 1.5 and newer.
 </p>
 
 </div>
-<!-- SECTION "Compatibility" [43-832] -->
+<!-- SECTION "Compatibility" [43-910] -->
 <h2><a name="microsoft_visual_studio_compatibility" id="microsoft_visual_studio_compatibility">Microsoft Visual Studio compatibility</a></h2>
 <div class="level2">
 
@@ -93,7 +98,7 @@ Currently supported values are 78 (for 1.3 series) and 79 (for 1.4 series).
 </p>
 
 </div>
-<!-- SECTION "Microsoft Visual Studio compatibility" [833-940] -->
+<!-- SECTION "Microsoft Visual Studio compatibility" [911-1018] -->
 <h3><a name="ill_behavior_of_visual_c_whole_program_optimization" id="ill_behavior_of_visual_c_whole_program_optimization">Ill behavior of Visual C whole program optimization</a></h3>
 <div class="level3">
 
@@ -106,7 +111,7 @@ If you&#039;re aware of a better workaround - such as a source code change rathe
 </p>
 
 </div>
-<!-- SECTION "Ill behavior of Visual C whole program optimization" [941-1720] -->
+<!-- SECTION "Ill behavior of Visual C whole program optimization" [1019-1798] -->
 <h3><a name="virtual_memory_range_for_pch_exceeded_error" id="virtual_memory_range_for_pch_exceeded_error">&quot;virtual memory range for PCH exceeded&quot; error</a></h3>
 <div class="level3">
 
@@ -119,22 +124,34 @@ The <acronym title="Software Development Kit">SDK</acronym> has been changed to 
 </p>
 
 <p>
-If you run into this error, we recommend the following steps:
+If you run into this error, we recommend trimming down the #includes and only referencing specific headers from helpers instead of #including all of them (via old helpers.h).
 </p>
-<ul>
-<li class="level1"><div class="li"> ATLHelpers: do not #include ATLHelpers/ATLHelpers.h - use ATLHelpersLean.h instead + additional ones on need-to-use basis.</div>
-</li>
-<li class="level1"><div class="li"> Helpers: do not #include helpers.h, #include individual ones as needed; most of the declare functionality needed for very specific components only.</div>
-</li>
-</ul>
 
 </div>
-<!-- SECTION "virtual memory range for PCH exceeded error" [1721-2538] -->
+<!-- SECTION "virtual memory range for PCH exceeded error" [1799-2450] -->
+<h2><a name="version_1.5_notes" id="version_1.5_notes">Version 1.5 notes</a></h2>
+<div class="level2">
+
+</div>
+<!-- SECTION "Version 1.5 notes" [2451-2480] -->
+<h3><a name="libppui" id="libppui">libPPUI</a></h3>
+<div class="level3">
+
+<p>
+Various code from the helpers projects that was in no way foobar2000 specific became libPPUI. In addition, Default User Interface list control has been thrown in. libPPUI is released under a non-restrictive license. Reuse in other projects - including commercial projects - is encouraged. Credits in binary redistribution are not required.
+</p>
+
+<p>
+Existing foobar2000 components that reference <acronym title="Software Development Kit">SDK</acronym> helpers/ATLHelpers will need updating to reference libPPUI instead. Separate helpers/ATLHelpers projects are no more, as all projects depend on libPPUI which requires ATL/WTL.
+</p>
+
+</div>
+<!-- SECTION "libPPUI" [2481-3066] -->
 <h2><a name="version_1.4_notes" id="version_1.4_notes">Version 1.4 notes</a></h2>
 <div class="level2">
 
 </div>
-<!-- SECTION "Version 1.4 notes" [2539-2568] -->
+<!-- SECTION "Version 1.4 notes" [3067-3096] -->
 <h3><a name="namespace_cleanup" id="namespace_cleanup">Namespace cleanup</a></h3>
 <div class="level3">
 
@@ -143,7 +160,7 @@ Some very old inconsistencies in the code have been cleaned up. Various bit_arra
 </p>
 
 </div>
-<!-- SECTION "Namespace cleanup" [2569-2918] -->
+<!-- SECTION "Namespace cleanup" [3097-3446] -->
 <h3><a name="decoders" id="decoders">Decoders</a></h3>
 <div class="level3">
 
@@ -225,7 +242,7 @@ typedef input_info_writer_v2 interface_info_writer_t;
 </pre>
 
 </div>
-<!-- SECTION "Decoders" [2919-5600] -->
+<!-- SECTION "Decoders" [3447-6128] -->
 <h3><a name="dynamic_runtime" id="dynamic_runtime">Dynamic runtime</a></h3>
 <div class="level3">
 
@@ -238,7 +255,7 @@ This <acronym title="Software Development Kit">SDK</acronym> comes configured fo
 </p>
 
 </div>
-<!-- SECTION "Dynamic runtime" [5601-6217] -->
+<!-- SECTION "Dynamic runtime" [6129-6745] -->
 <h3><a name="service_query" id="service_query">service_query()</a></h3>
 <div class="level3">
 
@@ -291,7 +308,7 @@ You can use it to avoid having to supply service_query() code yourself and possi
 </p>
 
 </div>
-<!-- SECTION "service_query()" [6218-7928] -->
+<!-- SECTION "service_query()" [6746-8456] -->
 <h2><a name="version_1.3_notes" id="version_1.3_notes">Version 1.3 notes</a></h2>
 <div class="level2">
 
@@ -318,7 +335,7 @@ It is recommended that you change your existing code using these to obtain track
 </p>
 
 </div>
-<!-- SECTION "Version 1.3 notes" [7929-8684] -->
+<!-- SECTION "Version 1.3 notes" [8457-9212] -->
 <h2><a name="basic_usage" id="basic_usage">Basic usage</a></h2>
 <div class="level2">
 
@@ -356,14 +373,12 @@ Component code should include the following header files:
 <ul>
 <li class="level1"><div class="li"> foobar2000.h from <acronym title="Software Development Kit">SDK</acronym> - do not include other headers from the <acronym title="Software Development Kit">SDK</acronym> directory directly, they&#039;re meant to be referenced by foobar2000.h only; it also includes PFC headers and shared.dll helper declaration headers.</div>
 </li>
-<li class="level1"><div class="li"> Optionally: helpers.h from helpers directory (foobar2000_<acronym title="Software Development Kit">SDK</acronym>_helpers project) - a library of various helper code commonly used by foobar2000 components.</div>
-</li>
-<li class="level1"><div class="li"> Optionally: ATLHelpers.h from ATLHelpers directory (foobar2000_ATL_helpers project) - another library of various helper code commonly used by foobar2000 components; requires WTL. Note that ATLHelpers.h already includes <acronym title="Software Development Kit">SDK</acronym>/foobar2000.h and helpers/helpers.h so you can replace your other include lines with a reference to ATLHelpers.h.</div>
+<li class="level1"><div class="li"> Necessary headers from libPPUI and helpers, which both contain various code commonly used by fb2k components.</div>
 </li>
 </ul>
 
 </div>
-<!-- SECTION "Basic usage" [8685-10436] -->
+<!-- SECTION "Basic usage" [9213-10581] -->
 <h2><a name="structure_of_a_component" id="structure_of_a_component">Structure of a component</a></h2>
 <div class="level2">
 
@@ -372,7 +387,7 @@ Component code should include the following header files:
 </p>
 
 </div>
-<!-- SECTION "Structure of a component" [10437-10603] -->
+<!-- SECTION "Structure of a component" [10582-10748] -->
 <h3><a name="services" id="services">Services</a></h3>
 <div class="level3">
 
@@ -389,7 +404,7 @@ Each service object provides reference counter features and (<code>service_add_r
 </p>
 
 </div>
-<!-- SECTION "Services" [10604-12869] -->
+<!-- SECTION "Services" [10749-13014] -->
 <h3><a name="entrypoint_services" id="entrypoint_services">Entrypoint services</a></h3>
 <div class="level3">
 
@@ -431,7 +446,7 @@ A typical entrypoint service implementation looks like this:
 <span class="br0">&#125;</span>;
 <span class="kw4">static</span> service_factory_single_t&lt;myservice_impl&gt; g_myservice_impl_factory;</pre>
 </div>
-<!-- SECTION "Entrypoint services" [12870-15327] -->
+<!-- SECTION "Entrypoint services" [13015-15472] -->
 <h3><a name="service_extensions" id="service_extensions">Service extensions</a></h3>
 <div class="level3">
 
@@ -449,7 +464,7 @@ service_ptr_t&lt;myservice_v2&gt; ptr_ex;
 <span class="kw1">if</span> <span class="br0">&#40;</span>ptr-&gt;service_query_t<span class="br0">&#40;</span>ptr_ex<span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="br0">&#123;</span> <span class="coMULTI">/* ptr_ex is a valid pointer to myservice_v2 interface of our myservice instance */</span> <span class="br0">&#40;</span>...<span class="br0">&#41;</span> <span class="br0">&#125;</span>
 <span class="kw1">else</span> <span class="br0">&#123;</span><span class="coMULTI">/* this myservice implementation does not implement myservice_v2 */</span> <span class="br0">&#40;</span>...<span class="br0">&#41;</span> <span class="br0">&#125;</span></pre>
 </div>
-<!-- SECTION "Service extensions" [15328-16267] -->
+<!-- SECTION "Service extensions" [15473-16412] -->
 <h3><a name="autopointer_template_use" id="autopointer_template_use">Autopointer template use</a></h3>
 <div class="level3">
 
@@ -466,7 +481,7 @@ When working with pointers to core fb2k services, just use C++11 <code>auto</cod
 </p>
 
 </div>
-<!-- SECTION "Autopointer template use" [16268-16835] -->
+<!-- SECTION "Autopointer template use" [16413-16980] -->
 <h3><a name="exception_use" id="exception_use">Exception use</a></h3>
 <div class="level3">
 
@@ -483,7 +498,7 @@ Implementations of global callback services such as <code>playlist_callback</cod
 </p>
 
 </div>
-<!-- SECTION "Exception use" [16836-17853] -->
+<!-- SECTION "Exception use" [16981-17998] -->
 <h3><a name="storing_configuration" id="storing_configuration">Storing configuration</a></h3>
 <div class="level3">
 
@@ -500,7 +515,7 @@ Note that <code>cfg_var</code> objects can only be instantiated statically (eith
 </p>
 
 </div>
-<!-- SECTION "Storing configuration" [17854-18789] -->
+<!-- SECTION "Storing configuration" [17999-18934] -->
 <h3><a name="use_of_global_callback_services" id="use_of_global_callback_services">Use of global callback services</a></h3>
 <div class="level3">
 
@@ -550,7 +565,7 @@ You should also avoid firing a cross-thread SendMessage() inside global callback
 </p>
 
 </div>
-<!-- SECTION "Use of global callback services" [18790-21211] -->
+<!-- SECTION "Use of global callback services" [18935-21356] -->
 <h2><a name="service_class_design_guidelines_advanced" id="service_class_design_guidelines_advanced">Service class design guidelines (advanced)</a></h2>
 <div class="level2">
 
@@ -559,7 +574,7 @@ You should also avoid firing a cross-thread SendMessage() inside global callback
 </p>
 
 </div>
-<!-- SECTION "Service class design guidelines (advanced)" [21212-21548] -->
+<!-- SECTION "Service class design guidelines (advanced)" [21357-21693] -->
 <h3><a name="cross-dll_safety" id="cross-dll_safety">Cross-DLL safety</a></h3>
 <div class="level3">
 
@@ -568,7 +583,7 @@ You should also avoid firing a cross-thread SendMessage() inside global callback
 </p>
 
 </div>
-<!-- SECTION "Cross-DLL safety" [21549-22376] -->
+<!-- SECTION "Cross-DLL safety" [21694-22521] -->
 <h3><a name="entrypoint_service_efficiency" id="entrypoint_service_efficiency">Entrypoint service efficiency</a></h3>
 <div class="level3">
 
@@ -635,6 +650,6 @@ service_ptr_t&lt;myservice_instance&gt; findservice<span class="br0">&#40;</span
 	throw exception_io_data<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 <span class="br0">&#125;</span></pre>
 </div>
-<!-- SECTION "Entrypoint service efficiency" [22377-] --></div>
+<!-- SECTION "Entrypoint service efficiency" [22522-] --></div>
 </body>
 </html>

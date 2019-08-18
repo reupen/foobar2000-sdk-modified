@@ -22,3 +22,7 @@ bool abort_callback::waitForEvent( pfc::eventHandle_t evtHandle, double timeOut 
         default: uBugCheck();
     }
 }
+
+namespace fb2k {
+	abort_callback_dummy noAbort;
+}

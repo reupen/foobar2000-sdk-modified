@@ -73,7 +73,8 @@ public:
 	//! See: input_decoder_v2::run_raw(). Relevant only when implementing input_decoder_v2. Valid after decode_initialize().
 	bool decode_run_raw(audio_chunk & p_chunk, mem_block_container & p_raw, abort_callback & p_abort);
 
-	//! See: input_decoder::set_logger(). Relevant only when implementing input_decoder_v2. Valid after any open().
+	//! OLD way: may be called at any time from input_decoder_v2 \n
+	//! NEW way (1.5): called prior to open().
 	void set_logger(event_logger::ptr ptr);
 protected:
 	input_impl() {}
@@ -360,32 +361,32 @@ private:
 
 //! Helper; standard input_entry implementation. Do not instantiate this directly, use input_factory_t or one of other input_*_factory_t helpers instead.
 template<typename I,unsigned t_flags, typename t_decoder = typename I::interface_decoder_t, typename t_inforeader = typename I::interface_info_reader_t, typename t_infowriter = typename I::interface_info_writer_t>
-class input_entry_impl_t : public input_entry_v2
+class input_entry_impl_t : public input_entry_v3
 {
-private:
-	
-	template<typename T, typename out>
-	void instantiate_t(service_ptr_t<out> & p_instance,service_ptr_t<file> p_filehint,const char * p_path,t_input_open_reason p_reason,abort_callback & p_abort)
-	{
-		service_ptr_t< service_impl_t<input_impl_interface_wrapper_t<I,T> > > temp;
-		temp = new service_impl_t<input_impl_interface_wrapper_t<I,T> >();
-		temp->open(p_filehint,p_path,p_reason,p_abort);
-		p_instance = temp.get_ptr();
-	}
 public:
 	bool is_our_content_type(const char * p_type) {return I::g_is_our_content_type(p_type);}
 	bool is_our_path(const char * p_full_path,const char * p_extension) {return I::g_is_our_path(p_full_path,p_extension);}
 	
-	void open_for_decoding(service_ptr_t<input_decoder> & p_instance,service_ptr_t<file> p_filehint,const char * p_path,abort_callback & p_abort) {
-		instantiate_t<t_decoder>(p_instance,p_filehint,p_path,input_open_decode,p_abort);
-	}
-
-	void open_for_info_read(service_ptr_t<input_info_reader> & p_instance,service_ptr_t<file> p_filehint,const char * p_path,abort_callback & p_abort) {
-		instantiate_t<t_inforeader>(p_instance,p_filehint,p_path,input_open_info_read,p_abort);
-	}
-
-	void open_for_info_write(service_ptr_t<input_info_writer> & p_instance,service_ptr_t<file> p_filehint,const char * p_path,abort_callback & p_abort) {
-		instantiate_t<t_infowriter>(p_instance,p_filehint,p_path,input_open_info_write,p_abort);
+	service_ptr open_v3(const GUID & whatFor, file::ptr hint, const char * path, event_logger::ptr logger, abort_callback & aborter) {
+		if ( whatFor == input_decoder::class_guid ) {
+			auto obj = fb2k::service_new< input_impl_interface_wrapper_t<I,t_decoder> > ();
+			if ( logger.is_valid() ) obj->set_logger(logger);
+			obj->open( hint, path, input_open_decode, aborter );
+			return obj;
+		}
+		if ( whatFor == input_info_reader::class_guid ) {
+			auto obj = fb2k::service_new < input_impl_interface_wrapper_t<I, t_inforeader> >();
+			if (logger.is_valid()) obj->set_logger(logger);
+			obj->open(hint, path, input_open_info_read, aborter);
+			return obj;
+		}
+		if ( whatFor == input_info_writer::class_guid ) {
+			auto obj = fb2k::service_new < input_impl_interface_wrapper_t<I, t_infowriter> >();
+			if (logger.is_valid()) obj->set_logger(logger);
+			obj->open(hint, path, input_open_info_write, aborter);
+			return obj;
+		}
+		throw pfc::exception_not_implemented();
 	}
 
 	void get_extended_data(service_ptr_t<file> p_filehint,const playable_location & p_location,const GUID & p_guid,mem_block_container & p_out,abort_callback & p_abort) {

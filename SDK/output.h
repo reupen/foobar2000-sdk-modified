@@ -26,8 +26,8 @@ struct t_pcmspec
 
 	inline unsigned align() const {return (m_bits_per_sample / 8) * m_channels;}
 
-	t_size time_to_bytes(double p_time) const {return (t_size)audio_math::time_to_samples(p_time,m_sample_rate) * (m_bits_per_sample / 8) * m_channels;}
-	double bytes_to_time(t_size p_bytes) const {return (double) (p_bytes / ((m_bits_per_sample / 8) * m_channels)) / (double) m_sample_rate;}
+	uint64_t time_to_bytes(double p_time) const {return audio_math::time_to_samples(p_time,m_sample_rate) * (m_bits_per_sample / 8) * m_channels;}
+	double bytes_to_time(uint64_t p_bytes) const {return (double) (p_bytes / ((m_bits_per_sample / 8) * m_channels)) / (double) m_sample_rate;}
 
 	inline bool operator==(/*const t_pcmspec & p_spec1,*/const t_pcmspec & p_spec2) const
 	{
@@ -261,6 +261,31 @@ class NOVTABLE output_entry_v2 : public output_entry {
 public:
 	virtual bool get_volume_control(const GUID & id, volume_control::ptr & out) = 0;
 	virtual bool hasVisualisation() = 0;
+};
+
+//! \since 1.5
+class NOVTABLE output_devices_notify {
+public:
+	virtual void output_devices_changed() = 0;
+protected:
+	output_devices_notify() {}
+private:
+	output_devices_notify(const output_devices_notify &) = delete;
+	void operator=(const output_devices_notify &) = delete;
+};
+
+//! \since 1.5
+class NOVTABLE output_entry_v3 : public output_entry_v2 {
+	FB2K_MAKE_SERVICE_INTERFACE(output_entry_v3, output_entry_v2)
+public:
+
+	//! Main thread only!
+	virtual void add_notify(output_devices_notify *) = 0;
+	//! Main thread only!
+	virtual void remove_notify(output_devices_notify *) = 0;
+
+	//! Main thread only!
+	virtual void set_pinned_device(const GUID & guid) = 0;
 };
 
 #pragma pack(push, 1)

@@ -244,8 +244,6 @@ namespace foobar2000_io {
 	}
 
 	DWORD winVolumeFlags( const char * fb2kPath ) {
-		PFC_ASSERT( matchProtocol( fb2kPath, "file" ) );
-
 		PFC_ASSERT(matchProtocol(fb2kPath, "file"));
 		pfc::string8 native;
 		if (!filesystem::g_get_native_path(fb2kPath, native)) throw pfc::exception_invalid_params();

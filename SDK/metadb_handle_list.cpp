@@ -89,8 +89,7 @@ namespace {
 
 void metadb_handle_list_helper::sort_by_format_get_order(metadb_handle_list_cref p_list,t_size* order,const service_ptr_t<titleformat_object> & p_script,titleformat_hook * p_hook,int p_direction)
 {
-	abort_callback_dummy noAbort;
-	sort_by_format_get_order_v2(p_list, order, p_script, p_hook, p_direction, noAbort );
+	sort_by_format_get_order_v2(p_list, order, p_script, p_hook, p_direction, fb2k::noAbort );
 }
 
 void metadb_handle_list_helper::sort_by_relative_path(metadb_handle_list_ref p_list)

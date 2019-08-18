@@ -19,7 +19,7 @@ public:
 
 	static void get_help_url_helper(pfc::string_base & out, const char * category, const GUID & id, const char * name);
 	
-	static const GUID guid_root, guid_hidden, guid_tools,guid_core,guid_display,guid_playback,guid_visualisations,guid_input,guid_tag_writing,guid_media_library, guid_tagging;
+	static const GUID guid_root, guid_hidden, guid_tools,guid_core,guid_display,guid_playback,guid_visualisations,guid_input,guid_tag_writing,guid_media_library, guid_tagging, guid_output;
 
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(preferences_page);
 };

@@ -49,6 +49,11 @@ void _standard_api_create_internal(service_ptr & out, const GUID & classID) {
 	service_class_ref c = service_factory_base::enum_find_class(classID);
 	switch(service_factory_base::enum_get_count(c)) {
 		case 0:
+#if PFC_DEBUG
+            if ( core_api::are_services_available() ) {
+                FB2K_DebugLog() << "Service not found of type: " << pfc::print_guid(classID);
+            }
+#endif
 			throw exception_service_not_found();
 		case 1:
 			PFC_ASSERT_SUCCESS( service_factory_base::enum_create(out, c, 0) );

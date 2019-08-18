@@ -277,7 +277,6 @@ HMODULE SHARED_EXPORT LoadSystemLibrary(const TCHAR * name);
 }//extern "C"
 
 static inline void uAddDebugEvent(const char * msg) {uPrintCrashInfo_OnEvent(msg, strlen(msg));}
-static inline void uAddDebugEvent(pfc::string_formatter const & msg) {uPrintCrashInfo_OnEvent(msg, msg.length());}
 
 inline char * uCharNext(char * src) {return src+uCharLength(src);}
 inline const char * uCharNext(const char * src) {return src+uCharLength(src);}

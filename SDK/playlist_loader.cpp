@@ -155,8 +155,7 @@ static void track_indexer__g_get_tracks_wrap(const char * p_path,const service_p
 		fail = true;
 	} catch(std::exception const & e) {
 		fail = true;
-		console::formatter formatter;
-		formatter << "could not enumerate tracks (" << e << ") on:\n" << file_path_display(p_path);
+		FB2K_console_formatter() << "could not enumerate tracks (" << e << ") on:\n" << file_path_display(p_path);
 	}
 	if (fail) {
 		if (!got_input && !p_abort.is_aborting()) {
@@ -277,7 +276,7 @@ static void process_path_internal(const char * p_path,const service_ptr_t<file> 
 			while(e.next(f)) {
 				abort.check();
 				service_ptr_t<archive> arch;
-				if (f->service_query_t(arch)) {
+				if (f->service_query_t(arch) && arch->is_our_archive(p_path)) {
 					if (p_reader.is_valid()) p_reader->reopen(abort);
 
 					try {

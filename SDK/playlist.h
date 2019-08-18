@@ -442,8 +442,7 @@ public:
 	template<typename t_array> void playlist_set_property(t_size p_playlist,const GUID & p_property,const t_array & p_data) {
 		PFC_STATIC_ASSERT( sizeof(p_data[0]) == 1 );
 		stream_reader_memblock_ref reader(p_data);
-		abort_callback_dummy aborter;
-		playlist_set_property(p_playlist,p_property,&reader,p_data.get_size(),aborter);
+		playlist_set_property(p_playlist,p_property,&reader,p_data.get_size(),fb2k::noAbort);
 	}
 	//! Read a persistent playlist property.
 	//! \param p_playlist Index of the playlist
@@ -454,9 +453,10 @@ public:
 		PFC_STATIC_ASSERT( sizeof(p_data[0]) == 1 );
 		typedef pfc::array_t<t_uint8,pfc::alloc_fast_aggressive> t_temp;
 		t_temp temp;
-		stream_writer_buffer_append_ref_t<t_temp> writer(temp);
-		abort_callback_dummy aborter;
-		if (!playlist_get_property(p_playlist,p_property,&writer,aborter)) return false;
+		{
+			stream_writer_buffer_append_ref_t<t_temp> reader(temp);
+			if (!playlist_get_property(p_playlist,p_property,&reader,fb2k::noAbort)) return false;
+		}
 		p_data = temp;
 		return true;
 	}

@@ -1,5 +1,17 @@
 #include "foobar2000.h"
 
+GUID album_art_extractor::get_guid() {
+	album_art_extractor_v2::ptr v2;
+	if ( v2 &= this ) return v2->get_guid();
+	return pfc::guid_null;
+}
+
+GUID album_art_editor::get_guid() {
+	album_art_editor_v2::ptr v2;
+	if ( v2 &= this ) return v2->get_guid();
+	return pfc::guid_null;
+}
+
 bool album_art_extractor_instance::query(const GUID & what, album_art_data::ptr & out, abort_callback & abort) {
 	try { out = query(what, abort); return true; } catch (exception_album_art_not_found) { return false; }
 }
@@ -10,7 +22,7 @@ bool album_art_extractor_instance::have_entry(const GUID & what, abort_callback 
 
 bool album_art_editor::g_get_interface(service_ptr_t<album_art_editor> & out,const char * path) {
 	service_enum_t<album_art_editor> e; ptr ptr;
-	pfc::string_extension ext(path);
+	auto ext = pfc::string_extension(path);
 	while(e.next(ptr)) {
 		if (ptr->is_our_path(path,ext)) { out = ptr; return true; }
 	}
@@ -22,6 +34,18 @@ bool album_art_editor::g_is_supported_path(const char * path) {
 }
 
 album_art_editor_instance_ptr album_art_editor::g_open(file_ptr p_filehint,const char * p_path,abort_callback & p_abort) {
+	
+#ifdef FOOBAR2000_DESKTOP
+	{
+		input_manager_v2::ptr m;
+		if (fb2k::std_api_try_get(m)) {
+			album_art_editor_instance::ptr ret;
+			ret ^= m->open_v2(album_art_editor_instance::class_guid, p_filehint, p_path, false, nullptr, p_abort);
+			return ret;
+		}
+	}
+#endif
+
 	album_art_editor::ptr obj;
 	if (!g_get_interface(obj, p_path)) throw exception_album_art_unsupported_format();
 	return obj->open(p_filehint, p_path, p_abort);
@@ -30,7 +54,7 @@ album_art_editor_instance_ptr album_art_editor::g_open(file_ptr p_filehint,const
 
 bool album_art_extractor::g_get_interface(service_ptr_t<album_art_extractor> & out,const char * path) {
 	service_enum_t<album_art_extractor> e; ptr ptr;
-	pfc::string_extension ext(path);
+	auto ext = pfc::string_extension(path);
 	while(e.next(ptr)) {
 		if (ptr->is_our_path(path,ext)) { out = ptr; return true; }
 	}
@@ -41,6 +65,17 @@ bool album_art_extractor::g_is_supported_path(const char * path) {
 	ptr ptr; return g_get_interface(ptr,path);
 }
 album_art_extractor_instance_ptr album_art_extractor::g_open(file_ptr p_filehint,const char * p_path,abort_callback & p_abort) {
+#ifdef FOOBAR2000_DESKTOP
+	{
+		input_manager_v2::ptr m;
+		if (fb2k::std_api_try_get(m)) {
+			album_art_extractor_instance::ptr ret;
+			ret ^= m->open_v2(album_art_extractor_instance::class_guid, p_filehint, p_path, false, nullptr, p_abort);
+			return ret;
+		}
+	}
+#endif
+
 	album_art_extractor::ptr obj;
 	if (!g_get_interface(obj, p_path)) throw exception_album_art_unsupported_format();
 	return obj->open(p_filehint, p_path, p_abort);
@@ -71,4 +106,36 @@ now_playing_album_art_notify * now_playing_album_art_notify_manager::add(std::fu
 	obj->f = f;
 	add(obj);
 	return obj;
+}
+
+namespace {
+	struct aa_t {
+		GUID type; const char * name;
+	};
+	static aa_t types[] = {
+		{album_art_ids::cover_front, "front cover"},
+		{album_art_ids::cover_back, "back cover"},
+		{album_art_ids::artist, "artist"},
+		{album_art_ids::disc, "disc"},
+		{album_art_ids::icon, "icon"},
+	};
+}
+
+size_t album_art_ids::num_types() {
+	return PFC_TABSIZE( types );
+}
+
+GUID album_art_ids::query_type(size_t idx) {
+	return types[idx].type;
+}
+
+const char * album_art_ids::query_name(size_t idx) {
+	return types[idx].name;
+}
+
+const char * album_art_ids::name_of(const GUID & id) {
+	for( size_t w = 0; w < num_types(); ++w ) {
+		if ( query_type(w) == id ) return query_name(w);
+	}
+	return nullptr;
 }

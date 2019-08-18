@@ -23,7 +23,8 @@ namespace foobar2000_io
 	PFC_DECLARE_EXCEPTION(exception_io,						pfc::exception,"I/O error");
 	//! Object not found.
 	PFC_DECLARE_EXCEPTION(exception_io_not_found,			exception_io,"Object not found");
-	//! Access denied.
+	//! Access denied. \n
+	//! Special Windows note: this MAY be thrown instead of exception_io_sharing_violation by operations that rename/move files due to Win32 MoveFile() bugs.
 	PFC_DECLARE_EXCEPTION(exception_io_denied,				exception_io,"Access denied");
 	//! Access denied.
 	PFC_DECLARE_EXCEPTION(exception_io_denied_readonly,		exception_io_denied,"File is read-only");
@@ -323,6 +324,10 @@ namespace foobar2000_io
 		//! Helper; improved performance over g_transfer_file on streams (avoids disk fragmentation when transferring large blocks).
 		static void g_transfer_object(service_ptr_t<file> p_src,service_ptr_t<file> p_dst,t_filesize p_bytes,abort_callback & p_abort);
 
+		//! file_lowLevelIO wrapper
+		void flushFileBuffers_(abort_callback &);
+		//! file_lowLevelIO wrapper
+		size_t lowLevelIO_(const GUID & guid, size_t arg1, void * arg2, size_t arg2size, abort_callback & abort);
 
 		t_filesize skip(t_filesize p_bytes,abort_callback & p_abort);
 		t_filesize skip_seek(t_filesize p_bytes,abort_callback & p_abort);
@@ -366,6 +371,46 @@ namespace foobar2000_io
 		static void g_create(service_ptr_t<file> & p_out,service_ptr_t<file> p_base,abort_callback & p_abort, t_size blockSize);
 
 		static void g_decodeInitCache(file::ptr & theFile, abort_callback & abort, size_t blockSize);
+	};
+
+	//! \since 1.5
+	//! Additional service implemented by standard file object providing access to low level OS specific APIs.
+	class file_lowLevelIO : public service_base {
+		FB2K_MAKE_SERVICE_INTERFACE(file_lowLevelIO, service_base );
+	public:
+		//! @returns 0 if the command was not recognized, a command-defined non zero value otherwise.
+		virtual size_t lowLevelIO( const GUID & guid, size_t arg1, void * arg2, size_t arg2size, abort_callback & abort ) = 0;
+
+		//! Win32 FlushFileBuffers() wrapper. \n
+		//! Throws exception_io_denied on a file opened for reading. \n
+		//! No arguments are defined. \n
+		//! Returns 1 if handled, 0 if unsupported.
+		static const GUID guid_flushFileBuffers;
+		//! Retrieves file creation / last access / last write times. \n
+		//! Parameters: arg2 points to a filetimes_t struct to receive the data; arg2size must be set to sizeof(filetimes_t). \n
+		//! If the filesystem does not support a specific portion of the information, relevant struct member will be set to filetimestamp_invalid. \n
+		//! Returns 1 if handled, 0 if unsupported.
+		static const GUID guid_getFileTimes;
+		//! Sets file creation / last access / last write times. \n
+		//! Parameters: arg2 points to a filetimes_t struct holding the new data; arg2size must be set to sizeof(filetimes_t). \n
+		//! Individual members of the filetimes_t struct can be set to filetimestamp_invalid, if not all of the values are to be altered on the file. \n
+		//! Returns 1 if handled, 0 if unsupported.
+		static const GUID guid_setFileTimes;
+
+		//! Struct to be used with guid_getFileTimes / guid_setFileTimes.
+		struct filetimes_t {
+			t_filetimestamp creation = filetimestamp_invalid;
+			t_filetimestamp lastAccess = filetimestamp_invalid;
+			t_filetimestamp lastWrite = filetimestamp_invalid;
+		};
+
+		//! Helper
+		bool flushFileBuffers(abort_callback &);
+		//! Helper
+		bool getFileTimes( filetimes_t & out, abort_callback &);
+		//! Helper
+		bool setFileTimes( filetimes_t const & in, abort_callback &);
+
 	};
 
 	//! Implementation helper - contains dummy implementations of methods that modify the file
@@ -422,12 +467,16 @@ namespace foobar2000_io
 
 		virtual void open(service_ptr_t<file> & p_out,const char * p_path, t_open_mode p_mode,abort_callback & p_abort)=0;
 		virtual void remove(const char * p_path,abort_callback & p_abort)=0;
+		//! Moves/renames a file. Will fail if the destination file already exists. \n
+		//! Note that this function may throw exception_io_denied instead of exception_io_sharing_violation when the file is momentarily in use, due to bugs in Windows MoveFile() API. There is no legitimate way for us to distinguish between the two scenarios.
 		virtual void move(const char * p_src,const char * p_dst,abort_callback & p_abort)=0;
 		//! Queries whether a file at specified path belonging to this filesystem is a remove object or not.
 		virtual bool is_remote(const char * p_src) = 0;
 
 		//! Retrieves stats of a file at specified path.
 		virtual void get_stats(const char * p_path,t_filestats & p_stats,bool & p_is_writeable,abort_callback & p_abort) = 0;
+		//! Helper
+		t_filestats get_stats( const char * path, abort_callback & abort );
 		
 		virtual bool relative_path_create(const char * file_path,const char * playlist_path,pfc::string_base & out) {return false;}
 		virtual bool relative_path_parse(const char * relative_path,const char * playlist_path,pfc::string_base & out) {return false;}
@@ -470,6 +519,7 @@ namespace foobar2000_io
 		//! Attempts to remove file at specified path; if the operation fails with a sharing violation error, keeps retrying (with short sleep period between retries) for specified amount of time.
 		static void g_remove_timeout(const char * p_path,double p_timeout,abort_callback & p_abort);
 		//! Moves file from one path to another.
+		//! Note that this function may throw exception_io_denied instead of exception_io_sharing_violation when the file is momentarily in use, due to bugs in Windows MoveFile() API. There is no legitimate way for us to distinguish between the two scenarios.
 		static void g_move(const char * p_src,const char * p_dst,abort_callback & p_abort);
 		//! Attempts to move file from one path to another; if the operation fails with a sharing violation error, keeps retrying (with short sleep period between retries) for specified amount of time.
 		static void g_move_timeout(const char * p_src,const char * p_dst,double p_timeout,abort_callback & p_abort);
@@ -506,10 +556,12 @@ namespace foobar2000_io
 		// Presumes both source and destination belong to this filesystem.
 		void copy_directory(const char * p_src, const char * p_dst, abort_callback & p_abort);
 
-		//! Move file overwriting an existing one. Regular move() will fail if the file exists.
+		//! Moves/renames a file, overwriting the destination atomically if exists. \n
+		//! Note that this function may throw exception_io_denied instead of exception_io_sharing_violation when the file is momentarily in use, due to bugs in Windows MoveFile() API. There is no legitimate way for us to distinguish between the two scenarios.
 		void move_overwrite( const char * src, const char * dst, abort_callback & abort);
-		//! Same as move_overwrite(). \n
-		//! This used to call win32 ReplaceFile() but that was pulled due to extreme stupidity of ReplaceFile() implementation.
+		//! Moves/renames a file, overwriting the destination atomically if exists. \n
+		//! Meant to retain destination attributes if feasible. Otherwise identical to move_overwrite(). \n
+		//! Note that this function may throw exception_io_denied instead of exception_io_sharing_violation when the file is momentarily in use, due to bugs in Windows MoveFile() API. There is no legitimate way for us to distinguish between the two scenarios.
 		void replace_file(const char * src, const char * dst, abort_callback & abort);
 		//! Create a directory, without throwing an exception if it already exists.
 		//! @param didCreate bool flag indicating whether a new directory was created or not. \n
@@ -543,6 +595,12 @@ namespace foobar2000_io
 		//! See also: filesystem_transacted. \n
 		//! In order to perform transacted operations, you must obtain a transacted filesystem explicitly, or get one passed down from a higher level context (example: in config_io_callback_v3).
 		void rewrite_file( const char * path, abort_callback & abort, double opTimeout, std::function<void (file::ptr) > worker );
+		//! Full directory rewrite helper that automatically does the right thing to ensure atomic update. \n
+		//! If this is a transacted filesystem, a simple in-place rewrite is performed. \n
+		//! If this is not a transacted filesystem, your content first goes to a temporary folder, which then replaces the original. \n
+		//! It is encouraged to perform flushFileBuffers on all files accessed from within. \n
+		//! See also: filesystem_transacted. \n
+		//! In order to perform transacted operations, you must obtain a transacted filesystem explicitly, or get one passed down from a higher level context (example: in config_io_callback_v3).
 		void rewrite_directory(const char * path, abort_callback & abort, double opTimeout, std::function<void(const char *) > worker);
 	protected:
 		static bool get_parent_helper(const char * path, char separator, pfc::string_base & out);
@@ -567,8 +625,16 @@ namespace foobar2000_io
 	class filesystem_v2 : public filesystem {
 		FB2K_MAKE_SERVICE_INTERFACE( filesystem_v2, filesystem )
 	public:
+		//! Moves/renames a file, overwriting the destination atomically if exists. \n
+		//! Note that this function may throw exception_io_denied instead of exception_io_sharing_violation when the file is momentarily in use, due to bugs in Windows MoveFile() API. There is no legitimate way for us to distinguish between the two scenarios.
 		virtual void move_overwrite(const char * src, const char * dst, abort_callback & abort) = 0;
+		//! Moves/renames a file, overwriting the destination atomically if exists. \n
+		//! Meant to retain destination attributes if feasible. Otherwise identical to move_overwrite(). \n
+		//! Note that this function may throw exception_io_denied instead of exception_io_sharing_violation when the file is momentarily in use, due to bugs in Windows MoveFile() API. There is no legitimate way for us to distinguish between the two scenarios.
 		virtual void replace_file(const char * src, const char * dst, abort_callback & abort);
+		//! Create a directory, without throwing an exception if it already exists.
+		//! @param didCreate bool flag indicating whether a new directory was created or not. \n
+		//! This should be a retval, but because it's messy to obtain this information with certain APIs, the caller can opt out of receiving this information,.
 		virtual void make_directory(const char * path, abort_callback & abort, bool * didCreate = nullptr) = 0;
 		virtual bool directory_exists(const char * path, abort_callback & abort) = 0;
 		virtual bool file_exists(const char * path, abort_callback & abort) = 0;
@@ -608,59 +674,6 @@ namespace foobar2000_io
 		const t_filestats & get_item_stats(t_size n) const {return m_data[n]->m_stats;}
 		void sort() {m_data.sort_t(sortfunc);}
 	};
-
-	class archive;
-
-	class NOVTABLE archive_callback : public abort_callback {
-	public:
-		virtual bool on_entry(archive * owner,const char * url,const t_filestats & p_stats,const service_ptr_t<file> & p_reader) = 0;
-	};
-
-	//! Interface for archive reader services. When implementing, derive from archive_impl rather than from deriving from archive directly.
-	class NOVTABLE archive : public filesystem {
-	public:
-		virtual void archive_list(const char * p_path,const service_ptr_t<file> & p_reader,archive_callback & p_callback,bool p_want_readers) = 0;
-		
-		FB2K_MAKE_SERVICE_INTERFACE(archive,filesystem);
-	};
-
-	//! Root class for archive implementations. Derive from this instead of from archive directly.
-	class NOVTABLE archive_impl : public archive {
-	private:
-		//do not override these
-		bool get_canonical_path(const char * path,pfc::string_base & out);
-		bool is_our_path(const char * path);
-		bool get_display_path(const char * path,pfc::string_base & out);
-		void remove(const char * path,abort_callback & p_abort);
-		void move(const char * src,const char * dst,abort_callback & p_abort);
-		bool is_remote(const char * src);
-		bool relative_path_create(const char * file_path,const char * playlist_path,pfc::string_base & out);
-		bool relative_path_parse(const char * relative_path,const char * playlist_path,pfc::string_base & out);
-		void open(service_ptr_t<file> & p_out,const char * path, t_open_mode mode,abort_callback & p_abort);
-		void create_directory(const char * path,abort_callback &);
-		void list_directory(const char * p_path,directory_callback & p_out,abort_callback & p_abort);
-		void get_stats(const char * p_path,t_filestats & p_stats,bool & p_is_writeable,abort_callback & p_abort);
-	protected:
-		//override these
-		virtual const char * get_archive_type()=0;//eg. "zip", must be lowercase
-		virtual t_filestats get_stats_in_archive(const char * p_archive,const char * p_file,abort_callback & p_abort) = 0;
-		virtual void open_archive(service_ptr_t<file> & p_out,const char * archive,const char * file, abort_callback & p_abort)=0;//opens for reading
-	public:
-		//override these
-		virtual void archive_list(const char * path,const service_ptr_t<file> & p_reader,archive_callback & p_out,bool p_want_readers)=0;
-
-		
-		static bool g_is_unpack_path(const char * path);
-		static bool g_parse_unpack_path(const char * path,pfc::string_base & archive,pfc::string_base & file);
-		static bool g_parse_unpack_path_ex(const char * path,pfc::string_base & archive,pfc::string_base & file, pfc::string_base & type);
-		static void g_make_unpack_path(pfc::string_base & path,const char * archive,const char * file,const char * type);
-		void make_unpack_path(pfc::string_base & path,const char * archive,const char * file);
-
-		
-	};
-
-	template<typename T>
-	class archive_factory_t : public service_factory_single_t<T> {};
 
 
 	t_filetimestamp filetimestamp_from_system_timer();
@@ -758,6 +771,8 @@ namespace foobar2000_io
 	bool _extract_native_path_ptr(const char * & p_fspath);
 	bool is_native_filesystem( const char * p_fspath );
 	bool extract_native_path_ex(const char * p_fspath, pfc::string_base & p_native);//prepends \\?\ where needed
+
+	bool extract_native_path_archive_aware( const char * fspatch, pfc::string_base & out );
 
 	template<typename T>
 	pfc::string getPathDisplay(const T& source) {

@@ -31,6 +31,7 @@ public:
 	//WARNING: if this errors out, it may leave caller with null file pointer; take appropriate measures not to crash in such cases
 	void finalize(service_ptr_t<file> & p_owner,abort_callback & p_abort) {
 		if (m_tempfile.is_valid()) {
+			m_tempfile->flushFileBuffers_(p_abort);
 			m_tempfile.release();
 			p_owner.release();
 			handleFileMove(m_temppath, m_origpath, p_abort);
@@ -40,6 +41,7 @@ public:
 	// Alternate finalizer without owner file object, caller takes responsibility for closing the source file before calling
 	void finalize_no_reopen( abort_callback & p_abort ) {
 		if (m_tempfile.is_valid()) {
+			m_tempfile->flushFileBuffers_(p_abort);
 			m_tempfile.release();
 			handleFileMove(m_temppath, m_origpath, p_abort);
 		}
@@ -48,9 +50,8 @@ public:
 		if (m_tempfile.is_valid()) {
 			m_tempfile.release();
 			try {
-                abort_callback_dummy noAbort;
-				retryOnSharingViolation( 1, noAbort, [&] {
-					m_fs->remove(m_temppath, noAbort);
+				retryOnSharingViolation( 1, fb2k::noAbort, [&] {
+					m_fs->remove(m_temppath, fb2k::noAbort);
 				} );
 			} catch(...) {}
 		}
@@ -62,7 +63,7 @@ private:
 	void handleFileMove(const char * from, const char * to, abort_callback & abort) {
 		PFC_ASSERT(m_fs->is_our_path(from));
 		PFC_ASSERT(m_fs->is_our_path(to));
-		retryOnSharingViolation(10, abort, [&] { m_fs->replace_file(from, to, abort); } );
+		FB2K_RETRY_FILE_MOVE(m_fs->replace_file(from, to, abort), abort, 10 );
 	}
 	pfc::string8 m_origpath;
 	pfc::string8 m_temppath;

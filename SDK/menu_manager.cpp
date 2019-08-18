@@ -349,13 +349,15 @@ bool keyboard_shortcut_manager::on_keydown_restricted_auto_context(const pfc::li
 static bool filterTypableWindowMessage(const MSG * msg, t_uint32 modifiers) {
 	if (keyboard_shortcut_manager::is_typing_key_combo((t_uint32)msg->wParam, modifiers)) {
 		const DWORD mask = DLGC_HASSETSEL | DLGC_WANTCHARS | DLGC_WANTARROWS;
-		auto status = ::SendMessage(msg->hwnd, WM_GETDLGCODE, 0, 0);
-		if ((status & mask) == mask) return false;
+		auto status = ::SendMessage(msg->hwnd, WM_GETDLGCODE,0, 0);
+		if ( (status & mask) == mask ) return false;
 
+		/*
 		ui_element_typable_window_manager::ptr api;
 		if (ui_element_typable_window_manager::tryGet(api)) {
 			if (api->is_registered(msg->hwnd)) return false;
 		}
+		*/
 	}
 	return true;
 }

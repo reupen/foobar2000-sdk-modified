@@ -112,6 +112,8 @@ public:
 		this->m_ptr = NULL;
 	}
 
+	// std library compat
+	inline void reset() throw() {release();}
 
 	inline service_obscure_refcounting<T>* operator->() const throw() {PFC_ASSERT(this->m_ptr != NULL);return service_obscure_refcounting_cast(this->m_ptr);}
 
@@ -178,7 +180,7 @@ public:
 	//! Conditional cast operator - attempts to obtain a vaild service pointer to the expected class; returns true on success, false on failure.
     template<typename otherPtr_t>
     bool operator &= ( otherPtr_t other ) {
-        PFC_ASSERT( other.is_valid() );
+		if (other.is_empty()) return false;
         return other->cast(*this);
     }
     template<typename otherObj_t>
@@ -512,7 +514,12 @@ template<typename T> inline void standard_api_create_t(service_ptr_t<T> & p_out)
 	} else {
 		service_ptr_t<typename T::t_interface_entrypoint> temp;
 		standard_api_create_t(temp);
-		if (!temp->service_query_t(p_out)) throw exception_service_extension_not_found();
+		if (!temp->service_query_t(p_out)) {
+#if PFC_DEBUG
+			FB2K_DebugLog() << "Service extension not found: " << pfc::print_guid(T::class_guid) << " of base type: " << pfc::print_guid(T::t_interface_entrypoint::class_guid);
+#endif
+			throw exception_service_extension_not_found();
+		}
 	}
 }
 
@@ -614,6 +621,27 @@ public:
 		}
 	}
 
+	service_ptr_t<t_interface> get() const {
+		PFC_ASSERT(!finished());
+		return m_helper.create(m_index);
+	}
+
+	void operator++() {
+		PFC_ASSERT(!finished());
+		++m_index;
+	}
+	void operator++(int) {
+		PFC_ASSERT(!finished());
+		++m_index;
+	}
+
+	bool finished() const {
+		return m_index >= m_helper.get_count();
+	}
+	
+	service_ptr_t<t_interface> operator*() const {
+		return get();
+	}
 private:
 	bool _next(service_ptr_t<t_interface> & p_out) {
 		return m_helper.create(p_out,m_index++);
@@ -622,6 +650,9 @@ private:
 	service_class_helper_t<t_interface> m_helper;
 };
 
+//! New fb2k service enumeration syntax
+//! for(auto e = FB2K_ENUMERATE(someclass); !e.finished(); ++e) { auto srv = *e; srv->do_stuff(); }
+#define FB2K_ENUMERATE(what_t) service_enum_t<what_t>()
 
 namespace fb2k {
 	//! Modern get-std-api helper. \n

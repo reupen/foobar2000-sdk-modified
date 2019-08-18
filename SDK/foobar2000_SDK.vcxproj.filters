@@ -284,6 +284,9 @@
     <ClInclude Include="file_lock_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="archive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="abort_callback.cpp">
@@ -458,6 +461,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="foosort.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="track_property.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
