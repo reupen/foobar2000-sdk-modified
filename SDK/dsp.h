@@ -76,8 +76,7 @@ public:
 	virtual void run_v2(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort) = 0;
 private:
 	void run(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags) {
-		abort_callback_dummy dummy;
-		run_v2(p_chunk_list,p_cur_file,p_flags,dummy);
+		run_v2(p_chunk_list,p_cur_file,p_flags,fb2k::noAbort);
 	}
 
 	FB2K_MAKE_SERVICE_INTERFACE(dsp_v2,dsp);
@@ -519,7 +518,7 @@ private:
 //! Helper.
 class dsp_preset_parser : public stream_reader_formatter<> {
 public:
-	dsp_preset_parser(const dsp_preset & in) : m_data(in), _m_stream(in.get_data(),in.get_data_size()), stream_reader_formatter(_m_stream,_m_abort) {}
+	dsp_preset_parser(const dsp_preset & in) : m_data(in), _m_stream(in.get_data(),in.get_data_size()), stream_reader_formatter(_m_stream,fb2k::noAbort) {}
 
 	void reset() {_m_stream.reset();}
 	t_size get_remaining() const {return _m_stream.get_remaining();}
@@ -531,14 +530,13 @@ public:
 	GUID get_owner() const {return m_data.get_owner();}
 private:
 	const dsp_preset & m_data;
-	abort_callback_dummy _m_abort;
 	stream_reader_memblock_ref _m_stream;
 };
 
 //! Helper.
 class dsp_preset_builder : public stream_writer_formatter<> {
 public:
-	dsp_preset_builder() : stream_writer_formatter(_m_stream,_m_abort) {}
+	dsp_preset_builder() : stream_writer_formatter(_m_stream,fb2k::noAbort) {}
 	void finish(const GUID & id, dsp_preset & out) {
 		out.set_owner(id);
 		out.set_data(_m_stream.m_buffer.get_ptr(), _m_stream.m_buffer.get_size());
@@ -547,7 +545,6 @@ public:
 		_m_stream.m_buffer.set_size(0);
 	}
 private:
-	abort_callback_dummy _m_abort;
 	stream_writer_buffer_simple _m_stream;
 };
 

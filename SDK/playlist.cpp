@@ -90,14 +90,14 @@ void playlist_manager::playlist_get_all_items(t_size p_playlist,pfc::list_base_t
 
 void playlist_manager::playlist_get_selected_items(t_size p_playlist,pfc::list_base_t<metadb_handle_ptr> & out)
 {
-	enum_items_callback_retrieve_selected_items callback(out);
-	playlist_enum_items(p_playlist, callback, pfc::bit_array_true());
+	enum_items_callback_retrieve_selected_items cb(out);
+	playlist_enum_items(p_playlist,cb,pfc::bit_array_true());
 }
 
 void playlist_manager::playlist_get_selection_mask(t_size p_playlist,bit_array_var & out)
 {
-	enum_items_callback_retrieve_selection_mask callback(out);
-	playlist_enum_items(p_playlist, callback, pfc::bit_array_true());
+	enum_items_callback_retrieve_selection_mask cb(out);
+	playlist_enum_items(p_playlist,cb,pfc::bit_array_true());
 }
 
 bool playlist_manager::playlist_is_item_selected(t_size p_playlist,t_size p_item)
@@ -134,9 +134,9 @@ bool playlist_manager::playlist_move_selection(t_size p_playlist,int p_delta) {
 	pfc::array_t<t_size> order; order.set_size(count);
 	pfc::array_t<bool> selection; selection.set_size(count);
 	
-	pfc::bit_array_var_table selection_table(selection.get_ptr(), selection.get_size());
-	playlist_get_selection_mask(p_playlist, selection_table);
-	g_make_selection_move_permutation(order.get_ptr(),count, pfc::bit_array_table(selection.get_ptr(),selection.get_size()),p_delta);
+	pfc::bit_array_var_table mask(selection.get_ptr(),selection.get_size());
+	playlist_get_selection_mask(p_playlist, mask);
+	g_make_selection_move_permutation(order.get_ptr(),count,mask,p_delta);
 	return playlist_reorder_items(p_playlist,order.get_ptr(),count);
 }
 
@@ -552,8 +552,8 @@ bool playlist_manager::highlight_playing_item()
 
 void playlist_manager::playlist_get_items(t_size p_playlist,pfc::list_base_t<metadb_handle_ptr> & out,const bit_array & p_mask)
 {
-	enum_items_callback_retrieve_all_items callback(out);
-	playlist_enum_items(p_playlist, callback, p_mask);
+	enum_items_callback_retrieve_all_items cb(out);
+	playlist_enum_items(p_playlist,cb,p_mask);
 }
 
 void playlist_manager::activeplaylist_get_items(pfc::list_base_t<metadb_handle_ptr> & out,const bit_array & p_mask)

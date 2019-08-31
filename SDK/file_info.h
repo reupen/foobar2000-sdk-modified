@@ -215,6 +215,7 @@ public:
 	uint32_t info_get_wfx_chanMask() const;
 
 	bool is_encoding_lossy() const;
+	bool is_encoding_overkill() const;
 
 
 	void info_calculate_bitrate(t_filesize p_filesize,double p_length);

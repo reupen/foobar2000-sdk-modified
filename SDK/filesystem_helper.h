@@ -470,21 +470,20 @@ FB2K_STREAM_READER_OVERLOAD(bool) {
 template<bool BE = false>
 class stream_writer_formatter_simple : public stream_writer_formatter<BE> {
 public:
-	stream_writer_formatter_simple() : stream_writer_formatter<BE>(_m_stream,_m_abort), m_buffer(_m_stream.m_buffer) {}
+	stream_writer_formatter_simple() : stream_writer_formatter<BE>(_m_stream,fb2k::noAbort), m_buffer(_m_stream.m_buffer) {}
 
 	typedef stream_writer_buffer_simple::t_buffer t_buffer;
 	t_buffer & m_buffer;
 private:
 	stream_writer_buffer_simple _m_stream;
-	abort_callback_dummy _m_abort;
 };
 
 template<bool BE = false>
 class stream_reader_formatter_simple_ref : public stream_reader_formatter<BE> {
 public:
-	stream_reader_formatter_simple_ref(const void * source, t_size sourceSize) : stream_reader_formatter<BE>(_m_stream,_m_abort), _m_stream(source,sourceSize) {}
-	template<typename TSource> stream_reader_formatter_simple_ref(const TSource& source) : stream_reader_formatter<BE>(_m_stream,_m_abort), _m_stream(source) {}
-	stream_reader_formatter_simple_ref() : stream_reader_formatter<BE>(_m_stream,_m_abort) {}
+	stream_reader_formatter_simple_ref(const void * source, t_size sourceSize) : stream_reader_formatter<BE>(_m_stream,fb2k::noAbort), _m_stream(source,sourceSize) {}
+	template<typename TSource> stream_reader_formatter_simple_ref(const TSource& source) : stream_reader_formatter<BE>(_m_stream,fb2k::noAbort), _m_stream(source) {}
+	stream_reader_formatter_simple_ref() : stream_reader_formatter<BE>(_m_stream,fb2k::noAbort) {}
 
 	void set_data(const void * source, t_size sourceSize) {_m_stream.set_data(source,sourceSize);}
 	template<typename TSource> void set_data(const TSource & source) {_m_stream.set_data(source);}
@@ -495,7 +494,6 @@ public:
 	const void * get_ptr_() const {return _m_stream.get_ptr_();}
 private:
 	stream_reader_memblock_ref _m_stream;
-	abort_callback_dummy _m_abort;
 };
 
 template<bool BE = false>

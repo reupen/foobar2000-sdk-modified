@@ -411,6 +411,19 @@ void file_info::info_calculate_bitrate(t_filesize p_filesize,double p_length)
 	if ( b > 0 ) info_set_bitrate(b);
 }
 
+bool file_info::is_encoding_overkill() const {
+	auto bs = info_get_int("bitspersample");
+	auto extra = info_get("bitspersample_extra");
+	if ( bs <= 24 ) return false; // fixedpoint up to 24bit, OK
+	if ( bs > 32 ) return true; // fixed or float beyond 32bit, overkill
+
+	if ( extra != nullptr ) {
+		if (strcmp(extra, "fixed-point") == 0) return true; // int32, overkill
+	}
+
+	return false;
+}
+
 bool file_info::is_encoding_lossy() const {
 	const char * encoding = info_get("encoding");
 	if (encoding != NULL) {

@@ -1,6 +1,7 @@
 #pragma once
-#include "CFlashWindow.h"
-#include "misc.h"
+
+#include <libPPUI/CFlashWindow.h>
+#include "atl-misc.h"
 
 #include <utility>
 
@@ -38,7 +39,7 @@ private:
 		SetMsgHandled(FALSE);
 	}
 	bool _bump() {
-		if (m_selfDestruct || m_hWnd == NULL) return false;
+		if (m_selfDestruct || this->m_hWnd == NULL) return false;
 		//PROBLEM: This assumes we're implementing service_base methods at this point. Explodes if called during constructors/destructors.
 		if (!this->m_callback->request_activation(this)) return false;
 		m_flash.Activate(*this);
@@ -61,12 +62,12 @@ pfc::avltree_t<ImplementBumpableElem<TClass> *> ImplementBumpableElem<TClass>::i
 
 template<typename TImpl, typename TInterface = ui_element_v2> class ui_element_impl_withpopup : public ui_element_impl<ImplementBumpableElem<TImpl>, TInterface> {
 public:
-	t_uint32 get_flags() {return KFlagHavePopupCommand | KFlagSupportsBump;}
+	t_uint32 get_flags() {return ui_element_v2::KFlagHavePopupCommand | ui_element_v2::KFlagSupportsBump;}
 	bool bump() {return ImplementBumpableElem<TImpl>::Bump();}
 };
 
 template<typename TImpl, typename TInterface = ui_element_v2> class ui_element_impl_visualisation : public ui_element_impl<ImplementBumpableElem<TImpl>, TInterface> {
 public:
-	t_uint32 get_flags() {return KFlagsVisualisation | KFlagSupportsBump;}
+	t_uint32 get_flags() {return ui_element_v2::KFlagsVisualisation | ui_element_v2::KFlagSupportsBump;}
 	bool bump() {return ImplementBumpableElem<TImpl>::Bump();}
 };

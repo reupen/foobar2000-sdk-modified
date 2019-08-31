@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../helpers/win32_misc.h"
-#include "WTL-PP.h"
+#include "win32_misc.h"
+#include <libPPUI/WTL-PP.h>
 #include <utility>
 
 class CMenuSelectionReceiver : public CWindowImpl<CMenuSelectionReceiver> {
@@ -129,7 +129,7 @@ public:
 		CHAIN_MSG_MAP(TClass)
 	END_MSG_MAP_HOOK()
 private:
-	BOOL OnInitDialog(CWindow, LPARAM) {m_modeless.Set( m_hWnd ); SetMsgHandled(FALSE); return FALSE; }
+	BOOL OnInitDialog(CWindow, LPARAM) {m_modeless.Set( this->m_hWnd ); SetMsgHandled(FALSE); return FALSE; }
 	void OnDestroy() {m_modeless.Set(NULL); SetMsgHandled(FALSE); }
 	CModelessDialogEntry m_modeless;
 };
@@ -155,45 +155,6 @@ private:
 	const service_ptr_t<ui_element_instance> m_owner;
 };
 
-void ui_element_instance_standard_context_menu(service_ptr_t<ui_element_instance> p_elem, LPARAM p_pt);
-void ui_element_instance_standard_context_menu_eh(service_ptr_t<ui_element_instance> p_elem, LPARAM p_pt);
-
-#if _WIN32_WINNT >= 0x501
-void HeaderControl_SetSortIndicator(CHeaderCtrl header, int column, bool isUp);
-#endif
-
-class CTypableWindowScope {
-public:
-	CTypableWindowScope() : m_wnd() {}
-	~CTypableWindowScope() {Set(NULL);}
-	void Set(HWND wnd) {
-		try {
-			if (m_wnd != NULL) {
-				static_api_ptr_t<ui_element_typable_window_manager>()->remove(m_wnd);
-			}
-			m_wnd = wnd;
-			if (m_wnd != NULL) {
-				static_api_ptr_t<ui_element_typable_window_manager>()->add(m_wnd);
-			}
-		} catch(exception_service_not_found) {
-			m_wnd = NULL;
-		}
-	}
-
-private:
-	HWND m_wnd;
-	PFC_CLASS_NOT_COPYABLE_EX(CTypableWindowScope);
-};
-
-
-template<typename TBase> class CContainedWindowSimpleT : public CContainedWindowT<TBase>, public CMessageMap {
-public:
-	CContainedWindowSimpleT() : CContainedWindowT<TBase>(this) {}
-	BEGIN_MSG_MAP(CContainedWindowSimpleT)
-	END_MSG_MAP()
-};
-
-
 static bool window_service_trait_defer_destruction(const service_base *) {return true;}
 
 
@@ -214,9 +175,9 @@ public:
 		if (ret == 0) {
 			if (window_service_trait_defer_destruction(this) && !InterlockedExchange(&m_delayedDestroyInProgress,1)) {
 				PFC_ASSERT_NO_EXCEPTION( service_impl_helper::release_object_delayed(this); );
-			} else if (m_hWnd != NULL) {
+			} else if (this->m_hWnd != NULL) {
 				if (!m_destroyWindowInProgress) { // don't double-destroy in weird scenarios
-					PFC_ASSERT_NO_EXCEPTION( ::DestroyWindow(m_hWnd) );
+					PFC_ASSERT_NO_EXCEPTION( ::DestroyWindow(this->m_hWnd) );
 				}
 			} else {
 				PFC_ASSERT_NO_EXCEPTION( delete this );
@@ -241,6 +202,12 @@ private:
 	pfc::refcounter m_counter;
 };
 
+namespace fb2k {
+	template<typename obj_t, typename ... arg_t> 
+	service_ptr_t<obj_t> service_new_window(arg_t && ... arg) {
+		return new window_service_impl_t< obj_t > ( std::forward<arg_t> (arg) ... );
+	}
+}
 
 static void AppendMenuPopup(HMENU menu, UINT flags, CMenu & popup, const TCHAR * label) {
 	PFC_ASSERT( flags & MF_POPUP );
@@ -254,143 +221,27 @@ public:
 		LRESULT& lResult, DWORD dwMsgMapID) {return FALSE;}
 };
 
-class CPopupTooltipMessage {
-public:
-	CPopupTooltipMessage(DWORD style = TTS_BALLOON | TTS_NOPREFIX) : m_style(style | WS_POPUP), m_toolinfo(), m_shutDown() {}
-	void ShowFocus(const TCHAR * message, CWindow wndParent) {
-		Show(message, wndParent); wndParent.SetFocus();
-	}
-	void Show(const TCHAR * message, CWindow wndParent) {
-		if (m_shutDown || (message == NULL && m_tooltip.m_hWnd == NULL)) return;
-		Initialize();
-		Hide();
-		
-		if (message != NULL) {
-			CRect rect;
-			WIN32_OP_D( wndParent.GetWindowRect(rect) );
-			ShowInternal(message, wndParent, rect);
-		}
-	}
-	void ShowEx(const TCHAR * message, CWindow wndParent, CRect rect) {
-		if (m_shutDown) return;
-		Initialize();
-		Hide();
-		ShowInternal(message, wndParent, rect);
-	}
-	void Hide() {
-		if (m_tooltip.m_hWnd != NULL && m_tooltip.GetToolCount() > 0) {
-			m_tooltip.TrackActivate(&m_toolinfo,FALSE);
-			m_tooltip.DelTool(&m_toolinfo);
-		}
-	}
-
-	void CleanUp() {
-		if (m_tooltip.m_hWnd != NULL) {
-			m_tooltip.DestroyWindow();
-		}
-	}
-	void ShutDown() {
-		m_shutDown = true; CleanUp();
-	}
-private:
-	void ShowInternal(const TCHAR * message, CWindow wndParent, CRect rect) {
-
-		PFC_ASSERT( !m_shutDown );
-		PFC_ASSERT( message != NULL );
-		PFC_ASSERT( wndParent != NULL );
-		
-		if ( _tcschr( message, '\n') != nullptr ) {
-			m_tooltip.SetMaxTipWidth( rect.Width() );
-		}
-		m_toolinfo.cbSize = sizeof(m_toolinfo);
-		m_toolinfo.uFlags = TTF_TRACK|TTF_IDISHWND|TTF_ABSOLUTE|TTF_TRANSPARENT|TTF_CENTERTIP;
-		m_toolinfo.hwnd = wndParent;
-		m_toolinfo.uId = 0;
-		m_toolinfo.lpszText = const_cast<TCHAR*>(message);
-		m_toolinfo.hinst = NULL; //core_api::get_my_instance();
-		if (m_tooltip.AddTool(&m_toolinfo)) {
-			m_tooltip.TrackPosition(rect.CenterPoint().x,rect.bottom);
-			m_tooltip.TrackActivate(&m_toolinfo,TRUE);
-		}
-	}
-	void Initialize() {
-		if (m_tooltip.m_hWnd == NULL) {
-			WIN32_OP( m_tooltip.Create( NULL , NULL, NULL, m_style) );
-		}
-	}
-	CContainedWindowSimpleT<CToolTipCtrl> m_tooltip;
-	TOOLINFO m_toolinfo;
-	const DWORD m_style;
-	bool m_shutDown;
-};
-
-
-template<typename T> class CDialogWithTooltip : public CDialogImpl<T> {
-public:
-	BEGIN_MSG_MAP(CDialogWithTooltip)
-		MSG_WM_DESTROY(OnDestroy)
-	END_MSG_MAP()
-
-	void ShowTip(UINT id, const TCHAR * label) {
-		m_tip.Show(label, GetDlgItem(id));
-	}
-	void ShowTip(HWND child, const TCHAR * label) {
-		m_tip.Show(label, child);
-	}
-
-	void ShowTipF(UINT id, const TCHAR * label) {
-		m_tip.ShowFocus(label, GetDlgItem(id));
-	}
-	void ShowTipF(HWND child, const TCHAR * label) {
-		m_tip.ShowFocus(label, child);
-	}
-	void HideTip() {m_tip.Hide();}
-private:
-	void OnDestroy() {m_tip.ShutDown(); SetMsgHandled(FALSE); }
-	CPopupTooltipMessage m_tip;
-};
 
 
 
 
-
-
-
-
-static void ListView_FixContextMenuPoint(CListViewCtrl list,CPoint & coords) {
-	if (coords == CPoint(-1,-1)) {
-		int selWalk = -1;
-		CRect rcClient; WIN32_OP_D(list.GetClientRect(rcClient));
-		for(;;) {
-			selWalk = list.GetNextItem(selWalk, LVNI_SELECTED);
-			if (selWalk < 0) {
-				CRect rc;
-				WIN32_OP_D( list.GetWindowRect(&rc) );
-				coords = rc.CenterPoint();
-				return;
-			}
-			CRect rcItem, rcVisible;
-			WIN32_OP_D( list.GetItemRect(selWalk, &rcItem, LVIR_BOUNDS) );
-			if (rcVisible.IntersectRect(rcItem, rcClient)) {
-				coords = rcVisible.CenterPoint();
-				WIN32_OP_D( list.ClientToScreen(&coords) );
-				return;
-			}
-		}
-	}
-}
 
 
 template<typename TDialog> class preferences_page_instance_impl : public TDialog {
 public:
-	preferences_page_instance_impl(HWND parent, preferences_page_callback::ptr callback) : TDialog(callback) {WIN32_OP(this->Create(parent) != NULL);}
+	preferences_page_instance_impl(HWND parent, preferences_page_callback::ptr callback) : TDialog(callback) {
+		WIN32_OP(this->Create(parent) != NULL);
+
+		// complain early if what we created isn't a child window
+		PFC_ASSERT( (this->GetStyle() & (WS_POPUP|WS_CHILD)) == WS_CHILD );
+	}
 	HWND get_wnd() {return this->m_hWnd;}
 };
 static bool window_service_trait_defer_destruction(const preferences_page_instance *) {return false;}
 template<typename TDialog> class preferences_page_impl : public preferences_page_v3 {
 public:
 	preferences_page_instance::ptr instantiate(HWND parent, preferences_page_callback::ptr callback) {
-		return new window_service_impl_t<preferences_page_instance_impl<TDialog> >(parent, callback);
+		return fb2k::service_new_window<preferences_page_instance_impl<TDialog> >(parent, callback);
 	}
 };
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../helpers/win32_misc.h"
+#include "win32_misc.h"
 
 static BOOL AdjustWindowRectHelper(CWindow wnd, CRect & rc) {
 	const DWORD style = wnd.GetWindowLong(GWL_STYLE), exstyle = wnd.GetWindowLong(GWL_EXSTYLE);
@@ -58,10 +58,10 @@ class cfgWindowSize : public cfg_var {
 public:
 	cfgWindowSize(const GUID & p_guid) : cfg_var(p_guid), m_width(~0), m_height(~0) {}
 	void get_data_raw(stream_writer * p_stream,abort_callback & p_abort) {
-		stream_writer_formatter<>(*p_stream,p_abort) << m_width << m_height;
+		stream_writer_formatter<> str(*p_stream,p_abort); str << m_width << m_height;
 	}
 	void set_data_raw(stream_reader * p_stream,t_size p_sizehint,abort_callback & p_abort) {
-		stream_reader_formatter<>(*p_stream,p_abort) >> m_width >> m_height;
+		stream_reader_formatter<> str(*p_stream,p_abort); str >> m_width >> m_height;
 	}
 
 	t_uint32 m_width, m_height;
@@ -290,8 +290,8 @@ FB2K_STREAM_WRITER_OVERLOAD(cfgDialogPositionData) {
 class cfgDialogPosition : public cfgDialogPositionData, public cfg_var {
 public:
 	cfgDialogPosition(const GUID & id) : cfg_var(id) {}
-	void get_data_raw(stream_writer * p_stream,abort_callback & p_abort) {FetchConfig(); stream_writer_formatter<>(*p_stream, p_abort) << *pfc::implicit_cast<cfgDialogPositionData*>(this);}
-	void set_data_raw(stream_reader * p_stream,t_size p_sizehint,abort_callback & p_abort) {stream_reader_formatter<>(*p_stream, p_abort) >> *pfc::implicit_cast<cfgDialogPositionData*>(this);}
+	void get_data_raw(stream_writer * p_stream,abort_callback & p_abort) {FetchConfig(); stream_writer_formatter<> str(*p_stream, p_abort); str << *pfc::implicit_cast<cfgDialogPositionData*>(this);}
+	void set_data_raw(stream_reader * p_stream,t_size p_sizehint,abort_callback & p_abort) {stream_reader_formatter<> str(*p_stream, p_abort); str >> *pfc::implicit_cast<cfgDialogPositionData*>(this);}
 };
 
 class cfgDialogPositionTracker {

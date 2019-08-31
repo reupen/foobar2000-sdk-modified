@@ -61,8 +61,11 @@ namespace file_list_helper
 			_add(temp);
 		}
 		file_list_remove_duplicates(m_data);
+	}
 
-
+	file_list_from_metadb_handle_list::file_list_from_metadb_handle_list(metadb_handle_list_cref lst, bool bDisplayPaths) {
+		if ( bDisplayPaths ) init_from_list_display(lst);
+		else init_from_list( lst );
 	}
 
 	t_size file_list_from_metadb_handle_list::get_count() const {return m_data.get_count();}

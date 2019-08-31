@@ -3,8 +3,8 @@
 #if FOOBAR2000_TARGET_VERSION >= 79
 
 #include "ui_element_helpers.h"
-#include "../helpers/IDataObjectUtils.h"
-#include "misc.h"
+#include <libPPUI/IDataObjectUtils.h>
+#include "atl-misc.h"
 
 namespace ui_element_helpers {
 
@@ -19,7 +19,7 @@ namespace ui_element_helpers {
 			if (!find(ptr,cfg->get_guid())) throw exception_io_data("UI Element Not Found");
 			auto ret = ptr->instantiate(p_parent,cfg,p_callback);
 			if (ret.is_empty()) throw std::runtime_error("Null UI Element returned");
-			return std::move(ret);
+			return ret;
 		} catch(std::exception const & e) {
 			console::complain("UI Element instantiation failure",e);
 			return instantiate_dummy(p_parent,cfg,p_callback);
@@ -51,7 +51,7 @@ namespace ui_element_helpers {
 };
 
 void ui_element_helpers::replace_with_new_element(ui_element_instance_ptr & p_item,const GUID & p_guid,HWND p_parent,ui_element_instance_callback_ptr p_callback) {
-	abort_callback_dummy l_abort;
+	auto & l_abort = fb2k::noAbort;
 	ui_element_config::ptr cfg;
 	try {
 		if (p_item.is_empty()) {
@@ -350,4 +350,41 @@ bool ui_element_helpers::ui_element_instance_host_base::grabTopPriorityChild(ui_
 	if (best.is_empty()) return false;
 	out = best; outPriority = bestPriority; outWhich = bestWhich; return true;
 }
+
+void ui_element_instance_standard_context_menu(service_ptr_t<ui_element_instance> p_elem, LPARAM p_pt) {
+	CPoint pt;
+	bool fromKeyboard;
+	if (p_pt == -1) {
+		fromKeyboard = true;
+		if (!p_elem->edit_mode_context_menu_get_focus_point(pt)) {
+			CRect rc;
+			WIN32_OP_D(GetWindowRect(p_elem->get_wnd(), rc));
+			pt = rc.CenterPoint();
+		}
+	} else {
+		fromKeyboard = false;
+		pt = p_pt;
+	}
+	if (p_elem->edit_mode_context_menu_test(pt, fromKeyboard)) {
+		const unsigned idBase = 1;
+		CMenu menu;
+		WIN32_OP(menu.CreatePopupMenu());
+		p_elem->edit_mode_context_menu_build(pt, fromKeyboard, menu, idBase);
+
+		int cmd;
+		{
+			CMenuSelectionReceiver_UiElement receiver(p_elem, idBase);
+			cmd = menu.TrackPopupMenu(TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, receiver);
+		}
+		if (cmd > 0) p_elem->edit_mode_context_menu_command(pt, fromKeyboard, cmd, idBase);
+	}
+}
+void ui_element_instance_standard_context_menu_eh(service_ptr_t<ui_element_instance> p_elem, LPARAM p_pt) {
+	try {
+		ui_element_instance_standard_context_menu(p_elem, p_pt);
+	} catch (std::exception const & e) {
+		console::complain("Context menu failure", e);
+	}
+}
+
 #endif // FOOBAR2000_TARGET_VERSION >= 79

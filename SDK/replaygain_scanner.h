@@ -73,6 +73,14 @@ public:
 	virtual replaygain_scanner::ptr instantiate(uint32_t flags) = 0;
 };
 
+//! Internal service introduced in 1.5. No guarantees about compatibility. May be changed or removed at any time.
+class replaygain_scanner_config : public service_base {
+	FB2K_MAKE_SERVICE_COREAPI(replaygain_scanner_config);
+public:
+	virtual void get_album_pattern( pfc::string_base & out ) = 0;
+	virtual uint64_t get_read_size_bytes() = 0;
+};
+
 #ifdef FOOBAR2000_DESKTOP
 //! \since 1.4
 //! A class for applying gain to compressed audio packets such as MP3 or AAC. \n

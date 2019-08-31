@@ -29,7 +29,10 @@ namespace fb2k {
 }
 
 namespace pfc {
-	// Redirect PFC methods to shared.dll
+	/*
+	Redirect PFC methods to shared.dll
+	If you're getting linker multiple-definition errors on these, change build configuration of PFC from "Debug" / "Release" to "Debug FB2K" / "Release FB2K"
+	*/
 	BOOL winFormatSystemErrorMessageHook(pfc::string_base & p_out, DWORD p_code) {
 		return uFormatSystemErrorMessage(p_out, p_code);
 	}

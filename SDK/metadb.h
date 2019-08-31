@@ -1,3 +1,5 @@
+#pragma once
+
 //! API for tag read/write operations. Legal to call from main thread only, except for hint_multi_async() / hint_async() / hint_reader().\n
 //! Implemented only by core, do not reimplement.\n
 //! Use static_api_ptr_t template to access metadb_io methods.\n
@@ -64,47 +66,111 @@ public:
 
 //! Implementing this class gives you direct control over which part of file_info gets altered during a tag update uperation. To be used with metadb_io_v2::update_info_async().
 class NOVTABLE file_info_filter : public service_base {
+	FB2K_MAKE_SERVICE_INTERFACE(file_info_filter, service_base);
 public:
 	//! Alters specified file_info entry; called as a part of tag update process. Specified file_info has been read from a file, and will be written back.\n
 	//! WARNING: This will be typically called from another thread than main app thread (precisely, from thread created by tag updater). You should copy all relevant data to members of your file_info_filter instance in constructor and reference only member data in apply_filter() implementation.
 	//! @returns True when you have altered file_info and changes need to be written back to the file; false if no changes have been made.
 	virtual bool apply_filter(metadb_handle_ptr p_location,t_filestats p_stats,file_info & p_info) = 0;
-	
-	FB2K_MAKE_SERVICE_INTERFACE(file_info_filter,service_base);
 };
 
-//! Advanced interface for passing infos read from files to metadb backend. Use metadb_io_v2::create_hint_list() to instantiate.
+//! Extended file_info_filter allowing the caller to do their own manipulation of the file before and after the metadata update takes place. \n
+//! Respected by foobar2000 v1.5 and up; if metadb_io_v4 is supported, then file_info_filter_v2 is understood.
+class NOVTABLE file_info_filter_v2 : public file_info_filter {
+	FB2K_MAKE_SERVICE_INTERFACE(file_info_filter_v2, file_info_filter);
+public:
+
+	enum filterStatus_t {
+		filterNoUpdate = 0,
+		filterProceed,
+		filterAlreadyUpdated
+	};
+	//! Called after just before rewriting metadata. The file is not yet opened for writing, but a file_lock has already been granted (so don't call it on your own). \n
+	//! You can use this method to perform album art updates (via album_art_editor API) alongside metadata updates. \n
+	//! Return value can be used to stop fb2k from proceeding with metadata update on this file. \n
+	//! If your own operations on this file fail, just pass the exceptions to the caller and they will be reported just as other tag update errors.
+	//! @param fileIfAlreadyOpened Reference to an already opened file object, if already opened by the caller. May be null.
+	virtual filterStatus_t before_tag_update( const char * location, file::ptr fileIfAlreadyOpened, abort_callback & aborter ) = 0;
+
+	//! Called after metadata has been updated. \n
+	//! If you wish to alter the file on your own, use before_tag_update() for this instead. \n
+	//! If your own operations on this file fail, just pass the exceptions to the caller and they will be reported just as other tag update errors. \n
+	//! The passed reader object can be used to read the properties of the updated file back. In most cases it will be the writer that was used to update the tags. Do not call tag writing methods on it from this function.
+	virtual void after_tag_update( const char * location, service_ptr_t<class input_info_reader> reader, abort_callback & aborter ) = 0;
+
+	virtual void after_all_tag_updates( abort_callback & aborter ) = 0;
+
+	//! Allows you to do your own error logging.
+	//! @returns True if the error has been noted by your code and does not need to be shown to the user.
+	virtual bool filter_error( const char * location, const char * msg ) = 0;
+};
+
+//! Advanced interface for passing infos read from files to metadb backend. Use metadb_io_v2::create_hint_list() to instantiate. \n
+//! Thread safety: all methods other than on_done() are intended for worker threads. Instantiate and use the object in a worker thread, call on_done() in main thread to finalize. \n
+//! Typical usage pattern: create a hint list (in any thread), hand infos to it from files that you work with (in a worker thread), call on_done() in main thread. \n
 class NOVTABLE metadb_hint_list : public service_base {
 	FB2K_MAKE_SERVICE_INTERFACE(metadb_hint_list,service_base);
 public:
+	//! Helper.
+	static metadb_hint_list::ptr create();
 	//! Adds a hint to the list.
 	//! @param p_location Location of the item the hint applies to.
 	//! @param p_info file_info object describing the item.
 	//! @param p_stats Information about the file containing item the hint applies to.
 	//! @param p_freshflag Set to true if the info has been directly read from the file, false if it comes from another source such as a playlist file.
 	virtual void add_hint(metadb_handle_ptr const & p_location,const file_info & p_info,const t_filestats & p_stats,bool p_freshflag) = 0;
-	//! Reads info from specified info reader instance and adds hints. May throw an exception in case info read has failed.
+	//! Reads info from specified info reader instance and adds hints. May throw an exception in case info read has failed. \n
+	//! If the file has multiple subsongs, info from all the subsongs will be read and pssed to add_hint(). \n
+	//! Note that an input_info_writer is a subclass of input_info_reader - so any input_info_reader OR input_info_writer is a valid argument for add_hint_reader(). \n
+	//! This method is often called with your input_info_writer instance after committing tag updates, to notify metadb about altered tags.
 	virtual void add_hint_reader(const char * p_path,service_ptr_t<input_info_reader> const & p_reader,abort_callback & p_abort) = 0;
-	//! Call this when you're done working with this metadb_hint_list instance, to apply hints and dispatch callbacks. If you don't call this, all added hints will be ignored.
+	//! Call this when you're done working with this metadb_hint_list instance, to apply hints and dispatch callbacks. \n
+	//! If you don't call this, all added hints will be ignored. \n
+	//! As a general rule, you should add as many infos as possible - such as all the tracks involved in some operation that you perform - then call on_done() once. \n
+	//! on_done() is expensive because it not only updates the metadb, but tells all components about the changes made - refreshes playlists/autoplaylists, library viewers, etc. \n
+	//! Calling on_done() repeatedly is inefficient and should be avoided.
 	virtual void on_done() = 0;
 };
 
 //! \since 1.0
+//! To obtain metadb_hint_list_v2, use service_query on a metadb_hint_list object. \n
+//! Simplified: metadb_hint_list_v2::ptr v2; v2 ^= myHintList;  ( causes bugcheck if old fb2k / no interface ).
 class NOVTABLE metadb_hint_list_v2 : public metadb_hint_list {
 	FB2K_MAKE_SERVICE_INTERFACE(metadb_hint_list_v2, metadb_hint_list);
 public:
+	//! Helper.
+	static metadb_hint_list_v2::ptr create();
+	//! Hint with browse info. \n
+	//! See: metadb_handle::get_browse_info() for browse info rationale.
+	//! @param p_location Location for which we're providing browse info.
+	//! @param p_info Browse info for this location.
+	//! @param browseTS timestamp of the browse info - such as last-modified time of the playlist file providing browse info.
 	virtual void add_hint_browse(metadb_handle_ptr const & p_location,const file_info & p_info, t_filetimestamp browseTS) = 0;
 };
 
 //! \since 1.3
+//! To obtain metadb_hint_list_v3, use service_query on a metadb_hint_list object. \n
+//! Simplified: metadb_hint_list_v3::ptr v3; v3 ^= myHintList;  ( causes bugcheck if old fb2k / no interface ).
 class NOVTABLE metadb_hint_list_v3 : public metadb_hint_list_v2 {
 	FB2K_MAKE_SERVICE_INTERFACE(metadb_hint_list_v3, metadb_hint_list_v2);
 public:
+	//! Helper.
+	static metadb_hint_list_v3::ptr create();
+	//! Hint primary info with a metadb_info_container.
 	virtual void add_hint_v3(metadb_handle_ptr const & p_location, metadb_info_container::ptr info,bool p_freshflag) = 0;
+	//! Hint browse info with a metadb_info_container.
 	virtual void add_hint_browse_v3(metadb_handle_ptr const & p_location,metadb_info_container::ptr info) = 0;
 
+	//! Add a forced hint.\n
+	//! A normal hint may or may not cause metadb update - metadb is not updated if the file has not changed according to last modified time. \n
+	//! A forced hint always updates metadb regardless of timestamps.
 	virtual void add_hint_forced(metadb_handle_ptr const & p_location, const file_info & p_info,const t_filestats & p_stats,bool p_freshflag) = 0;
+	//! Add a forced hint, with metadb_info_container. \n
+	//! Forced hint rationale - see add_hint_forced().
 	virtual void add_hint_forced_v3(metadb_handle_ptr const & p_location, metadb_info_container::ptr info,bool p_freshflag) = 0;
+	//! Adds a forced hint, with an input_info_reader. \n
+	//! Forced hint rationale - see add_hint_forced(). \n
+	//! Info reader use rationale - see add_hint_reader(). 
 	virtual void add_hint_forced_reader(const char * p_path,service_ptr_t<input_info_reader> const & p_reader,abort_callback & p_abort) = 0;
 };
 
@@ -149,7 +215,8 @@ public:
 	//! @param p_notify Called when the task is completed. Status code is one of t_update_info values. Can be null if caller doesn't care.
 	virtual void remove_info_async(metadb_handle_list_cref p_list,HWND p_parent_window,t_uint32 p_op_flags,completion_notify_ptr p_notify) = 0;
 
-	//! Creates a metadb_hint_list object.
+	//! Creates a metadb_hint_list object. \n
+	//! Contrary to other metadb_io methods, this can be safely called in a worker thread. You only need to call the hint list's on_done() method in main thread to finalize.
 	virtual metadb_hint_list::ptr create_hint_list() = 0;
 
 	//! Updates tags of the specified tracks. Helper; uses update_info_async internally.
@@ -162,6 +229,8 @@ public:
 	//! Helper to be called after a file has been rechaptered. \n
 	//! Forcibly reloads info then tells playlist_manager to update all affected playlists.
 	void on_file_rechaptered( const char * path, metadb_handle_list_cref newItems );
+	//! Helper to be called after a file has been rechaptered. \n
+	//! Forcibly reloads info then tells playlist_manager to update all affected playlists.
 	void on_files_rechaptered( metadb_handle_list_cref newHandles );
 
 	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(metadb_io_v2,metadb_io);
@@ -174,7 +243,7 @@ public:
 	virtual void on_changed_sorted(metadb_handle_list_cref p_items_sorted, bool p_fromhook) = 0;
 };
 
-//! New (0.9.5)
+//! \since 0.9.5
 class NOVTABLE metadb_io_v3 : public metadb_io_v2 {
 public:
 	virtual void register_callback(metadb_io_callback_dynamic * p_callback) = 0;
@@ -182,6 +251,29 @@ public:
 
 	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(metadb_io_v3,metadb_io_v2);
 };
+
+
+class threaded_process_callback;
+
+#if FOOBAR2000_TARGET_VERSION >= 80
+//! \since 1.5
+class NOVTABLE metadb_io_v4 : public metadb_io_v3 {
+	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(metadb_io_v4, metadb_io_v3);
+public:
+	//! Creates an update-info task, that can be either fed to threaded_process API, or invoked by yourself respecting threaded_process semantics. \n
+	//! May return null pointer if the operation has been refused (by user settings or such). \n
+	//! Useful for performing the operation with your own in-dialog progress display instead of the generic progress popup.
+	virtual service_ptr_t<threaded_process_callback> spawn_update_info( metadb_handle_list_cref items, service_ptr_t<file_info_filter> p_filter, uint32_t opFlags, completion_notify_ptr reply ) = 0;
+	//! Creates an remove-info task, that can be either fed to threaded_process API, or invoked by yourself respecting threaded_process semantics. \n
+	//! May return null pointer if the operation has been refused (by user settings or such). \n
+	//! Useful for performing the operation with your own in-dialog progress display instead of the generic progress popup.
+	virtual service_ptr_t<threaded_process_callback> spawn_remove_info( metadb_handle_list_cref items, uint32_t opFlags, completion_notify_ptr reply) = 0;
+	//! Creates an load-info task, that can be either fed to threaded_process API, or invoked by yourself respecting threaded_process semantics. \n
+	//! May return null pointer if the operation has been refused (for an example no loading is needed for these items). \n
+	//! Useful for performing the operation with your own in-dialog progress display instead of the generic progress popup.
+	virtual service_ptr_t<threaded_process_callback> spawn_load_info( metadb_handle_list_cref items, t_load_info_type opType, uint32_t opFlags, completion_notify_ptr reply) = 0;
+};
+#endif
 
 //! metadb_io_callback_dynamic implementation helper.
 class metadb_io_callback_dynamic_impl_base : public metadb_io_callback_dynamic {

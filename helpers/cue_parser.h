@@ -62,9 +62,10 @@ namespace file_info_record_helper {
 namespace cue_parser
 {
 	struct cue_entry {
-		pfc::string8 m_file;
+		pfc::string8 m_file, m_fileType;
 		unsigned m_track_number;
 		t_cuesheet_index_list m_indexes;
+		bool isFileBinary() const {return pfc::stringEqualsI_ascii(m_fileType, "BINARY");}
 	};
 
 	typedef pfc::chain_list_v2_t<cue_entry> t_cue_entry_list;

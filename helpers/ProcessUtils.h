@@ -2,6 +2,8 @@
 
 #ifdef FOOBAR2000_DESKTOP_WINDOWS
 
+#include <libPPUI/win32_op.h>
+
 namespace ProcessUtils {
 	class PipeIO : public stream_reader, public stream_writer {
 	public:

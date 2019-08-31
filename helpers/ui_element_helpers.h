@@ -371,4 +371,7 @@ namespace ui_element_helpers {
 	void handle_WM_GETMINMAXINFO(LPARAM p_lp,const ui_element_min_max_info & p_myinfo);
 };
 
+void ui_element_instance_standard_context_menu(service_ptr_t<ui_element_instance> p_elem, LPARAM p_pt);
+void ui_element_instance_standard_context_menu_eh(service_ptr_t<ui_element_instance> p_elem, LPARAM p_pt);
+
 #endif // FOOBAR2000_TARGET_VERSION >= 79

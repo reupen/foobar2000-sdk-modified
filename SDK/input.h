@@ -102,8 +102,8 @@ public:
 	//! Returned raw data should be possible to cut into individual samples; size in bytes should be divisible by audio_chunk's sample count for splitting in case partial output is needed (with cuesheets etc).
 	virtual bool run_raw(audio_chunk & out, mem_block_container & outRaw, abort_callback & abort) = 0;
 
-	//! OPTIONAL, the call is ignored if this implementation doesn't support status logging. \n
-	//! Mainly used to generate logs when ripping CDs etc.
+	//! OBSOLETE since 1.5 \n
+	//! Specify logger when opening to reliably get info generated during input open operation.
 	virtual void set_logger(event_logger::ptr ptr) = 0;
 };
 
@@ -224,16 +224,16 @@ public:
 	static bool g_is_supported_path(const char * p_path);
 	static bool g_find_inputs_by_content_type(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_content_type, bool p_from_redirect);
 	static bool g_find_inputs_by_path(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_path, bool p_from_redirect);
-	static service_ptr g_open(const GUID & whatFor, file::ptr hint, const char * path, abort_callback & aborter, bool fromRedirect = false);
+	static service_ptr g_open(const GUID & whatFor, file::ptr hint, const char * path, event_logger::ptr logger, abort_callback & aborter, bool fromRedirect = false);
 
 	void open(service_ptr_t<input_decoder> & p_instance,service_ptr_t<file> const & p_filehint,const char * p_path,abort_callback & p_abort) {open_for_decoding(p_instance,p_filehint,p_path,p_abort);}
 	void open(service_ptr_t<input_info_reader> & p_instance,service_ptr_t<file> const & p_filehint,const char * p_path,abort_callback & p_abort) {open_for_info_read(p_instance,p_filehint,p_path,p_abort);}
 	void open(service_ptr_t<input_info_writer> & p_instance,service_ptr_t<file> const & p_filehint,const char * p_path,abort_callback & p_abort) {open_for_info_write(p_instance,p_filehint,p_path,p_abort);}
-	service_ptr open(const GUID & whatFor, file::ptr hint, const char * path, abort_callback & aborter);
+	service_ptr open(const GUID & whatFor, file::ptr hint, const char * path, event_logger::ptr logger, abort_callback & aborter);
 
 	typedef pfc::list_base_const_t< input_entry::ptr > input_entry_list_t;
 
-	static service_ptr g_open_from_list(input_entry_list_t const & list, const GUID & whatFor, file::ptr hint, const char * path, abort_callback & aborter, GUID * outGUID = nullptr);
+	static service_ptr g_open_from_list(input_entry_list_t const & list, const GUID & whatFor, file::ptr hint, const char * path, event_logger::ptr logger, abort_callback & aborter, GUID * outGUID = nullptr);
 	static bool g_are_parallel_reads_slow( const char * path );
 	
 };
@@ -244,7 +244,6 @@ public:
 class input_entry_v2 : public input_entry {
 	FB2K_MAKE_SERVICE_INTERFACE(input_entry_v2, input_entry);
 public:
-#ifdef FOOBAR2000_DESKTOP // none of this is used in fb2k mobile
 	//! @returns GUID used to identify us among other deciders in the decoder priority table.
 	virtual GUID get_guid() = 0;
 	//! @returns Name to present to the user in the decoder priority table.
@@ -253,7 +252,22 @@ public:
 	virtual GUID get_preferences_guid() = 0;
 	//! @returns true if the decoder should be put at the end of the list when it's first sighted, false otherwise (will be put at the beginning of the list).
 	virtual bool is_low_merit() = 0;
-#endif
+};
+
+//! \since 1.5
+class input_entry_v3 : public input_entry_v2 {
+	FB2K_MAKE_SERVICE_INTERFACE(input_entry_v3, input_entry_v2);
+public:
+	//! New unified open() function for all supported interfaces. Supports any future interfaces via alternate GUIDs, as well as allows the event logger to be set prior to the open() call.
+	//! @param whatFor The class GUID of the service we want. \n
+	//!  Currently allowed are: input_decoder::class_guid, input_info_reader::class_guid, input_info_writer::class_guid. \n
+	//!  This method must throw pfc::exception_not_implemented for any GUIDs it does not recognize.
+	virtual service_ptr open_v3( const GUID & whatFor, file::ptr hint, const char * path, event_logger::ptr logger, abort_callback & aborter ) = 0;
+
+	
+	void open_for_decoding(service_ptr_t<input_decoder> & p_instance, service_ptr_t<file> p_filehint, const char * p_path, abort_callback & p_abort) ;
+	void open_for_info_read(service_ptr_t<input_info_reader> & p_instance, service_ptr_t<file> p_filehint, const char * p_path, abort_callback & p_abort);
+	void open_for_info_write(service_ptr_t<input_info_writer> & p_instance, service_ptr_t<file> p_filehint, const char * p_path, abort_callback & p_abort);
 };
 
 #ifdef FOOBAR2000_DESKTOP
@@ -264,6 +278,19 @@ class input_manager : public service_base {
 	FB2K_MAKE_SERVICE_COREAPI(input_manager);
 public:
 	virtual service_ptr open(const GUID & whatFor, file::ptr hint, const char * path, bool fromRedirect, abort_callback & aborter, GUID * outUsedEntry = nullptr) = 0;
+
+	//! input_manager_v2 wrapper.
+	service_ptr open_v2(const GUID & whatFor, file::ptr hint, const char * path, bool fromRedirect, event_logger::ptr logger, abort_callback & aborter, GUID * outUsedEntry = nullptr);
+};
+
+//! \since 1.5
+//! Extension of input_manager. \n
+//! Extended open_v2() supports album_art_extractor and album_art_editor. It reliably throws pfc::exception_not_implemented() for unsupported GUIDs (old version would bugcheck). \n
+//! It also allows event_logger to be specified in advance so open() implementation can already use it.
+class input_manager_v2 : public input_manager {
+	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(input_manager_v2, input_manager)
+public:
+	virtual service_ptr open_v2(const GUID & whatFor, file::ptr hint, const char * path, bool fromRedirect, event_logger::ptr logger, abort_callback & aborter, GUID * outUsedEntry = nullptr) = 0;
 };
 
 //! \since 1.4

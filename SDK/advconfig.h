@@ -11,11 +11,10 @@ public:
 	virtual void reset() = 0;
 	virtual double get_sort_priority() = 0;
 
+	bool is_branch();
 	t_uint32 get_preferences_flags_();
 
-	static bool g_find(service_ptr_t<advconfig_entry>& out, const GUID & id) {
-		service_enum_t<advconfig_entry> e; service_ptr_t<advconfig_entry> ptr; while(e.next(ptr)) { if (ptr->get_guid() == id) {out = ptr; return true;} } return false;
-	}
+	static bool g_find(service_ptr_t<advconfig_entry>& out, const GUID & id);
 
 	template<typename outptr> static bool g_find_t(outptr & out, const GUID & id) {
 		service_ptr_t<advconfig_entry> temp;
@@ -24,7 +23,7 @@ public:
 	}
 
 	static const GUID guid_root;
-	static const GUID guid_branch_tagging,guid_branch_decoding,guid_branch_tools,guid_branch_playback,guid_branch_display,guid_branch_debug;
+	static const GUID guid_branch_tagging,guid_branch_decoding,guid_branch_tools,guid_branch_playback,guid_branch_display,guid_branch_debug, guid_branch_tagging_general;
 
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(advconfig_entry);
 };

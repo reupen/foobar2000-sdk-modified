@@ -3,7 +3,7 @@
 pfc::string8 output_entry::get_device_name( const GUID & deviceID ) {
 	pfc::string8 temp;
 	if (!get_device_name(deviceID, temp)) temp = "[unknown device]";
-	return std::move(temp);
+	return temp;
 }
 
 namespace {

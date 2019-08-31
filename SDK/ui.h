@@ -97,6 +97,18 @@ public:
 	virtual bool override_status_text_create(service_ptr_t<ui_status_text_override> & p_out) = 0;
 };
 
+typedef ui_status_text_override ui_status_host;
+
+#if FOOBAR2000_TARGET_VERSION >= 80
+//! \since 1.5
+class NOVTABLE ui_control_v2 : public ui_control {
+	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(ui_control_v2, ui_control)
+public:
+	virtual void register_status_host(HWND wndFor, ui_status_host::ptr obj) = 0;
+	virtual void unregister_status_host(HWND wndFor) = 0;
+};
+#endif // if FOOBAR2000_TARGET_VERSION >= 80
+
 //! Service called from the UI when some object is dropped into the UI. Usable for modifying drag&drop behaviors such as adding custom handlers for object types other than supported media files.\n
 //! Implement where needed; use ui_drop_item_callback_factory_t<> template to register, e.g. static ui_drop_item_callback_factory_t<myclass> g_myclass_factory.
 class NOVTABLE ui_drop_item_callback : public service_base {

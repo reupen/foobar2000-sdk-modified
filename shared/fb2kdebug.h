@@ -1,3 +1,20 @@
+#pragma once
+
+// since fb2k 1.5
+namespace fb2k {
+	class panicHandler {
+	public:
+		virtual void onPanic() = 0;
+	};
+}
+
+// since fb2k 1.5
+extern "C" 
+{
+	void SHARED_EXPORT uAddPanicHandler(fb2k::panicHandler*);
+	void SHARED_EXPORT uRemovePanicHandler(fb2k::panicHandler*);
+}
+
 extern "C"
 {
 	LPCSTR SHARED_EXPORT uGetCallStackPath();
