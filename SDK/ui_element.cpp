@@ -59,7 +59,7 @@ service_ptr_t<ui_element_config> ui_element_config::g_create(const GUID & id, st
 service_ptr_t<ui_element_config> ui_element_config::g_create(stream_reader * in, t_size bytes, abort_callback & abort) {
 	if (bytes < sizeof(GUID)) throw exception_io_data_truncation();
 	GUID id; 
-	{ stream_reader_formatter<> in(*in,abort); in >> id;}
+	{ stream_reader_formatter<> formatter(*in,abort); formatter >> id;}
 	return g_create(id,in,bytes - sizeof(GUID),abort);
 }
 
