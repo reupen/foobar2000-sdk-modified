@@ -112,30 +112,60 @@ namespace {
 	struct aa_t {
 		GUID type; const char * name;
 	};
-	static aa_t types[] = {
-		{album_art_ids::cover_front, "front cover"},
-		{album_art_ids::cover_back, "back cover"},
-		{album_art_ids::artist, "artist"},
-		{album_art_ids::disc, "disc"},
-		{album_art_ids::icon, "icon"},
+	static const GUID guids[] = {
+		album_art_ids::cover_front,
+		album_art_ids::cover_back,
+		album_art_ids::artist,
+		album_art_ids::disc,
+		album_art_ids::icon,
+	};
+	static const char * const names[] = {
+		"front cover",
+		"back cover",
+		"artist",
+		"disc",
+		"icon"
+	};
+	static const char * const names2[] = {
+		"Front Cover",
+		"Back Cover",
+		"Artist",
+		"Disc",
+		"Icon"
 	};
 }
 
 size_t album_art_ids::num_types() {
-	return PFC_TABSIZE( types );
+	PFC_STATIC_ASSERT( PFC_TABSIZE( guids ) == PFC_TABSIZE( names ) );
+	PFC_STATIC_ASSERT( PFC_TABSIZE( guids ) == PFC_TABSIZE( names2 ) );
+	return PFC_TABSIZE( guids );
 }
 
 GUID album_art_ids::query_type(size_t idx) {
-	return types[idx].type;
+	PFC_ASSERT( idx < PFC_TABSIZE( guids ) );
+	return guids[idx];
 }
 
 const char * album_art_ids::query_name(size_t idx) {
-	return types[idx].name;
+	PFC_ASSERT( idx < PFC_TABSIZE( names ) );
+	return names[idx];
 }
 
 const char * album_art_ids::name_of(const GUID & id) {
 	for( size_t w = 0; w < num_types(); ++w ) {
 		if ( query_type(w) == id ) return query_name(w);
+	}
+	return nullptr;
+}
+
+const char * album_art_ids::query_capitalized_name( size_t idx ) {
+	PFC_ASSERT( idx < PFC_TABSIZE( names2 ) );
+	return names2[idx];
+}
+
+const char * album_art_ids::capitalized_name_of( const GUID & id) {
+	for( size_t w = 0; w < num_types(); ++w ) {
+		if ( query_type(w) == id ) return query_capitalized_name(w);
 	}
 	return nullptr;
 }

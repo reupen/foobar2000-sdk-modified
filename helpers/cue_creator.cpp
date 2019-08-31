@@ -192,5 +192,11 @@ namespace cue_creator
 		m_index_list.m_positions[1] = index1;
 	}
 
+	bool t_entry::isTrackAudio() const { 
+		PFC_ASSERT( m_trackType.length() > 0 );
+		return pfc::stringEqualsI_ascii( m_trackType, "AUDIO" ); 
+	}
 }
+
+
 

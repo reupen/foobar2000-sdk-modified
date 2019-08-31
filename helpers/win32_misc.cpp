@@ -209,7 +209,7 @@ bool IsWindowsS() {
 }
 
 WORD GetOSVersion() {
-	const DWORD ver = GetVersion();
-	return (WORD)HIBYTE(LOWORD(ver)) | ((WORD)LOBYTE(LOWORD(ver)) << 8);
+	// wrap libPPUI function
+	return ::GetOSVersionCode();
 }
 #endif // FOOBAR2000_DESKTOP_WINDOWS

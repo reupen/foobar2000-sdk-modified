@@ -41,8 +41,12 @@ namespace album_art_ids {
 
 	size_t num_types();
 	GUID query_type( size_t );
+	// returns lowercase name
 	const char * query_name( size_t );
 	const char * name_of( const GUID & );
+	// returns Capitalized name
+	const char * query_capitalized_name( size_t );
+	const char * capitalized_name_of( const GUID & );
 };
 
 PFC_DECLARE_EXCEPTION(exception_album_art_not_found,exception_io_not_found,"Attached picture not found");

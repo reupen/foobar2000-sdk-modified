@@ -8,9 +8,10 @@
 #include <utility>
 
 namespace service_impl_helper {
-	//! Helper function to defer destruction of a service object. 
-	//! Enqueues a main_thread_callback to release the object at a later time, escaping the current scope.
-    void release_object_delayed(service_ptr obj);
+	//! Helper function to defer destruction of a service object. \n
+	//! Enqueues a main_thread_callback to release the object at a later time, escaping the current scope. \n
+	//! Important: this takes a raw service_base* - not an autoptr - to ensure that the last reference can be released in main thread. \n
+    void release_object_delayed(service_base* obj);
 };
 
 //! Multi inheritance helper. \n
@@ -64,6 +65,7 @@ public:
             if (!this->serviceRequiresMainThreadDestructor() || core_api::is_main_thread()) {
 				PFC_ASSERT_NO_EXCEPTION( delete this );
             } else {
+				// Pass to release_object_delayed() with zero ref count - a temporary single reference will be created there
                 service_impl_helper::release_object_delayed(this->as_service_base());
             }
 		}
