@@ -17,12 +17,10 @@ PFC_DECLARE_EXCEPTION(exception_output_module_not_found, exception_output_device
 //! Structure describing PCM audio data format, with basic helper functions.
 struct t_pcmspec
 {
-	inline t_pcmspec() {reset();}
-	inline t_pcmspec(const t_pcmspec & p_source) {*this = p_source;}
-	unsigned m_sample_rate;
-	unsigned m_bits_per_sample;
-	unsigned m_channels,m_channel_config;
-	bool m_float;
+	unsigned m_sample_rate = 0;
+	unsigned m_bits_per_sample = 0;
+	unsigned m_channels = 0,m_channel_config = 0;
+	bool m_float = false;
 
 	inline unsigned align() const {return (m_bits_per_sample / 8) * m_channels;}
 
@@ -43,7 +41,7 @@ struct t_pcmspec
 		return !(*this == p_spec2);
 	}
 
-	inline void reset() {m_sample_rate = 0; m_bits_per_sample = 0; m_channels = 0; m_channel_config = 0; m_float = false;}
+	inline void reset() { *this = t_pcmspec(); }
 	inline bool is_valid() const
 	{
 		return m_sample_rate >= 1000 && m_sample_rate <= 1000000 &&

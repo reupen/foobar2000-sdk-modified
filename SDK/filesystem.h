@@ -269,12 +269,12 @@ namespace foobar2000_io
 
 		//! Optional, called by owner thread before sleeping.
 		//! @param p_abort abort_callback object signaling user aborting the operation.
-		virtual void on_idle(abort_callback & p_abort) {}
+		virtual void on_idle(abort_callback & p_abort) {(void)p_abort;}
 
 		//! Retrieves last modification time of the file.
 		//! @param p_abort abort_callback object signaling user aborting the operation.
 		//! @returns Last modification time o fthe file; filetimestamp_invalid if N/A.
-		virtual t_filetimestamp get_timestamp(abort_callback & p_abort) {return filetimestamp_invalid;}
+		virtual t_filetimestamp get_timestamp(abort_callback & p_abort) {(void)p_abort;return filetimestamp_invalid;}
 
 		//! Resets non-seekable stream, or seeks to zero on seekable file.
 		//! @param p_abort abort_callback object signaling user aborting the operation.
@@ -423,13 +423,13 @@ namespace foobar2000_io
 
 	class file_streamstub : public file_readonly {
 	public:
-		t_size read(void * p_buffer,t_size p_bytes,abort_callback & p_abort) {return 0;}
-		t_filesize get_size(abort_callback & p_abort) {return filesize_invalid;}
-		t_filesize get_position(abort_callback & p_abort) {return 0;}
-		bool get_content_type(pfc::string_base & p_out) {return false;}
+		t_size read(void *,t_size,abort_callback &) {return 0;}
+		t_filesize get_size(abort_callback &) {return filesize_invalid;}
+		t_filesize get_position(abort_callback &) {return 0;}
+		bool get_content_type(pfc::string_base &) {return false;}
 		bool is_remote() {return true;}
 		void reopen(abort_callback&) {}
-		void seek(t_filesize p_position,abort_callback & p_abort) {throw exception_io_object_not_seekable();}
+		void seek(t_filesize,abort_callback &) {throw exception_io_object_not_seekable();}
 		bool can_seek() {return false;}
 	};
 
@@ -470,7 +470,7 @@ namespace foobar2000_io
 		//! Moves/renames a file. Will fail if the destination file already exists. \n
 		//! Note that this function may throw exception_io_denied instead of exception_io_sharing_violation when the file is momentarily in use, due to bugs in Windows MoveFile() API. There is no legitimate way for us to distinguish between the two scenarios.
 		virtual void move(const char * p_src,const char * p_dst,abort_callback & p_abort)=0;
-		//! Queries whether a file at specified path belonging to this filesystem is a remove object or not.
+		//! Queries whether a file at specified path belonging to this filesystem is a remote object or not.
 		virtual bool is_remote(const char * p_src) = 0;
 
 		//! Retrieves stats of a file at specified path.

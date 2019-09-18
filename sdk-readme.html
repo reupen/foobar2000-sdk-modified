@@ -192,7 +192,7 @@ The proper way to instantiate any input related classes is to call input_manager
 <div class="level5">
 
 <p>
-If your component targets <acronym title="Application Programming Interface">API</acronym> level lower than 79 (this <acronym title="Software Development Kit">SDK</acronym> comes configured for 78 by default), all your attempts to walk input_entry services return a shim service that redirects all your calls to input_manager. You cannot walk actual input_entry services.
+If your component targets <acronym title="Application Programming Interface">API</acronym> level lower than 79, all your attempts to walk input_entry services return a shim service that redirects all your calls to input_manager. You cannot walk actual input_entry services.
 </p>
 
 <p>
@@ -242,7 +242,7 @@ typedef input_info_writer_v2 interface_info_writer_t;
 </pre>
 
 </div>
-<!-- SECTION "Decoders" [3447-6128] -->
+<!-- SECTION "Decoders" [3447-6082] -->
 <h3><a name="dynamic_runtime" id="dynamic_runtime">Dynamic runtime</a></h3>
 <div class="level3">
 
@@ -251,11 +251,11 @@ As of version 1.4, foobar2000 is compiled with dynamic Visual C runtime and redi
 </p>
 
 <p>
-This <acronym title="Software Development Kit">SDK</acronym> comes configured for static runtime by default, for compatibility with foobar2000 version 1.3. If your component is for foobar2000 series 1.4 only, you can switch to using dynamic runtime instead - make sure to change the setting for all projects in your workspace. 
+This <acronym title="Software Development Kit">SDK</acronym> comes configured for dynamic runtime by default. If you wish to support foobar2000 versions older than 1.4, change to static runtime or make sure that your users have the runtime installed. 
 </p>
 
 </div>
-<!-- SECTION "Dynamic runtime" [6129-6745] -->
+<!-- SECTION "Dynamic runtime" [6083-6623] -->
 <h3><a name="service_query" id="service_query">service_query()</a></h3>
 <div class="level3">
 
@@ -308,7 +308,7 @@ You can use it to avoid having to supply service_query() code yourself and possi
 </p>
 
 </div>
-<!-- SECTION "service_query()" [6746-8456] -->
+<!-- SECTION "service_query()" [6624-8334] -->
 <h2><a name="version_1.3_notes" id="version_1.3_notes">Version 1.3 notes</a></h2>
 <div class="level2">
 
@@ -335,7 +335,7 @@ It is recommended that you change your existing code using these to obtain track
 </p>
 
 </div>
-<!-- SECTION "Version 1.3 notes" [8457-9212] -->
+<!-- SECTION "Version 1.3 notes" [8335-9090] -->
 <h2><a name="basic_usage" id="basic_usage">Basic usage</a></h2>
 <div class="level2">
 
@@ -378,7 +378,7 @@ Component code should include the following header files:
 </ul>
 
 </div>
-<!-- SECTION "Basic usage" [9213-10581] -->
+<!-- SECTION "Basic usage" [9091-10459] -->
 <h2><a name="structure_of_a_component" id="structure_of_a_component">Structure of a component</a></h2>
 <div class="level2">
 
@@ -387,7 +387,7 @@ Component code should include the following header files:
 </p>
 
 </div>
-<!-- SECTION "Structure of a component" [10582-10748] -->
+<!-- SECTION "Structure of a component" [10460-10626] -->
 <h3><a name="services" id="services">Services</a></h3>
 <div class="level3">
 
@@ -404,7 +404,7 @@ Each service object provides reference counter features and (<code>service_add_r
 </p>
 
 </div>
-<!-- SECTION "Services" [10749-13014] -->
+<!-- SECTION "Services" [10627-12892] -->
 <h3><a name="entrypoint_services" id="entrypoint_services">Entrypoint services</a></h3>
 <div class="level3">
 
@@ -446,7 +446,7 @@ A typical entrypoint service implementation looks like this:
 <span class="br0">&#125;</span>;
 <span class="kw4">static</span> service_factory_single_t&lt;myservice_impl&gt; g_myservice_impl_factory;</pre>
 </div>
-<!-- SECTION "Entrypoint services" [13015-15472] -->
+<!-- SECTION "Entrypoint services" [12893-15350] -->
 <h3><a name="service_extensions" id="service_extensions">Service extensions</a></h3>
 <div class="level3">
 
@@ -464,7 +464,7 @@ service_ptr_t&lt;myservice_v2&gt; ptr_ex;
 <span class="kw1">if</span> <span class="br0">&#40;</span>ptr-&gt;service_query_t<span class="br0">&#40;</span>ptr_ex<span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="br0">&#123;</span> <span class="coMULTI">/* ptr_ex is a valid pointer to myservice_v2 interface of our myservice instance */</span> <span class="br0">&#40;</span>...<span class="br0">&#41;</span> <span class="br0">&#125;</span>
 <span class="kw1">else</span> <span class="br0">&#123;</span><span class="coMULTI">/* this myservice implementation does not implement myservice_v2 */</span> <span class="br0">&#40;</span>...<span class="br0">&#41;</span> <span class="br0">&#125;</span></pre>
 </div>
-<!-- SECTION "Service extensions" [15473-16412] -->
+<!-- SECTION "Service extensions" [15351-16290] -->
 <h3><a name="autopointer_template_use" id="autopointer_template_use">Autopointer template use</a></h3>
 <div class="level3">
 
@@ -481,7 +481,7 @@ When working with pointers to core fb2k services, just use C++11 <code>auto</cod
 </p>
 
 </div>
-<!-- SECTION "Autopointer template use" [16413-16980] -->
+<!-- SECTION "Autopointer template use" [16291-16858] -->
 <h3><a name="exception_use" id="exception_use">Exception use</a></h3>
 <div class="level3">
 
@@ -498,7 +498,7 @@ Implementations of global callback services such as <code>playlist_callback</cod
 </p>
 
 </div>
-<!-- SECTION "Exception use" [16981-17998] -->
+<!-- SECTION "Exception use" [16859-17876] -->
 <h3><a name="storing_configuration" id="storing_configuration">Storing configuration</a></h3>
 <div class="level3">
 
@@ -515,7 +515,7 @@ Note that <code>cfg_var</code> objects can only be instantiated statically (eith
 </p>
 
 </div>
-<!-- SECTION "Storing configuration" [17999-18934] -->
+<!-- SECTION "Storing configuration" [17877-18812] -->
 <h3><a name="use_of_global_callback_services" id="use_of_global_callback_services">Use of global callback services</a></h3>
 <div class="level3">
 
@@ -565,7 +565,7 @@ You should also avoid firing a cross-thread SendMessage() inside global callback
 </p>
 
 </div>
-<!-- SECTION "Use of global callback services" [18935-21356] -->
+<!-- SECTION "Use of global callback services" [18813-21234] -->
 <h2><a name="service_class_design_guidelines_advanced" id="service_class_design_guidelines_advanced">Service class design guidelines (advanced)</a></h2>
 <div class="level2">
 
@@ -574,7 +574,7 @@ You should also avoid firing a cross-thread SendMessage() inside global callback
 </p>
 
 </div>
-<!-- SECTION "Service class design guidelines (advanced)" [21357-21693] -->
+<!-- SECTION "Service class design guidelines (advanced)" [21235-21571] -->
 <h3><a name="cross-dll_safety" id="cross-dll_safety">Cross-DLL safety</a></h3>
 <div class="level3">
 
@@ -583,7 +583,7 @@ You should also avoid firing a cross-thread SendMessage() inside global callback
 </p>
 
 </div>
-<!-- SECTION "Cross-DLL safety" [21694-22521] -->
+<!-- SECTION "Cross-DLL safety" [21572-22399] -->
 <h3><a name="entrypoint_service_efficiency" id="entrypoint_service_efficiency">Entrypoint service efficiency</a></h3>
 <div class="level3">
 
@@ -650,6 +650,6 @@ service_ptr_t&lt;myservice_instance&gt; findservice<span class="br0">&#40;</span
 	throw exception_io_data<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 <span class="br0">&#125;</span></pre>
 </div>
-<!-- SECTION "Entrypoint service efficiency" [22522-] --></div>
+<!-- SECTION "Entrypoint service efficiency" [22400-] --></div>
 </body>
 </html>

@@ -77,6 +77,9 @@ public:
 
 	//! Finalizes file tag update operation.
 	virtual void commit(abort_callback & p_abort) = 0;
+
+	//! Helper; se ealbum_art_editor_instance_v2::remove_all();
+	void remove_all_();
 };
 
 class NOVTABLE album_art_editor_instance_v2 : public album_art_editor_instance {

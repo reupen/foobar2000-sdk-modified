@@ -333,11 +333,17 @@ class service_list_t : public pfc::list_t<service_ptr_t<T>, t_alloc >
 
 #define FB2K_MAKE_SERVICE_COREAPI(THISCLASS) \
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT_EX( THISCLASS, true ) \
-	public: static ptr get() { return fb2k::std_api_get<THISCLASS>(); } static bool tryGet(ptr & out) { return fb2k::std_api_try_get(out); }
+public: \
+	static ptr get() { return fb2k::std_api_get<THISCLASS>(); } \
+	static bool tryGet(ptr & out) { return fb2k::std_api_try_get(out); } \
+	static ptr tryGet() { ptr ret; tryGet(ret); return ret; }
 
 #define FB2K_MAKE_SERVICE_COREAPI_EXTENSION(THISCLASS, BASECLASS) \
 	FB2K_MAKE_SERVICE_INTERFACE_EX( THISCLASS, BASECLASS, true ) \
-	public: static ptr get() { return fb2k::std_api_get<THISCLASS>(); } static bool tryGet(ptr & out) { return fb2k::std_api_try_get(out); }
+public:	\
+	static ptr get() { return fb2k::std_api_get<THISCLASS>(); } \
+	static bool tryGet(ptr & out) { return fb2k::std_api_try_get(out); } \
+	static ptr tryGet() { ptr ret; tryGet(ret); return ret; }
 
 
 

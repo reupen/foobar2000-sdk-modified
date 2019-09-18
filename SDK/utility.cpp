@@ -40,3 +40,20 @@ namespace pfc {
 		uBugCheck();
 	}
 }
+
+
+// file_lock_manager.h functionality
+#include "file_lock_manager.h"
+namespace {
+    class file_lock_interrupt_impl : public file_lock_interrupt {
+    public:
+        void interrupt( abort_callback & a ) { f(a); }
+        std::function<void (abort_callback&)> f;
+    };
+}
+
+file_lock_interrupt::ptr file_lock_interrupt::create( std::function< void (abort_callback&)> f ) {
+    service_ptr_t<file_lock_interrupt_impl> i = new service_impl_t<file_lock_interrupt_impl>();
+    i->f = f;
+    return i;
+}

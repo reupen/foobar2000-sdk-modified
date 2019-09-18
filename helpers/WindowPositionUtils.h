@@ -56,7 +56,7 @@ static BOOL ShowWindowCentered(CWindow wnd,CWindow wndParent) {
 
 class cfgWindowSize : public cfg_var {
 public:
-	cfgWindowSize(const GUID & p_guid) : cfg_var(p_guid), m_width(~0), m_height(~0) {}
+	cfgWindowSize(const GUID & p_guid) : cfg_var(p_guid) {}
 	void get_data_raw(stream_writer * p_stream,abort_callback & p_abort) {
 		stream_writer_formatter<> str(*p_stream,p_abort); str << m_width << m_height;
 	}
@@ -64,12 +64,12 @@ public:
 		stream_reader_formatter<> str(*p_stream,p_abort); str >> m_width >> m_height;
 	}
 
-	t_uint32 m_width, m_height;
+	uint32_t m_width = UINT32_MAX, m_height = UINT32_MAX;
 };
 
 class cfgWindowSizeTracker {
 public:
-	cfgWindowSizeTracker(cfgWindowSize & p_var) : m_var(p_var), m_applied(false) {}
+	cfgWindowSizeTracker(cfgWindowSize & p_var) : m_var(p_var) {}
 
 	bool Apply(HWND p_wnd) {
 		bool retVal = false;
@@ -95,7 +95,7 @@ public:
 	}
 private:
 	cfgWindowSize & m_var;
-	bool m_applied;
+	bool m_applied = false;
 };
 
 class cfgDialogSizeTracker : public cfgWindowSizeTracker {
@@ -320,4 +320,72 @@ private:
 	}
 	cfgDialogPosition & m_var;
 	CWindow m_wnd;
+};
+
+//! DPI-safe window size var \n
+//! Stores size in pixel and original DPI\n
+//! Use with cfgWindowSizeTracker2
+class cfgWindowSize2 : public cfg_var {
+public:
+	cfgWindowSize2(const GUID & p_guid) : cfg_var(p_guid) {}
+	void get_data_raw(stream_writer * p_stream,abort_callback & p_abort) {
+		stream_writer_formatter<> str(*p_stream,p_abort); str << m_size.cx << m_size.cy << m_dpi.cx << m_dpi.cy;
+	}
+	void set_data_raw(stream_reader * p_stream,t_size p_sizehint,abort_callback & p_abort) {
+		stream_reader_formatter<> str(*p_stream,p_abort); str >> m_size.cx >> m_size.cy >> m_dpi.cx >> m_dpi.cy;
+	}
+
+	bool is_valid() const {
+		return m_size.cx > 0 && m_size.cy > 0;
+	}
+
+	CSize get( CSize forDPI ) const {
+		if ( forDPI == m_dpi ) return m_size;
+
+		CSize ret;
+		ret.cx = MulDiv( m_size.cx, forDPI.cx, m_dpi.cx );
+		ret.cy = MulDiv( m_size.cy, forDPI.cy, m_dpi.cy );
+		return ret;
+	}
+
+	CSize m_size = CSize(0,0), m_dpi = CSize(0,0);
+};
+
+//! Forward messages to this class to utilize cfgWindowSize2
+class cfgWindowSizeTracker2 : public CMessageMap {
+public:
+	cfgWindowSizeTracker2( cfgWindowSize2 & var ) : m_var(var) {}
+
+	BEGIN_MSG_MAP_EX(cfgWindowSizeTracker2)
+		if (uMsg == WM_CREATE || uMsg == WM_INITDIALOG) {
+			Apply(hWnd);
+		}
+		MSG_WM_SIZE( OnSize )
+	END_MSG_MAP()
+
+	bool Apply(HWND p_wnd) {
+		bool retVal = false;
+		m_applied = false;
+		if (m_var.is_valid()) {
+			CRect rect( CPoint(0,0), m_var.get( m_DPI ) );
+			if (AdjustWindowRectHelper(p_wnd, rect)) {
+				SetWindowPos(p_wnd,NULL,0,0,rect.right-rect.left,rect.bottom-rect.top,SWP_NOMOVE|SWP_NOACTIVATE|SWP_NOZORDER);
+				retVal = true;
+			}
+		}
+		m_applied = true;
+		return retVal;
+	}
+
+private:
+	void OnSize(UINT nType, CSize size) {
+		if ( m_applied && size.cx > 0 && size.cy > 0 ) {
+			m_var.m_size = size;
+			m_var.m_dpi = m_DPI;
+		}
+		SetMsgHandled(FALSE);
+	}
+	cfgWindowSize2 & m_var;
+	bool m_applied = false;
+	const CSize m_DPI = QueryScreenDPIEx();
 };

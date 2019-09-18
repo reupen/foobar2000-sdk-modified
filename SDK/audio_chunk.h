@@ -347,17 +347,17 @@ public:
 	audio_sample * get_data() {throw pfc::exception_not_implemented();}
 	const audio_sample * get_data() const {return m_data;}
 	t_size get_data_size() const {return m_samples * m_channels;}
-	void set_data_size(t_size p_new_size) {throw pfc::exception_not_implemented();}
+	void set_data_size(t_size) {throw pfc::exception_not_implemented();}
 	
 	unsigned get_srate() const {return m_sample_rate;}
-	void set_srate(unsigned val) {throw pfc::exception_not_implemented();}
+	void set_srate(unsigned) {throw pfc::exception_not_implemented();}
 	unsigned get_channels() const {return m_channels;}
 	unsigned get_channel_config() const {return m_channel_config;}
-	void set_channels(unsigned p_count,unsigned p_config) {throw pfc::exception_not_implemented();}
+	void set_channels(unsigned,unsigned) {throw pfc::exception_not_implemented();}
 
 	t_size get_sample_count() const {return m_samples;}
 	
-	void set_sample_count(t_size val) {throw pfc::exception_not_implemented();}
+	void set_sample_count(t_size) {throw pfc::exception_not_implemented();}
 
 private:
 	t_size m_samples;
