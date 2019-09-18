@@ -261,6 +261,7 @@
     <ClInclude Include="ui.h" />
     <ClInclude Include="ui_edit_context.h" />
     <ClInclude Include="ui_element.h" />
+    <ClInclude Include="ui_element_typable_window_manager.h" />
     <ClInclude Include="unpack.h" />
     <ClInclude Include="vis.h" />
   </ItemGroup>

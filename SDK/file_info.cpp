@@ -5,6 +5,9 @@
 #define _atoi64 atoll
 #endif
 
+const float replaygain_info::peak_invalid = -1;
+const float replaygain_info::gain_invalid = -1000;
+
 t_size file_info::meta_find_ex(const char * p_name,t_size p_name_length) const
 {
 	t_size n, m = meta_get_count();
