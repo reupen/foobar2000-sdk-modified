@@ -38,5 +38,7 @@ public:
 	virtual bool is_our_path( const char * path ) = 0;
 };
 
-// Defined but not actually provided for MS Store target - because it plainly doesn't work there
-#define FB2K_SUPPORT_TRANSACTED_FILESYSTEM (!FB2K_TARGET_MICROSOFT_STORE)
+// Since 1.5, transacted filesystem is no longer supported 
+// as it adds extra complexity without actually solving any problems.
+// Even Microsoft recommends not to use this API.
+#define FB2K_SUPPORT_TRANSACTED_FILESYSTEM 0

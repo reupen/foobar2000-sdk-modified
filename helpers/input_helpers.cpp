@@ -112,6 +112,8 @@ bool input_helper::open_path(const char * path, abort_callback & abort, decodeOp
 	}
 #endif
 
+	if (other.m_shim) m_input = other.m_shim(m_input, path, abort);
+
 	m_path = path;
 	return true;
 }
@@ -122,6 +124,10 @@ void input_helper::open_decoding(t_uint32 subsong, t_uint32 flags, abort_callbac
 
 void input_helper::open(const playable_location & location, abort_callback & abort, decodeOpen_t const & other) {
 	open_path(location.get_path(), abort, other);
+
+	if (other.m_setSampleRate != 0) {
+		this->extended_param(input_params::set_preferred_sample_rate, other.m_setSampleRate, nullptr, 0);
+	}
 
 	open_decoding(location.get_subsong(), other.m_flags, abort);
 }
@@ -183,7 +189,11 @@ void input_helper::seek(double seconds, abort_callback & p_abort) {
 bool input_helper::can_seek() {
 	return m_input->can_seek();
 }
-#ifdef FOOBAR2000_MODERN
+
+bool input_helper::query_position( double & val ) {
+	return extended_param(input_params::query_position, 0, &val, sizeof(val) ) != 0;
+}
+
 size_t input_helper::extended_param(const GUID & type, size_t arg1, void * arg2, size_t arg2size) {
 	input_decoder_v4::ptr v4;
 	if (v4 &= m_input) {
@@ -191,17 +201,14 @@ size_t input_helper::extended_param(const GUID & type, size_t arg1, void * arg2,
 	}
 	return 0;
 }
-#endif
 input_helper::decodeInfo_t input_helper::decode_info() {
 	decodeInfo_t ret = {};
 	if (m_input.is_valid()) {
 		ret.m_can_seek = can_seek();
 		ret.m_flush_on_pause = flush_on_pause();
-#ifdef FOOBAR2000_MODERN
 		if (ret.m_can_seek) {
 			ret.m_seeking_expensive = extended_param(input_params::seeking_expensive, 0, nullptr, 0) != 0;
 		}
-#endif
 	}
 	return ret;
 }

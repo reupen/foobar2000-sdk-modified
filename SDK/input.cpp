@@ -1,5 +1,12 @@
-#include "foobar2000.h"
+#include "foobar2000.h" // PCH
+#ifdef FOOBAR2000_MODERN
+#include "foobar2000-input.h"
+#include <pfc/list.h>
+#include <pfc/timers.h>
+#endif
 #include <exception>
+#include "album_art.h"
+#include "file_info_impl.h"
 
 service_ptr input_entry::open(const GUID & whatFor, file::ptr hint, const char * path, event_logger::ptr logger, abort_callback & aborter) {
 
@@ -148,24 +155,41 @@ static void prepare_for_open(service_ptr_t<input_entry> & p_service,service_ptr_
 #endif
 
 bool input_entry::g_find_inputs_by_content_type(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_content_type, bool p_from_redirect) {
+	auto filter = [=] (input_entry::ptr p) {
+		return !(p_from_redirect && p->is_redirect());
+	};
+	return g_find_inputs_by_content_type_ex(p_out, p_content_type, filter );
+}
+
+bool input_entry::g_find_inputs_by_path(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_path, bool p_from_redirect) {
+	auto filter = [=] (input_entry::ptr p) {
+		return !(p_from_redirect && p->is_redirect());
+	};
+	return g_find_inputs_by_path_ex(p_out, p_path, filter);
+}
+
+bool input_entry::g_find_inputs_by_content_type_ex(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_content_type, input_filter_t filter ) {
 	service_enum_t<input_entry> e;
 	service_ptr_t<input_entry> ptr;
 	bool ret = false;
 	while (e.next(ptr)) {
-		if (!(p_from_redirect && ptr->is_redirect())) {
+		if ( filter(ptr) ) {
 			if (ptr->is_our_content_type(p_content_type)) { p_out.add_item(ptr); ret = true; }
 		}
 	}
 	return ret;
 }
 
-bool input_entry::g_find_inputs_by_path(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_path, bool p_from_redirect) {
+bool input_entry::g_find_inputs_by_path_ex(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_path, input_filter_t filter ) {
 	service_enum_t<input_entry> e;
 	service_ptr_t<input_entry> ptr;
 	auto extension = pfc::string_extension(p_path);
 	bool ret = false;
 	while (e.next(ptr)) {
-		if (!(p_from_redirect && ptr->is_redirect())) {
+		GUID guid = pfc::guid_null;
+		input_entry_v3::ptr ex;
+		if ( ex &= ptr ) guid = ex->get_guid();
+		if ( filter(ptr) ) {
 			if (ptr->is_our_path(p_path, extension)) { p_out.add_item(ptr); ret = true; }
 		}
 	}
@@ -366,14 +390,44 @@ void input_open_file_helper(service_ptr_t<file> & p_file,const char * p_path,t_i
 	}
 }
 
-bool input_entry::g_are_parallel_reads_slow(const char * path) {
-	auto ext = pfc::string_extension(path);
-	input_entry::ptr svc;
-	service_enum_t<input_entry> e;
-	while (e.next(svc)) {
-		if (svc->is_our_path(path, ext) && svc->are_parallel_reads_slow()) return true;
+uint32_t input_entry::g_flags_for_path( const char * path, uint32_t mask ) {
+#if FOOBAR2000_TARGET_VERSION >= 80
+	return input_manager_v3::get()->flags_for_path(path, mask);
+#else
+	input_manager_v3::ptr api;
+	if ( input_manager_v3::tryGet(api) ) {
+		return api->flags_for_path(path, mask);
 	}
-	return false;
+	uint32_t ret = 0;
+	service_enum_t<input_entry> e; input_entry::ptr p;
+	auto ext = pfc::string_extension(path);
+	while(e.next(p)) {
+		uint32_t f = p->get_flags() & mask;
+		if ( f != 0 && p->is_our_path( path, ext ) ) ret |= f;;
+	}
+	return ret;
+#endif
+}
+uint32_t input_entry::g_flags_for_content_type( const char * ct, uint32_t mask ) {
+#if FOOBAR2000_TARGET_VERSION >= 80
+	return input_manager_v3::get()->flags_for_content_type(ct, mask);
+#else
+	input_manager_v3::ptr api;
+	if ( input_manager_v3::tryGet(api) ) {
+		return api->flags_for_content_type( ct, mask );
+	}
+	uint32_t ret = 0;
+	service_enum_t<input_entry> e; input_entry::ptr p;
+	while(e.next(p)) {
+		uint32_t f = p->get_flags() & mask;
+		if ( f != 0 && p->is_our_content_type(ct) ) ret |= f;
+	}
+	return ret;
+#endif
+}
+
+bool input_entry::g_are_parallel_reads_slow(const char * path) {
+	return g_flags_for_path(path, flag_parallel_reads_slow) != 0;
 }
 
 void input_entry_v3::open_for_decoding(service_ptr_t<input_decoder> & p_instance, service_ptr_t<file> p_filehint, const char * p_path, abort_callback & p_abort) {
@@ -384,4 +438,13 @@ void input_entry_v3::open_for_info_read(service_ptr_t<input_info_reader> & p_ins
 }
 void input_entry_v3::open_for_info_write(service_ptr_t<input_info_writer> & p_instance, service_ptr_t<file> p_filehint, const char * p_path, abort_callback & p_abort) {
 	p_instance ^= open_v3(input_info_writer::class_guid, p_filehint, p_path, nullptr, p_abort);
+}
+
+void input_info_writer::remove_tags_fallback(abort_callback & abort) {
+	uint32_t total = this->get_subsong_count();
+	file_info_impl blank;
+	for( uint32_t walk = 0; walk < total; ++ walk ) {
+		this->set_info( this->get_subsong(walk), blank, abort );
+	}
+	this->commit( abort );
 }

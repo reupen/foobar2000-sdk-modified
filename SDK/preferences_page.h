@@ -19,7 +19,9 @@ public:
 
 	static void get_help_url_helper(pfc::string_base & out, const char * category, const GUID & id, const char * name);
 	
-	static const GUID guid_root, guid_hidden, guid_tools,guid_core,guid_display,guid_playback,guid_visualisations,guid_input,guid_tag_writing,guid_media_library, guid_tagging, guid_output;
+	static const GUID guid_root, guid_hidden, guid_tools,guid_core,guid_display,guid_playback,guid_visualisations,guid_input,guid_tag_writing,guid_media_library, guid_tagging, guid_output, guid_advanced;
+	//! \since 1.5
+	static const GUID guid_input_info_filter;
 
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(preferences_page);
 };
@@ -133,7 +135,14 @@ class preferences_page_v3 : public preferences_page_v2 {
 public:
 	virtual preferences_page_instance::ptr instantiate(HWND parent, preferences_page_callback::ptr callback) = 0;
 private:
-	HWND create(HWND p_parent) {throw pfc::exception_not_implemented();} //stub
+	HWND create(HWND) {throw pfc::exception_not_implemented();} //stub
 	bool reset_query() {return false;} //stub - the new apply-friendly reset should be used instead.
 	void reset() {} //stub
+};
+
+//! \since 1.5
+class NOVTABLE preferences_page_v4 : public preferences_page_v3 {
+	FB2K_MAKE_SERVICE_INTERFACE(preferences_page_v4, preferences_page_v3);
+public:
+	virtual bool is_hidden() = 0;
 };

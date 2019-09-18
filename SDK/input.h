@@ -1,3 +1,8 @@
+#pragma once
+#include <functional>
+#include "event_logger.h"
+#include "audio_chunk.h"
+
 PFC_DECLARE_EXCEPTION(exception_tagging_unsupported, exception_io_data, "Tagging of this file format is not supported")
 
 enum {
@@ -134,6 +139,11 @@ public:
 	//! Tells the decoder to output at this sample rate if the decoder's sample rate is adjustable. \n
 	//! Sample rate signaled in arg1.
 	static const GUID set_preferred_sample_rate;
+
+	//! Retrieves logical decode position from the decoder. Implemented only in some rare cases where logical position does not match duration of returned data so far.
+	//! arg2 points to double position in seconds.
+	//! Return 1 if position was written to arg2, 0 if n/a.
+	static const GUID query_position;
 };
 
 //! Class providing interface for writing metadata and replaygain info to files. Also see: file_info. \n
@@ -151,6 +161,9 @@ public:
 	//! Commits pending updates. In case of multisubsong inputs, set_info should queue the update and perform actual file access in commit(). Otherwise, actual writing can be done in set_info() and then commit() can just do nothing and always succeed.
 	//! @param p_abort abort_callback object signaling user aborting the operation. WARNING: abort_callback object is provided for consistency; if writing tags actually gets aborted, user will be likely left with corrupted file. Anything calling this should make sure that aborting is either impossible, or gives appropriate warning to the user first.
 	virtual void commit(abort_callback & p_abort) = 0;
+
+	//! Helper for writers not implementing input_info_writer_v2::remove_tags().
+	void remove_tags_fallback(abort_callback & abort);
 
 	FB2K_MAKE_SERVICE_INTERFACE(input_info_writer,input_info_reader);
 };
@@ -222,8 +235,11 @@ public:
 	static void g_open_for_info_write(service_ptr_t<input_info_writer> & p_instance,service_ptr_t<file> p_filehint,const char * p_path,abort_callback & p_abort,bool p_from_redirect = false);
 	static void g_open_for_info_write_timeout(service_ptr_t<input_info_writer> & p_instance,service_ptr_t<file> p_filehint,const char * p_path,abort_callback & p_abort,double p_timeout,bool p_from_redirect = false);
 	static bool g_is_supported_path(const char * p_path);
+	typedef std::function<bool ( input_entry::ptr ) > input_filter_t;
 	static bool g_find_inputs_by_content_type(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_content_type, bool p_from_redirect);
-	static bool g_find_inputs_by_path(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_path, bool p_from_redirect);
+	static bool g_find_inputs_by_path(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_path, bool p_from_redirect );
+	static bool g_find_inputs_by_content_type_ex(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_content_type, input_filter_t filter );
+	static bool g_find_inputs_by_path_ex(pfc::list_base_t<service_ptr_t<input_entry> > & p_out, const char * p_path, input_filter_t filter );
 	static service_ptr g_open(const GUID & whatFor, file::ptr hint, const char * path, event_logger::ptr logger, abort_callback & aborter, bool fromRedirect = false);
 
 	void open(service_ptr_t<input_decoder> & p_instance,service_ptr_t<file> const & p_filehint,const char * p_path,abort_callback & p_abort) {open_for_decoding(p_instance,p_filehint,p_path,p_abort);}
@@ -236,6 +252,8 @@ public:
 	static service_ptr g_open_from_list(input_entry_list_t const & list, const GUID & whatFor, file::ptr hint, const char * path, event_logger::ptr logger, abort_callback & aborter, GUID * outGUID = nullptr);
 	static bool g_are_parallel_reads_slow( const char * path );
 	
+	static uint32_t g_flags_for_path( const char * pathFor, uint32_t mask = UINT32_MAX );
+	static uint32_t g_flags_for_content_type( const char * ct, uint32_t mask = UINT32_MAX );
 };
 
 //! \since 1.4
@@ -244,7 +262,7 @@ public:
 class input_entry_v2 : public input_entry {
 	FB2K_MAKE_SERVICE_INTERFACE(input_entry_v2, input_entry);
 public:
-	//! @returns GUID used to identify us among other deciders in the decoder priority table.
+	//! @returns GUID used to identify us among other decoders in the decoder priority table.
 	virtual GUID get_guid() = 0;
 	//! @returns Name to present to the user in the decoder priority table.
 	virtual const char * get_name() = 0;
@@ -293,6 +311,27 @@ public:
 	virtual service_ptr open_v2(const GUID & whatFor, file::ptr hint, const char * path, bool fromRedirect, event_logger::ptr logger, abort_callback & aborter, GUID * outUsedEntry = nullptr) = 0;
 };
 
+//! \since 1.5
+class input_manager_v3 : public input_manager_v2 {
+	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(input_manager_v3, input_manager_v2);
+public:
+	//! Retrieves list of enabled inputs, in user-specified order. \n
+	//! This is rarely needed. If you need this function, consider redesigning your code to call input_manager open methods instead.
+	virtual void get_enabled_inputs( pfc::list_base_t<input_entry::ptr> & out ) = 0;
+	//! Returns input_entry get_flags() values for this path, as returned by enabled inputs.
+	virtual uint32_t flags_for_path( const char * pathFor, uint32_t mask = UINT32_MAX ) = 0;
+	//! Returns input_entry get_flags() values for this content type, as returned by enabled inputs.
+	virtual uint32_t flags_for_content_type( const char * ct, uint32_t mask = UINT32_MAX ) = 0;
+
+
+	enum {
+		flagFromRedirect = 1 << 0,
+		flagSuppressFilters = 1 << 1,
+	};
+
+	virtual service_ptr open_v3(const GUID & whatFor, file::ptr hint, const char * path, uint32_t flags, event_logger::ptr logger, abort_callback & aborter, GUID * outUsedEntry = nullptr) = 0;
+};
+
 //! \since 1.4
 //! Core API for determining which audio stream to decode, in a multi-stream enabled input. \n
 //! Unavailable prior to 1.4 - decode the default stream if input_stream_selector isn't present. \n
@@ -336,6 +375,8 @@ public:
 };
 
 //! \since 1.4
+//! Callback for input_stream_manipulator \n
+//! Used for applying ReplayGain to encoded audio streams.
 class input_stream_manipulator_callback : public service_base {
 	FB2K_MAKE_SERVICE_INTERFACE(input_stream_manipulator_callback, service_base);
 public:
@@ -351,6 +392,8 @@ public:
 };
 
 //! \since 1.4
+//! Manipulate audio stream payload in files. \n
+//! Used for applying ReplayGain to encoded audio streams.
 class input_stream_manipulator : public service_base {
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(input_stream_manipulator);
 public:
@@ -372,4 +415,121 @@ public:
 	//! Return GUID of the matching input_entry.
 	virtual GUID get_guid() = 0;
 };
-#endif
+
+//! \since 1.5
+//! An input_info_filter lets you hook into all performed tag read & write operations. \n
+//! Your tag manipulations will be transparent to all fb2k components, as if the tags were read/written by relevant inputs. \n
+//! Your input_info_filter needs to be enabled in Preferences in order to become active. Newly added ones are inactive by default.
+class input_info_filter : public service_base {
+	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT( input_info_filter );
+public:
+	//! Tags are being read from a file.
+	virtual void filter_info_read( const playable_location & loc,file_info & info,abort_callback & abort ) = 0;
+	//! Tags are being written to a file. \n
+	//! Return true to continue, false to suppress writing of tags.
+	virtual bool filter_info_write( const playable_location & loc, file_info & info, abort_callback & abort ) = 0;
+	//! Tags are being removed from a file. 
+	virtual void on_info_remove( const char * path, abort_callback & abort ) = 0;
+	//! Return GUID of your filter.
+	virtual GUID get_guid() = 0;
+	//! Return preferences page or advconfig branch GUID of your filter.
+	virtual GUID get_preferences_guid() = 0;
+	//! Return user-friendly name of your filter to be shown in preferences.
+	virtual const char * get_name() = 0;
+	//! Optional backwards compatibility method. \n
+	//! If you also provide input services for old foobar2000 versions which don't recognize input_info_filter, report their GUIDs here so they can be ignored. \n
+	//! @param outGUIDs empty on entry, contains GUIDs of ignored inputs (if any) on return.
+	virtual void get_suppressed_inputs( pfc::list_base_t<GUID> & outGUIDs ) {outGUIDs.remove_all();}
+	//! write_fallback() supported or not? \n
+	//! Used if your filter can store tags for untaggable files.
+	virtual bool supports_fallback() = 0;
+	//! Optional; called when user attempted to tag an untaggable/readonly file. \n
+	//! Used if your filter can store tags for untaggable files.
+	virtual bool write_fallback( const playable_location & loc, file_info const & info, abort_callback & abort ) = 0;
+	//! Optional; called when user attempted to remove tags from an untaggable/readonly file.\ n
+	//! Used if your filter can store tags for untaggable files.
+	virtual void remove_tags_fallback( const char * path, abort_callback & abort ) = 0;
+};
+
+//! \since 1.5
+class input_stream_info_filter : public service_base {
+	FB2K_MAKE_SERVICE_INTERFACE( input_stream_info_filter, service_base );
+public:
+	virtual void filter_dynamic_info( file_info & info ) = 0;
+	virtual void filter_dynamic_info_track( file_info & info ) = 0;
+};
+
+class album_art_data;
+
+//! \since 1.5
+//! Extended input_info_filter.
+class input_info_filter_v2 : public input_info_filter {
+	FB2K_MAKE_SERVICE_INTERFACE( input_info_filter_v2, input_info_filter );
+public:
+	//! Creates an object which then can work with dynamic track titles etc of a decoded track. \n
+	//! Returning null to filter the info is allowed.
+	virtual input_stream_info_filter::ptr open_stream(playable_location const & loc, abort_callback & abort) = 0;
+
+
+	typedef service_ptr_t<album_art_data> aaptr_t;
+
+	//! Album art is being read from the file. \n
+	//! info may be null if file had no such picture. \n
+	//! Return passed info, altered info or null.
+	virtual aaptr_t filter_album_art_read( const char * path, const GUID & type, aaptr_t info, abort_callback & aborter ) = 0;
+	//! Album art is being written to the file. \n
+	//! Return passed info, altered info or null to suppress writing.
+	virtual aaptr_t filter_album_art_write( const char * path, const GUID & type, aaptr_t info, abort_callback & aborter ) = 0;
+	//! Specific album art is being removed from the file. \n
+	//! Return true to go on, false to suppress file update.
+	virtual bool filter_album_art_remove( const char * path, const GUID & type, abort_callback & aborter ) = 0;
+	//! All album art is being removed from the file. \n
+	//! Return true to go on, false to suppress file update.
+	virtual bool filter_album_art_remove_all( const char * path, abort_callback & aborter ) = 0;
+	
+	//! Valid with supports_fallback() = true \n
+	//! Album art is being written to an untaggable file.
+	virtual void write_album_art_fallback( const char * path, const GUID & type, aaptr_t info, abort_callback & aborter ) = 0;
+	//! Valid with supports_fallback() = true \n
+	//! Specific album art is being removed from an untaggable file.
+	virtual void remove_album_art_fallback( const char * path, const GUID & type, abort_callback & aborter ) = 0;
+	//! Valid with supports_fallback() = true \n
+	//! All album art is being removed from an untaggable file.
+	virtual void remove_all_album_art_fallback( const char * path, abort_callback & aborter ) = 0;
+};
+
+class dsp_preset;
+
+//! \since 1.5
+//! An input_playback_shim adds additional functionality to a DSP, allowing full control of the decoder. \n
+//! Currently, input_playback_shim can only exist alongside a DSP, must have the same GUID as a DSP. \n
+//! It will only be used in supported scenarios when the user has put your DSP in the chain. \n
+//! Your DSP will be deactivated in such case when your input_playback_shim is active. \n
+//! input_playback_shim is specifically intended to be instantiated for playback. Do not call this service from your component. \n/
+//! Implement this service ONLY IF NECESSARY. Very few tasks really need it, primarily DSPs that manipulate logical playback time & seeking.
+class input_playback_shim : public service_base {
+	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT( input_playback_shim );
+public:
+	//! Same GUID as your DSP.
+	virtual GUID get_guid() = 0;
+	//! Preferences page / advconfig branch GUID of your shim, pfc::guid_null if none. \n
+	//! This is currently unused / reserved for future use.
+	virtual GUID get_preferences_guid() = 0;
+	//! Same as your DSP. \n
+	//! This is currently unused / reserved for future use.
+	virtual const char * get_name() = 0;
+	//! Instantiates your shim on top of existing input_decoder. \n
+	//! If you don't want to do anything with this specific decoder, just return the passed decoder.
+	virtual input_decoder::ptr shim( input_decoder::ptr dec, const char * path, dsp_preset const & preset, abort_callback & aborter ) = 0;
+	//! Optional backwards compatibility method. \n
+	//! If you also provide input services for old versions of foobar2000 which don't recognize input_playback_shim, report their GUIDs here so they can be ignored. \n
+	//! @param outGUIDs empty on entry, contains GUIDs of ignored inputs (if any) on return.
+	virtual void get_suppressed_inputs( pfc::list_base_t<GUID> & outGUIDs ) {outGUIDs.remove_all();}
+};
+
+#endif // #ifdef FOOBAR2000_DESKTOP
+
+
+typedef input_info_writer_v2 input_info_writer_vhighest;
+typedef input_decoder_v4 input_decoder_vhighest;
+typedef input_info_reader input_info_reader_vhighest;

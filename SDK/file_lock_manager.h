@@ -30,6 +30,23 @@ public:
 
 typedef service_ptr_t<file_lock> file_lock_ptr;
 
+//! \since 1.5
+//! Modern version of file locking. \n
+//! A read lock can be interrupted by a write lock request, from the thread that requested writing. \n
+class NOVTABLE file_lock_interrupt : public service_base {
+    FB2K_MAKE_SERVICE_INTERFACE(file_lock_interrupt, service_base);
+public:
+    //! Please note that interrupt() is called outside any sync scopes and may be called after lock reference has been released. \n
+    //! It is implementer's responsibility to safeguard against such. \n
+    //! The interrupt() function must *never* fail, unless aborted by calling context - which means that whoever asked for write access is aborting whatever they're doing. \n
+    //! This function may block for as long as it takes to release the owned resources, but must be able to abort cleanly if doing so. \n
+    //! If the function was aborted, it may be called again on the same object. \n
+    //! If the function succeeded, it will not be called again on the same object; the object will be released immediately after.
+    virtual void interrupt( abort_callback & aborter ) = 0;
+    
+    static file_lock_interrupt::ptr create( std::function< void (abort_callback&)> );
+};
+
 //! Entry point class for obtaining file_lock objects.
 class NOVTABLE file_lock_manager : public service_base {
 public:
@@ -50,4 +67,11 @@ public:
 
 
 	FB2K_MAKE_SERVICE_COREAPI(file_lock_manager);
+};
+
+// \since 1.5
+class NOVTABLE file_lock_manager_v2 : public file_lock_manager {
+	FB2K_MAKE_SERVICE_COREAPI_EXTENSION( file_lock_manager_v2, file_lock_manager );
+public:
+	virtual fb2k::objRef acquire_read_v2(const char * p_path, file_lock_interrupt::ptr interruptHandler, abort_callback & p_abort) = 0;
 };

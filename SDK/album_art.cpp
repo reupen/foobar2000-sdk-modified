@@ -20,6 +20,20 @@ bool album_art_extractor_instance::have_entry(const GUID & what, abort_callback 
 	try { query(what, abort); return true; } catch(exception_album_art_not_found) { return false; }
 }
 
+void album_art_editor_instance::remove_all_() {
+	album_art_editor_instance_v2::ptr v2;
+	if ( v2 &= this ) {
+		v2->remove_all();
+	} else {
+		for( size_t walk = 0; walk < album_art_ids::num_types(); ++ walk ) {
+			try {
+				this->remove( album_art_ids::query_type( walk ) );
+			} catch(exception_io_data) {}
+			catch(exception_album_art_not_found) {}
+		}
+	}
+}
+
 bool album_art_editor::g_get_interface(service_ptr_t<album_art_editor> & out,const char * path) {
 	service_enum_t<album_art_editor> e; ptr ptr;
 	auto ext = pfc::string_extension(path);

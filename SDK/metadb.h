@@ -334,8 +334,8 @@ public:
 	//! @returns True on success; false on failure (no known playable locations).
 	static bool g_get_random_handle(metadb_handle_ptr & p_out);
 
-	enum {case_sensitive = true};
-	typedef pfc::comparator_strcmp path_comparator;
+	enum {case_sensitive = playable_location::case_sensitive};
+	typedef playable_location::path_comparator path_comparator;
 
 	inline static int path_compare_ex(const char * p1,t_size len1,const char * p2,t_size len2) {return case_sensitive ? pfc::strcmp_ex(p1,len1,p2,len2) : stricmp_utf8_ex(p1,len1,p2,len2);}
 	inline static int path_compare_nc(const char * p1, size_t len1, const char * p2, size_t len2) {return case_sensitive ? pfc::strcmp_nc(p1,len1,p2,len2) : stricmp_utf8_ex(p1,len1,p2,len2);}

@@ -88,7 +88,8 @@ public:
 	//! Loads main GUI icon, version with specified width/height. Returned handle needs to be freed with DestroyIcon when you are done using it.
 	virtual HICON load_main_icon(unsigned width,unsigned height) = 0;
 
-	//! Activates preferences dialog and navigates to specified page. See also: preference_page API.
+	//! Activates preferences dialog and navigates to specified page. See also: preference_page API. \n
+	//! Since foobar2000 1.5, this can be used to show advanced preferences branches or settings, just pass GUID of the advconfig_entry you wish to show.
 	virtual void show_preferences(const GUID & p_page) = 0;
 
 	//! Instantiates ui_status_text_override service, that can be used to display status messages.
