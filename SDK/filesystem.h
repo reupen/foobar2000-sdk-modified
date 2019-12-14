@@ -318,6 +318,8 @@ namespace foobar2000_io
 		static void g_transfer_object(stream_reader * src,stream_writer * dst,t_filesize bytes,abort_callback & p_abort);
 		//! Helper; transfers entire file content from one file to another, erasing previous content.
 		static void g_transfer_file(const service_ptr_t<file> & p_from,const service_ptr_t<file> & p_to,abort_callback & p_abort);
+		//! Helper; transfers file modification times from one file to another, if supported by underlying objects. Returns true on success, false if the operation doesn't appear to be supported.
+		static bool g_copy_timestamps(service_ptr_t<file> from, service_ptr_t<file> to, abort_callback& abort);
 
 		//! Helper; improved performance over g_transfer on streams (avoids disk fragmentation when transferring large blocks).
 		static t_filesize g_transfer(service_ptr_t<file> p_src,service_ptr_t<file> p_dst,t_filesize p_bytes,abort_callback & p_abort);
