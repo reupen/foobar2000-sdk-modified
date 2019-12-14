@@ -210,7 +210,7 @@ void filesystem::g_move(const char * src,const char * dst,abort_callback & p_abo
 
 void filesystem::g_link(const char * p_src,const char * p_dst,abort_callback & p_abort) {
 	if (!foobar2000_io::_extract_native_path_ptr(p_src) || !foobar2000_io::_extract_native_path_ptr(p_dst)) throw exception_io_no_handler_for_path();
-	WIN32_IO_OP( CreateHardLink( pfc::stringcvt::string_os_from_utf8( p_dst ), pfc::stringcvt::string_os_from_utf8( p_src ), NULL) );
+	WIN32_IO_OP( CreateHardLink( pfc::stringcvt::string_os_from_utf8( pfc::winPrefixPath( p_dst ) ), pfc::stringcvt::string_os_from_utf8( pfc::winPrefixPath( p_src ) ), NULL) );
 }
 
 void filesystem::g_link_timeout(const char * p_src,const char * p_dst,double p_timeout,abort_callback & p_abort) {
@@ -616,6 +616,10 @@ void filesystem::g_copy(const char * src,const char * dst,abort_callback & p_abo
 			throw;
 		}
 	}
+
+	try {
+		file::g_copy_timestamps(r_src, r_dst, p_abort);
+	} catch (exception_io) {}
 }
 
 void stream_reader::read_object(void * p_buffer,t_size p_bytes,abort_callback & p_abort) {
@@ -875,6 +879,8 @@ PFC_NORETURN void foobar2000_io::exception_io_from_win32(DWORD p_code) {
 		throw exception_io("Unexpected netwrok error");
 	case ERROR_EFS_NOT_ALLOWED_IN_TRANSACTION:
 		throw exception_io("Transacted updates of encrypted content are not supported");
+	case ERROR_NOT_SAME_DEVICE:
+		throw exception_io("Source and destination must be on the same device");
 	default:
 		throw exception_io_win32_ex(p_code);
 	}
@@ -1517,4 +1523,18 @@ bool file_lowLevelIO::getFileTimes(filetimes_t & out, abort_callback & a) {
 
 bool file_lowLevelIO::setFileTimes(filetimes_t const & in, abort_callback & a) {
 	return this->lowLevelIO(guid_setFileTimes, 0, (void*)&in, sizeof(in), a) != 0;
+}
+
+bool file::g_copy_timestamps(file::ptr from, file::ptr to, abort_callback& a) {
+	bool rv = false;
+	file_lowLevelIO::ptr llFrom, llTo;
+	if ((llFrom &= from) && (llTo &= to)) {
+		file_lowLevelIO::filetimes_t filetimes = {};
+		if (llFrom->getFileTimes(filetimes, a)) {
+			if (llTo->setFileTimes(filetimes, a)) {
+				rv = true;
+			}
+		}
+	}
+	return rv;
 }

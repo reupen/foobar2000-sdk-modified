@@ -335,6 +335,7 @@ namespace {
 
 					{
 						pfc::mutexScope guard( i.m_guard );
+						i.m_abort.check();
 						if ( i.m_seekto != filesize_invalid ) {
 							// Seek request happened while we were reading - discard and continue
 							continue; 
