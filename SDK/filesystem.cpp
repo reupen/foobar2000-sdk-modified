@@ -1139,7 +1139,8 @@ bool foobar2000_io::matchContentType(const char * fullString, const char * ourTy
 const char * foobar2000_io::contentTypeFromExtension( const char * ext ) {
     if ( pfc::stringEqualsI_ascii( ext, "mp3" ) ) return "audio/mpeg";
     if ( pfc::stringEqualsI_ascii( ext, "flac" ) ) return "audio/flac";
-    if ( pfc::stringEqualsI_ascii( ext, "mp4" ) || pfc::stringEqualsI_ascii( ext, "m4a" ) ) return "audio/mp4";
+    if ( pfc::stringEqualsI_ascii( ext, "mp4" ) ) return "application/mp4"; // We don't know if it's audio-only or other.
+    if ( pfc::stringEqualsI_ascii( ext, "m4a" ) ) return "audio/mp4";
     if ( pfc::stringEqualsI_ascii( ext, "mpc" ) ) return "audio/musepack";
     if ( pfc::stringEqualsI_ascii( ext, "ogg" ) ) return "audio/ogg";
     if ( pfc::stringEqualsI_ascii( ext, "opus" ) ) return "audio/opus";
@@ -1152,6 +1153,7 @@ const char * foobar2000_io::contentTypeFromExtension( const char * ext ) {
 const char * foobar2000_io::extensionFromContentType( const char * contentType ) {
     if (matchContentType_MP3( contentType )) return "mp3";
     if (matchContentType_FLAC( contentType )) return "flac";
+    if (matchContentType_MP4audio( contentType)) return "m4a";
     if (matchContentType_MP4( contentType)) return "mp4";
     if (matchContentType_Musepack( contentType )) return "mpc";
     if (matchContentType_Ogg( contentType )) return "ogg";
@@ -1167,6 +1169,12 @@ bool foobar2000_io::matchContentType_MP3( const char * type) {
     return matchContentType(type,"audio/mp3") || matchContentType(type,"audio/mpeg") || matchContentType(type,"audio/mpg") || matchContentType(type,"audio/x-mp3") || matchContentType(type,"audio/x-mpeg") || matchContentType(type,"audio/x-mpg");
 }
 bool foobar2000_io::matchContentType_MP4( const char * type ) {
+    return matchContentType(type, "audio/mp4") || matchContentType(type, "audio/x-mp4")
+    || matchContentType(type, "video/mp4") ||  matchContentType(type, "video/x-mp4")
+    || matchContentType(type, "application/mp4") ||  matchContentType(type, "application/x-mp4");
+    
+}
+bool foobar2000_io::matchContentType_MP4audio( const char * type ) {
     return matchContentType(type, "audio/mp4") || matchContentType(type, "audio/x-mp4");
 }
 bool foobar2000_io::matchContentType_Ogg( const char * type) {
@@ -1526,15 +1534,19 @@ bool file_lowLevelIO::setFileTimes(filetimes_t const & in, abort_callback & a) {
 }
 
 bool file::g_copy_timestamps(file::ptr from, file::ptr to, abort_callback& a) {
-	bool rv = false;
 	file_lowLevelIO::ptr llFrom, llTo;
-	if ((llFrom &= from) && (llTo &= to)) {
-		file_lowLevelIO::filetimes_t filetimes = {};
-		if (llFrom->getFileTimes(filetimes, a)) {
-			if (llTo->setFileTimes(filetimes, a)) {
-				rv = true;
+	if ( llTo &= to ) {
+		if (llFrom &= from) {
+			file_lowLevelIO::filetimes_t filetimes = {};
+			if (llFrom->getFileTimes(filetimes, a)) {
+				return llTo->setFileTimes(filetimes, a);
 			}
 		}
+		file_lowLevelIO::filetimes_t filetimes = {};
+		filetimes.lastWrite = from->get_timestamp(a);
+		if ( filetimes.lastWrite != filetimestamp_invalid ) {
+			return llTo->setFileTimes(filetimes, a);
+		}
 	}
-	return rv;
+	return false;
 }

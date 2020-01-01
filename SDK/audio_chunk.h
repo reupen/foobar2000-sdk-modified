@@ -45,6 +45,9 @@ public:
 		channel_config_5point1_side = channel_front_left | channel_front_right | channel_front_center | channel_lfe | channel_side_left | channel_side_right,
 		channel_config_7point1 = channel_config_5point1 | channel_side_left | channel_side_right,
 
+		channels_back_left_right = channel_back_left | channel_back_right,
+		channels_side_left_right = channel_side_left | channel_side_right,
+
 		defined_channel_count = 18,
 	};
 

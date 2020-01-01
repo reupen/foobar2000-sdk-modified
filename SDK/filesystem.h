@@ -800,6 +800,7 @@ namespace foobar2000_io
 	void substituteProtocol(pfc::string_base & out, const char * fullString, const char * protocolName);
     
     bool matchContentType_MP3( const char * fullString);
+    bool matchContentType_MP4audio( const char * fullString);
     bool matchContentType_MP4( const char * fullString);
     bool matchContentType_Ogg( const char * fullString);
     bool matchContentType_Opus( const char * fullString);

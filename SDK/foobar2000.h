@@ -13,7 +13,7 @@
 // #define FOOBAR2000_TARGET_VERSION 80 // 1.5
 
 // Use this to determine what foobar2000 SDK version is in use, undefined for releases older than 2018
-#define FOOBAR2000_SDK_VERSION 20191129
+#define FOOBAR2000_SDK_VERSION 20191227
 
 
 #include "foobar2000-pfc.h"
@@ -34,8 +34,8 @@ typedef const char * pcchar;
 #include "core_api.h"
 #include "service.h"
 #include "service_impl.h"
-#include "service_factory.h"
 #include "service_by_guid.h"
+#include "service_compat.h"
 
 #include "completion_notify.h"
 #include "abort_callback.h"
