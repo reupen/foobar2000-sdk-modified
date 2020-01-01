@@ -251,7 +251,7 @@
     <ClInclude Include="search_tools.h" />
     <ClInclude Include="service.h" />
     <ClInclude Include="service_by_guid.h" />
-    <ClInclude Include="service_factory.h" />
+    <ClInclude Include="service_compat.h" />
     <ClInclude Include="service_impl.h" />
     <ClInclude Include="system_time_keeper.h" />
     <ClInclude Include="tag_processor.h" />

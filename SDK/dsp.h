@@ -205,6 +205,10 @@ public:
 	bool operator!=(const dsp_preset & p_other) const {
 		return !(*this == p_other);
 	}
+
+	pfc::string8 get_owner_name() const;
+	pfc::string8 get_owner_name_debug() const;
+	pfc::string8 debug() const;
 protected:
 	dsp_preset() {}
 	~dsp_preset() {}
@@ -447,6 +451,9 @@ public:
 	void get_name_list(pfc::string_base & p_out) const;
 
 	static bool equals(dsp_chain_config const & v1, dsp_chain_config const & v2);
+	static bool equals_debug(dsp_chain_config const& v1, dsp_chain_config const& v2);
+
+	pfc::string8 debug() const;
 
 	bool operator==(const dsp_chain_config & other) const {return equals(*this, other);}
 	bool operator!=(const dsp_chain_config & other) const {return !equals(*this, other);}

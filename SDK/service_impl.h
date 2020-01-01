@@ -28,6 +28,7 @@ public:
 	}
 
 	service_base * as_service_base() { return class1_t::as_service_base(); }
+	static const char * debugServiceName() { return "multi inherited service"; }
 
 	// Obscure service_base methods from both so calling myclass->service_query() works like it should
 	virtual int service_release() throw() = 0;

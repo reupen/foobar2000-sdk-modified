@@ -40,8 +40,17 @@ public:
 	//! Sleeps p_timeout_seconds or less when aborted, returns true when execution should continue, false when not.
 	bool sleep_ex(double p_timeout_seconds) const;
     
-    bool waitForEvent( pfc::eventHandle_t evtHandle, double timeOut );
-    bool waitForEvent( pfc::event & evt, double timeOut ) {return waitForEvent( evt.get_handle(), timeOut ); }
+	//! Waits for an event. Returns true if event is now signaled, false if the specified period has elapsed and the event did not become signaled. \n
+	//! Throws exception_aborted if aborted.
+	bool waitForEvent( pfc::eventHandle_t evtHandle, double timeOut );
+	//! Waits for an event. Returns true if event is now signaled, false if the specified period has elapsed and the event did not become signaled. \n
+	//! Throws exception_aborted if aborted.
+	bool waitForEvent(pfc::event& evt, double timeOut);
+
+	//! Waits for an event. Returns once the event became signaled; throw exception_aborted if abort occurred first.
+	void waitForEvent(pfc::eventHandle_t evtHandle);
+	//! Waits for an event. Returns once the event became signaled; throw exception_aborted if abort occurred first.
+	void waitForEvent(pfc::event& evt);
 protected:
 	abort_callback() {}
 	~abort_callback() {}
