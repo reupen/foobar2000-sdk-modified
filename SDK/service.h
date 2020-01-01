@@ -3,7 +3,6 @@
 #include <utility> // std::forward
 
 typedef const void* service_class_ref;
-class service_factory_base;
 
 PFC_DECLARE_EXCEPTION(exception_service_not_found,pfc::exception,"Service not found");
 PFC_DECLARE_EXCEPTION(exception_service_extension_not_found,pfc::exception,"Service extension not found");
