@@ -139,6 +139,7 @@ public:
 	bool is_valid() const;
 
 	void debugChunkSpec() const;
+	pfc::string8 formatChunkSpec() const;
 #if PFC_DEBUG
 	void assert_valid(const char * ctx) const;
 #else

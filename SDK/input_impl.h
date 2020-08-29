@@ -98,6 +98,11 @@ public:
 	static GUID g_get_preferences_guid() {return pfc::guid_null;}
 	static bool g_is_low_merit() { return false; }
 
+    bool decode_get_dynamic_info(file_info & p_out, double & p_timestamp_delta) { return false; }
+    bool decode_get_dynamic_info_track(file_info & p_out, double & p_timestamp_delta) { return false; }
+    void decode_on_idle(abort_callback & p_abort) { }
+
+
 	//! These typedefs indicate which interfaces your class actually supports. You can override them to support non default input API interfaces without specifying input_factory parameters.
 	typedef input_decoder_v4 interface_decoder_t;
 	typedef input_info_reader interface_info_reader_t;

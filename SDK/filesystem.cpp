@@ -788,7 +788,18 @@ namespace {
 
 	class exception_io_win32_ex : public exception_io_win32 {
 	public:
-		exception_io_win32_ex(DWORD p_code) : m_msg(PFC_string_formatter() << "I/O error (win32 #" << (t_uint32)p_code << ")") {}
+		static pfc::string8 format(DWORD code) {
+			pfc::string8 ret;
+			ret << "I/O error (win32 ";
+			if (code & 0x80000000) {
+				ret << "0x" << pfc::format_hex(code, 8);
+			} else {
+				ret << "#" << (uint32_t)code;
+			}
+			ret << ")";
+			return ret;
+		}
+		exception_io_win32_ex(DWORD p_code) : m_msg(format(p_code)) {}
 		exception_io_win32_ex(const exception_io_win32_ex & p_other) {*this = p_other;}
 		const char * what() const throw() {return m_msg;}
 	private:
@@ -864,6 +875,7 @@ PFC_NORETURN void foobar2000_io::exception_io_from_win32(DWORD p_code) {
 	case ERROR_BAD_NETPATH:
 		// known to be inflicted by momentary net connectivity issues - NOT the same as exception_io_not_found
 		throw exception_io("Network path not found");
+#if FB2K_SUPPORT_TRANSACTED_FILESYSTEM
 	case ERROR_TRANSACTIONAL_OPEN_NOT_ALLOWED:
 	case ERROR_TRANSACTIONS_UNSUPPORTED_REMOTE:
 	case ERROR_RM_NOT_ACTIVE:
@@ -874,13 +886,16 @@ PFC_NORETURN void foobar2000_io::exception_io_from_win32(DWORD p_code) {
 		throw exception_io_transactional_conflict();
 	case ERROR_TRANSACTION_ALREADY_ABORTED:
 		throw exception_io_transaction_aborted();
-	case ERROR_UNEXP_NET_ERR:
-		// QNAP threw this when messing with very long file paths and concurrent conversion, probably SMB daemon crashed
-		throw exception_io("Unexpected netwrok error");
 	case ERROR_EFS_NOT_ALLOWED_IN_TRANSACTION:
 		throw exception_io("Transacted updates of encrypted content are not supported");
+#endif // FB2K_SUPPORT_TRANSACTED_FILESYSTEM
+	case ERROR_UNEXP_NET_ERR:
+		// QNAP threw this when messing with very long file paths and concurrent conversion, probably SMB daemon crashed
+		throw exception_io("Unexpected network error");
 	case ERROR_NOT_SAME_DEVICE:
 		throw exception_io("Source and destination must be on the same device");
+	case 0x80310000:
+		throw exception_io("Drive locked by BitLocker");
 	default:
 		throw exception_io_win32_ex(p_code);
 	}
@@ -1533,6 +1548,23 @@ bool file_lowLevelIO::setFileTimes(filetimes_t const & in, abort_callback & a) {
 	return this->lowLevelIO(guid_setFileTimes, 0, (void*)&in, sizeof(in), a) != 0;
 }
 
+bool file::g_copy_creation_time(service_ptr_t<file> from, service_ptr_t<file> to, abort_callback& a) {
+	file_lowLevelIO::ptr llFrom, llTo;
+	bool rv = false;
+	if (llTo &= to) {
+		if (llFrom &= from) {
+			file_lowLevelIO::filetimes_t filetimes;
+			if (llFrom->getFileTimes(filetimes, a)) {
+				if (filetimes.creation != filetimestamp_invalid) {
+					file_lowLevelIO::filetimes_t ft2;
+					ft2.creation = filetimes.creation;
+					rv = llTo->setFileTimes(ft2, a);
+				}
+			}
+		}
+	}
+	return rv;
+}
 bool file::g_copy_timestamps(file::ptr from, file::ptr to, abort_callback& a) {
 	file_lowLevelIO::ptr llFrom, llTo;
 	if ( llTo &= to ) {

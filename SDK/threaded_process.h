@@ -41,6 +41,12 @@ public:
 	void set_items( pfc::list_base_const_t<const char*> const & paths );
 };
 
+//! Fb2k mobile compatibility
+class threaded_process_context {
+public:
+	static HWND g_default() { return core_api::get_main_window(); }
+};
+
 //! Callback class for the threaded_process API. You must implement this to create your own threaded_process client.
 class NOVTABLE threaded_process_callback : public service_base {
 public:

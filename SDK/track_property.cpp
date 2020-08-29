@@ -1,12 +1,16 @@
 #include "foobar2000.h"
 
+#include "track_property.h"
+
 namespace {
 	class track_property_provider_v3_info_source_impl : public track_property_provider_v3_info_source {
 	public:
-		track_property_provider_v3_info_source_impl(metadb_handle_list_cref items) : m_items(items) {}
-		metadb_info_container::ptr get_info(size_t index) { return m_items[index]->get_info_ref(); }
+		track_property_provider_v3_info_source_impl(trackListRef items) : m_items(items) {}
+		trackInfoContainer::ptr get_info(size_t index) { 
+			return trackGetInfoRef(m_items, index);
+		}
 	private:
-		metadb_handle_list_cref m_items;
+		trackListRef m_items;
 	};
 
 	class track_property_callback_v2_proxy : public track_property_callback_v2 {
@@ -22,19 +26,19 @@ namespace {
 
 }
 
-void track_property_provider_v3::enumerate_properties(metadb_handle_list_cref p_tracks, track_property_callback & p_out) { 
+void track_property_provider_v3::enumerate_properties(trackListRef p_tracks, track_property_callback & p_out) { 
 	track_property_provider_v3_info_source_impl src(p_tracks); track_property_callback_v2_proxy cb(p_out); enumerate_properties_v3(p_tracks, src, cb); 
 }
 
-void track_property_provider_v3::enumerate_properties_v2(metadb_handle_list_cref p_tracks, track_property_callback_v2 & p_out) { 
+void track_property_provider_v3::enumerate_properties_v2(trackListRef p_tracks, track_property_callback_v2 & p_out) {
 	track_property_provider_v3_info_source_impl src(p_tracks); enumerate_properties_v3(p_tracks, src, p_out); 
 }
 
-void track_property_provider_v4::enumerate_properties_v3(metadb_handle_list_cref items, track_property_provider_v3_info_source & info, track_property_callback_v2 & callback) {
+void track_property_provider_v4::enumerate_properties_v3(trackListRef items, track_property_provider_v3_info_source & info, track_property_callback_v2 & callback) {
 	this->enumerate_properties_v4(items, info, callback, fb2k::noAbort );
 }
 
-void track_property_provider::enumerate_properties_helper(metadb_handle_list_cref items, track_property_provider_v3_info_source * info, track_property_callback_v2 & callback, abort_callback & abort) {
+void track_property_provider::enumerate_properties_helper(trackListRef items, track_property_provider_v3_info_source * info, track_property_callback_v2 & callback, abort_callback & abort) {
 
 	abort.check();
 

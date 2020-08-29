@@ -19,5 +19,6 @@ private:
 
 typedef CDialogResizeHelperTracking<cfgDialogSizeTracker> CDialogResizeHelperST;
 typedef CDialogResizeHelperTracking<cfgDialogPositionTracker> CDialogResizeHelperPT;
+typedef CDialogResizeHelperTracking<cfgWindowSizeTracker2> CDialogResizeHelperST2;
 
 #define REDRAW_DIALOG_ON_RESIZE() if (uMsg == WM_SIZE) RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);

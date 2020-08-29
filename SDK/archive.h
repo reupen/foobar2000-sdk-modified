@@ -34,8 +34,18 @@ namespace foobar2000_io {
         virtual bool is_our_archive( const char * path ) = 0;
 	};
 
+	//! \since 1.6
+	//! New 1.6 series API, though allowed to implement/call in earlier versions.
+	class NOVTABLE archive_v3 : public archive_v2 {
+		FB2K_MAKE_SERVICE_INTERFACE(archive_v3, archive_v2)
+	public:
+		//! Determine supported archive file types. \n
+		//! Returns a list of extensions, colon delimited, e.g.: "zip,rar,7z"
+		virtual void list_extensions(pfc::string_base & out) = 0;
+	};
+
 	//! Root class for archive implementations. Derive from this instead of from archive directly.
-	class NOVTABLE archive_impl : public archive_v2 {
+	class NOVTABLE archive_impl : public archive_v3 {
 	private:
 		//do not override these
 		bool get_canonical_path(const char * path,pfc::string_base & out);
@@ -50,6 +60,7 @@ namespace foobar2000_io {
 		void create_directory(const char * path,abort_callback &);
 		void list_directory(const char * p_path,directory_callback & p_out,abort_callback & p_abort);
 		void get_stats(const char * p_path,t_filestats & p_stats,bool & p_is_writeable,abort_callback & p_abort);
+		void list_extensions(pfc::string_base & out) override { out = get_archive_type(); }
 	protected:
 		//override these
 		virtual const char * get_archive_type()=0;//eg. "zip", must be lowercase

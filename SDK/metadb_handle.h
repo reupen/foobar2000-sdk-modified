@@ -143,6 +143,9 @@ public:
 	t_filetimestamp get_filetimestamp();
 	t_filesize get_filesize();
 
+	//! Internal method, do not use
+	inline const char * _get_path() const { return get_path(); }
+
 	FB2K_MAKE_SERVICE_INTERFACE(metadb_handle,service_base);
 };
 
@@ -256,3 +259,4 @@ namespace fb2k {
 	pfc::string_formatter formatTrackTitle(metadb_handle_ptr item, const char * script = "%title%" );
 	pfc::string_formatter formatTrackTitle(metadb_handle_ptr item,service_ptr_t<class titleformat_object> script);
 }
+

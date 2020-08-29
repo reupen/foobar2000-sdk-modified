@@ -7,13 +7,13 @@
 
 // #define FOOBAR2000_TARGET_VERSION 75 // 0.9.6
 // #define FOOBAR2000_TARGET_VERSION 76 // 1.0
-// #define FOOBAR2000_TARGET_VERSION 77 // 1.1
+// #define FOOBAR2000_TARGET_VERSION 77 // 1.1, 1.2
 // #define FOOBAR2000_TARGET_VERSION 78 // 1.3
 #define FOOBAR2000_TARGET_VERSION 79 // 1.4
-// #define FOOBAR2000_TARGET_VERSION 80 // 1.5
+// #define FOOBAR2000_TARGET_VERSION 80 // 1.5, 1.6
 
 // Use this to determine what foobar2000 SDK version is in use, undefined for releases older than 2018
-#define FOOBAR2000_SDK_VERSION 20191227
+#define FOOBAR2000_SDK_VERSION 20200728
 
 
 #include "foobar2000-pfc.h"
@@ -55,6 +55,8 @@ typedef const char * pcchar;
 #include "hasher_md5.h"
 #include "metadb_handle.h"
 #include "metadb.h"
+#include "file_info_filter.h"
+#include "file_info_filter_impl.h"
 #include "console.h"
 #include "dsp.h"
 #include "dsp_manager.h"
@@ -123,5 +125,6 @@ typedef const char * pcchar;
 #include "commonObjects.h"
 
 #include "file_lock_manager.h"
+#include "imageLoaderLite.h"
 
 #endif //_FOOBAR2000_H_

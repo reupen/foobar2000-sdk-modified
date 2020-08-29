@@ -85,6 +85,9 @@ void dsp_chunk_list::remove_bad_chunks()
 		audio_chunk * chunk = get_item(idx);
 		if (!chunk->is_valid())
 		{
+#if PFC_DEBUG
+			uDebugLog() << "Removing bad chunk: " << chunk->formatChunkSpec();
+#endif
 			chunk->reset();
 			remove_by_idx(idx);
 			blah = true;

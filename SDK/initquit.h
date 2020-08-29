@@ -24,6 +24,7 @@ namespace init_stages {
 		before_config_read = 10,
 		after_config_read = 20,
 		before_library_init = 30,
+		// Since foobar2000 v2.0, after_library_init is fired OUT OF ORDER with the rest, after ASYNCHRONOUS library init has completed.
 		after_library_init = 40,
 		before_ui_init = 50,
 		after_ui_init = 60,
