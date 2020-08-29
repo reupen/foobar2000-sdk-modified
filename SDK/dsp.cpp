@@ -86,7 +86,10 @@ void dsp_chunk_list::remove_bad_chunks()
 		if (!chunk->is_valid())
 		{
 #if PFC_DEBUG
-			uDebugLog() << "Removing bad chunk: " << chunk->formatChunkSpec();
+			{
+				uDebugLog logger;
+				logger << "Removing bad chunk: " << chunk->formatChunkSpec();
+			}
 #endif
 			chunk->reset();
 			remove_by_idx(idx);
