@@ -21,7 +21,7 @@ public:
 		service_ptr_t<file> l_tempfile;
 		try {
 			openTempFile(l_tempfile, p_abort);
-		} catch(exception_io_denied) {return false;}
+		} catch(exception_io) {return false;}
 		p_out = m_tempfile = l_tempfile;
 		return true;
 	}
@@ -32,6 +32,13 @@ public:
 	void finalize(service_ptr_t<file> & p_owner,abort_callback & p_abort) {
 		if (m_tempfile.is_valid()) {
 			m_tempfile->flushFileBuffers_(p_abort);
+
+			if (p_owner.is_valid()) {
+				try {
+					file::g_copy_creation_time(p_owner, m_tempfile, p_abort);
+				} catch (exception_io) {}
+			}
+
 			m_tempfile.release();
 			p_owner.release();
 			handleFileMove(m_temppath, m_origpath, p_abort);

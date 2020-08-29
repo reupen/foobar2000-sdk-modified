@@ -116,6 +116,9 @@
     <ClCompile Include="input_helper_cue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="text_file_loader_v2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitreader_helper.h">
@@ -320,6 +323,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="input_helper_cue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="advconfig_impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="metadb_handle_set.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="text_file_loader_v2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="file_readonly.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

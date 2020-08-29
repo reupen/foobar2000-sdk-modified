@@ -43,8 +43,8 @@ public:
 
 #else
 
-#define FB2K_LOG_STATUS(X,Y) 
-#define FB2K_LOG_WARNING(X,Y)
-#define FB2K_LOG_ERROR(X,Y)
+#define FB2K_LOG_STATUS(X,Y) ((void)0)
+#define FB2K_LOG_WARNING(X,Y) ((void)0)
+#define FB2K_LOG_ERROR(X,Y) ((void)0)
 
 #endif

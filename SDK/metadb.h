@@ -1,5 +1,9 @@
 #pragma once
 
+
+class file_info_filter; // forward decl; file_info_filter moved to file_info_filter.h
+
+
 //! API for tag read/write operations. Legal to call from main thread only, except for hint_multi_async() / hint_async() / hint_reader().\n
 //! Implemented only by core, do not reimplement.\n
 //! Use static_api_ptr_t template to access metadb_io methods.\n
@@ -62,47 +66,6 @@ public:
 	__declspec(deprecated) t_update_info_state update_info(metadb_handle_ptr p_item,file_info & p_info,HWND p_parent_window,bool p_show_errors);
 	
 	FB2K_MAKE_SERVICE_COREAPI(metadb_io);
-};
-
-//! Implementing this class gives you direct control over which part of file_info gets altered during a tag update uperation. To be used with metadb_io_v2::update_info_async().
-class NOVTABLE file_info_filter : public service_base {
-	FB2K_MAKE_SERVICE_INTERFACE(file_info_filter, service_base);
-public:
-	//! Alters specified file_info entry; called as a part of tag update process. Specified file_info has been read from a file, and will be written back.\n
-	//! WARNING: This will be typically called from another thread than main app thread (precisely, from thread created by tag updater). You should copy all relevant data to members of your file_info_filter instance in constructor and reference only member data in apply_filter() implementation.
-	//! @returns True when you have altered file_info and changes need to be written back to the file; false if no changes have been made.
-	virtual bool apply_filter(metadb_handle_ptr p_location,t_filestats p_stats,file_info & p_info) = 0;
-};
-
-//! Extended file_info_filter allowing the caller to do their own manipulation of the file before and after the metadata update takes place. \n
-//! Respected by foobar2000 v1.5 and up; if metadb_io_v4 is supported, then file_info_filter_v2 is understood.
-class NOVTABLE file_info_filter_v2 : public file_info_filter {
-	FB2K_MAKE_SERVICE_INTERFACE(file_info_filter_v2, file_info_filter);
-public:
-
-	enum filterStatus_t {
-		filterNoUpdate = 0,
-		filterProceed,
-		filterAlreadyUpdated
-	};
-	//! Called after just before rewriting metadata. The file is not yet opened for writing, but a file_lock has already been granted (so don't call it on your own). \n
-	//! You can use this method to perform album art updates (via album_art_editor API) alongside metadata updates. \n
-	//! Return value can be used to stop fb2k from proceeding with metadata update on this file. \n
-	//! If your own operations on this file fail, just pass the exceptions to the caller and they will be reported just as other tag update errors.
-	//! @param fileIfAlreadyOpened Reference to an already opened file object, if already opened by the caller. May be null.
-	virtual filterStatus_t before_tag_update( const char * location, file::ptr fileIfAlreadyOpened, abort_callback & aborter ) = 0;
-
-	//! Called after metadata has been updated. \n
-	//! If you wish to alter the file on your own, use before_tag_update() for this instead. \n
-	//! If your own operations on this file fail, just pass the exceptions to the caller and they will be reported just as other tag update errors. \n
-	//! The passed reader object can be used to read the properties of the updated file back. In most cases it will be the writer that was used to update the tags. Do not call tag writing methods on it from this function.
-	virtual void after_tag_update( const char * location, service_ptr_t<class input_info_reader> reader, abort_callback & aborter ) = 0;
-
-	virtual void after_all_tag_updates( abort_callback & aborter ) = 0;
-
-	//! Allows you to do your own error logging.
-	//! @returns True if the error has been noted by your code and does not need to be shown to the user.
-	virtual bool filter_error( const char * location, const char * msg ) = 0;
 };
 
 //! Advanced interface for passing infos read from files to metadb backend. Use metadb_io_v2::create_hint_list() to instantiate. \n
@@ -384,38 +347,6 @@ public:
 
 
 
-
-
-//! Helper implementation of file_info_filter_impl.
-class file_info_filter_impl : public file_info_filter {
-public:
-	file_info_filter_impl(const pfc::list_base_const_t<metadb_handle_ptr> & p_list,const pfc::list_base_const_t<const file_info*> & p_new_info) {
-		FB2K_DYNAMIC_ASSERT(p_list.get_count() == p_new_info.get_count());
-		pfc::array_t<t_size> order;
-		order.set_size(p_list.get_count());
-		order_helper::g_fill(order.get_ptr(),order.get_size());
-		p_list.sort_get_permutation_t(pfc::compare_t<metadb_handle_ptr,metadb_handle_ptr>,order.get_ptr());
-		m_handles.set_count(order.get_size());
-		m_infos.set_size(order.get_size());
-		for(t_size n = 0; n < order.get_size(); n++) {
-			m_handles[n] = p_list[order[n]];
-			m_infos[n] = *p_new_info[order[n]];
-		}
-	}
-
-	bool apply_filter(metadb_handle_ptr p_location,t_filestats p_stats,file_info & p_info) {
-		t_size index;
-		if (m_handles.bsearch_t(pfc::compare_t<metadb_handle_ptr,metadb_handle_ptr>,p_location,index)) {
-			p_info = m_infos[index];
-			return true;
-		} else {
-			return false;
-		}
-	}
-private:
-	metadb_handle_list m_handles;
-	pfc::array_t<file_info_impl> m_infos;
-};
 
 
 //! \since 1.1
