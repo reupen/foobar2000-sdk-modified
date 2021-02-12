@@ -220,6 +220,7 @@
     <ClCompile Include="file_move_helper.cpp" />
     <ClCompile Include="filetimetools.cpp" />
     <ClCompile Include="file_win32_wrapper.cpp" />
+    <ClCompile Include="image_load_save.cpp" />
     <ClCompile Include="inplace_edit.cpp" />
     <ClCompile Include="input_helpers.cpp" />
     <ClCompile Include="input_helper_cue.cpp" />
@@ -309,6 +310,7 @@
     <ClInclude Include="filetimetools.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="icon_remapping_wildcard.h" />
+    <ClInclude Include="image_load_save.h" />
     <ClInclude Include="inplace_edit.h" />
     <ClInclude Include="input_fix_seeking.h" />
     <ClInclude Include="input_helpers.h" />
@@ -343,6 +345,7 @@
     <ClInclude Include="win32_misc.h" />
     <ClInclude Include="WindowPositionUtils.h" />
     <ClInclude Include="window_placement_helper.h" />
+    <ClInclude Include="winmm-types.h" />
     <ClInclude Include="writer_wav.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

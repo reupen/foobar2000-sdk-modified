@@ -302,6 +302,9 @@
     <ClInclude Include="imageLoaderLite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="imageViewer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="abort_callback.cpp">

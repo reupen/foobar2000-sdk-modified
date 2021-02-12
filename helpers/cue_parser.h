@@ -151,7 +151,7 @@ namespace cue_parser
 				m_decodeFrom = 0; m_decodeLength = -1; m_decodePos = 0;
 			} else {
 				double start, length;
-				m_meta.query_track_offsets(p_subsong,start,length);
+				_query_track_offsets(p_subsong,start,length);
 				unsigned flags2 = p_flags;
 				if (start > 0) flags2 &= ~input_flag_no_seeking;
 				flags2 &= ~input_flag_allow_inaccurate_seeking;
@@ -225,6 +225,12 @@ namespace cue_parser
 			m_impl.get_info(info, p_abort);
 			m_meta.set_tag( info );
 		}
+		void _query_track_offsets(unsigned p_subsong, double& start, double& length) const {
+			m_meta.query_track_offsets(p_subsong,start,length);
+		}
+		bool expose_cuesheet() const {
+			return !m_remote && m_meta.have_cuesheet();
+		}
 	private:
 		bool _run(audio_chunk & chunk, mem_block_container * raw, abort_callback & aborter) {
 			if (m_decodeLength >= 0 && m_decodePos >= m_decodeLength) return false;
@@ -260,9 +266,6 @@ namespace cue_parser
 		t_base m_impl;
 		double m_decodeFrom, m_decodeLength, m_decodePos;
 		bool m_remote = false;
-		bool expose_cuesheet() const {
-			return !m_remote && m_meta.have_cuesheet();
-		}
 		embeddedcue_metadata_manager m_meta;
 	};
 #ifdef FOOBAR2000_HAVE_CHAPTERIZER
@@ -321,6 +324,13 @@ namespace cue_parser
 			input_wrapper_cue_t<I> instance;
 			instance.open(0,p_path,input_open_info_read,p_abort);
 			const t_uint32 total = instance.get_subsong_count();
+
+			if (instance.expose_cuesheet()) {
+				double start, len;
+				instance._query_track_offsets(1, start, len);
+				p_list.set_pregap( start );
+			}
+
 
 			p_list.set_chapter_count(total);
 			for(t_uint32 walk = 0; walk < total; ++walk) {

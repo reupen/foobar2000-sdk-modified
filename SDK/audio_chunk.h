@@ -162,7 +162,7 @@ public:
 	inline void reset() {
 		set_sample_count(0);
 		set_srate(0);
-		set_channels(0);
+		set_channels(0,0);
 		set_data_size(0);
 	}
 	
@@ -289,7 +289,7 @@ public:
 		WAVEFORMATEXTENSIBLE toWFXEXWithBPS(uint32_t bps) const;
 #endif
 
-		pfc::string8 toString() const;
+		pfc::string8 toString( const char * delim = " " ) const;
 	};
 	static spec_t makeSpec(uint32_t rate, uint32_t channels);
 	static spec_t makeSpec(uint32_t rate, uint32_t channels, uint32_t chanMask);
@@ -297,6 +297,8 @@ public:
 
 	spec_t get_spec() const;
 	void set_spec(const spec_t &);
+
+	void append(const audio_chunk& other);
 protected:
 	audio_chunk() {}
 	~audio_chunk() {}	

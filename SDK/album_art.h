@@ -25,6 +25,9 @@ public:
 };
 
 typedef service_ptr_t<album_art_data> album_art_data_ptr;
+namespace fb2k {
+	typedef album_art_data_ptr memBlockRef;
+}
 
 //! Namespace containing identifiers of album art types.
 namespace album_art_ids {

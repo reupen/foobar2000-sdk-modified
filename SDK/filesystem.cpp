@@ -715,6 +715,21 @@ bool file::is_eof(abort_callback & p_abort) {
 }
 
 
+t_filetimestamp foobar2000_io::import_DOS_time(uint32_t v) {
+#ifdef _WIN32
+	FILETIME ft = {};
+	if (DosDateTimeToFileTime(HIWORD(v), LOWORD(v), &ft)) {
+		FILETIME ft2 = {};
+		if (LocalFileTimeToFileTime(&ft, &ft2)) {
+			return ((uint64_t)ft2.dwHighDateTime << 32) | (uint64_t)ft2.dwLowDateTime;
+		}
+		
+	}
+#endif
+	// FIX ME
+	return filetimestamp_invalid;
+}
+
 t_filetimestamp foobar2000_io::filetimestamp_from_system_timer()
 {
     return pfc::fileTimeNow();
