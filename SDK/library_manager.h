@@ -195,3 +195,12 @@ class NOVTABLE library_meta_autocomplete : public service_base {
 public:
 	virtual bool get_value_list(const char * metaName, pfc::com_ptr_t<IUnknown> & out) = 0;
 };
+
+//! \since 1.6.1
+//! Caching & asynchronous version. \n
+//! Keep a reference to your library_meta_autocomplete_v2 object in your dialog class to cache the looked up values & speed up the operation.
+class NOVTABLE library_meta_autocomplete_v2 : public service_base {
+	FB2K_MAKE_SERVICE_COREAPI(library_meta_autocomplete_v2)
+public:
+	virtual bool get_value_list_async(const char* metaName, pfc::com_ptr_t<IUnknown>& out) = 0;
+};

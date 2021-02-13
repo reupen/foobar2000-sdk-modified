@@ -680,6 +680,7 @@ namespace foobar2000_io
 
 
 	t_filetimestamp filetimestamp_from_system_timer();
+	t_filetimestamp import_DOS_time(uint32_t);
 
 #ifdef _WIN32
 	inline t_filetimestamp import_filetimestamp(FILETIME ft) {

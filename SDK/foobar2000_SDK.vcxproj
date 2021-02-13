@@ -215,6 +215,7 @@
     <ClInclude Include="http_client.h" />
     <ClInclude Include="icon_remap.h" />
     <ClInclude Include="imageLoaderLite.h" />
+    <ClInclude Include="imageViewer.h" />
     <ClInclude Include="info_lookup_handler.h" />
     <ClInclude Include="initquit.h" />
     <ClInclude Include="input.h" />

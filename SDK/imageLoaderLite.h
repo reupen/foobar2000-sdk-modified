@@ -47,3 +47,6 @@ namespace fb2k {
 		}
 	};
 }
+
+#define FB2K_GETOPENFILENAME_PICTUREFILES "Picture files|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp"
+#define FB2K_GETOPENFILENAME_PICTUREFILES_ALL FB2K_GETOPENFILENAME_PICTUREFILES "|All files|*.*"
