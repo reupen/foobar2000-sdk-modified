@@ -55,8 +55,8 @@ void titleformat_compiler::remove_forbidden_chars(titleformat_text_out * p_out,c
 
 void titleformat_compiler::remove_forbidden_chars_string_append(pfc::string_receiver & p_out,const char * p_source,t_size p_source_len,const char * p_reserved_chars)
 {
-	titleformat_text_out_impl_string p_text_out(p_out);
-	remove_forbidden_chars(&p_text_out,pfc::guid_null,p_source,p_source_len,p_reserved_chars);
+	titleformat_text_out_impl_string tfout(p_out);
+	remove_forbidden_chars(&tfout,pfc::guid_null,p_source,p_source_len,p_reserved_chars);
 }
 
 void titleformat_compiler::remove_forbidden_chars_string(pfc::string_base & p_out,const char * p_source,t_size p_source_len,const char * p_reserved_chars)
@@ -74,22 +74,23 @@ bool titleformat_hook_impl_file_info::process_function(titleformat_text_out * p_
 
 void titleformat_object::run_hook(const playable_location & p_location,const file_info * p_source,titleformat_hook * p_hook,pfc::string_base & p_out,titleformat_text_filter * p_filter)
 {
-	titleformat_hook_impl_file_info p_hook_file_info(p_location, p_source);
 	if (p_hook)
 	{
-		titleformat_hook_impl_splitter p_hook_splitter(p_hook, &p_hook_file_info);
-		run(&p_hook_splitter,p_out,p_filter);
+		titleformat_hook_impl_file_info hook1(p_location, p_source);
+		titleformat_hook_impl_splitter hook2(p_hook, &hook1);
+		run(&hook2,p_out,p_filter);
 	}
 	else
 	{
-		run(&p_hook_file_info,p_out,p_filter);
+		titleformat_hook_impl_file_info hook(p_location, p_source);
+		run(&hook,p_out,p_filter);
 	}
 }
 
 void titleformat_object::run_simple(const playable_location & p_location,const file_info * p_source,pfc::string_base & p_out)
 {
-	titleformat_hook_impl_file_info p_hook(p_location, p_source);
-	run(&p_hook,p_out,NULL);
+	titleformat_hook_impl_file_info hook(p_location, p_source);
+	run(&hook,p_out,NULL);
 }
 
 t_size titleformat_hook_function_params::get_param_uint(t_size index)

@@ -68,8 +68,7 @@ void popup_message::g_showToastLongDuration(const char * msg) {
 
 #endif // FOOBAR2000_MODERN
 
-#if FOOBAR2000_TARGET_VERSION >= 80
-#ifdef FOOBAR2000_DESKTOP_WINDOWS
+#if defined(FOOBAR2000_DESKTOP_WINDOWS) && FOOBAR2000_TARGET_VERSION >= 80
 int popup_message_v3::messageBox(HWND parent, const char* msg, const char* title, UINT flags) {
 	query_t q = {};
 	q.title = title;
@@ -134,5 +133,4 @@ int popup_message_v3::messageBox(HWND parent, const char* msg, const char* title
 
 	return -1;
 }
-#endif
 #endif
