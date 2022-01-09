@@ -15,7 +15,7 @@ namespace foobar2000_io
 	//! Invalid/unknown file timestamp constant. Also see: t_filetimestamp.
 	const t_filetimestamp filetimestamp_invalid = 0;
 	//! Invalid/unknown file size constant. Also see: t_filesize.
-	static const t_filesize filesize_invalid = (t_filesize)(~0);
+	static const t_filesize filesize_invalid = (t_filesize)(UINT64_MAX);
 	
 	static const t_filetimestamp filetimestamp_1second_increment = 10000000;
 
@@ -72,6 +72,8 @@ namespace foobar2000_io
 	PFC_DECLARE_EXCEPTION( exception_io_dns, exception_io_net, "DNS error");
 	//! The path does not point to a directory.
 	PFC_DECLARE_EXCEPTION(exception_io_not_directory, exception_io, "Not a directory");
+	//! Functionality not supported by this device or file system.
+	PFC_DECLARE_EXCEPTION(exception_io_unsupported_feature, exception_io, "Unsupported feature");
 
 	//! Stores file stats (size and timestamp).
 	struct t_filestats {
@@ -123,15 +125,18 @@ namespace foobar2000_io
 		//! Helper template built around read_object. Reads single raw object from the stream.
 		//! @param p_object Receives object read from the stream on success.
 		//! @param p_abort abort_callback object signaling user aborting the operation.
-		template<typename T> inline void read_object_t(T& p_object,abort_callback & p_abort) {pfc::assert_raw_type<T>(); read_object(&p_object,sizeof(p_object),p_abort);}
+		template<typename T> inline void read_object_t(T& p_object, abort_callback& p_abort) { pfc::assert_raw_type<T>(); read_object(&p_object, sizeof(p_object), p_abort); }
+		template<typename T> inline T read_object_t(abort_callback& a) { T val; this->read_object_t(val, a); return val; }
 		//! Helper template built around read_object. Reads single raw object from the stream; corrects byte order assuming stream uses little endian order.
 		//! @param p_object Receives object read from the stream on success.
 		//! @param p_abort abort_callback object signaling user aborting the operation.
-		template<typename T> inline void read_lendian_t(T& p_object,abort_callback & p_abort) {read_object_t(p_object,p_abort); byte_order::order_le_to_native_t(p_object);}
+		template<typename T> inline void read_lendian_t(T& p_object, abort_callback& p_abort) { read_object_t(p_object, p_abort); byte_order::order_le_to_native_t(p_object); }
+		template<typename T> inline T read_lendian_t(abort_callback& a) { T val; this->read_lendian_t(val, a); return val; }
 		//! Helper template built around read_object. Reads single raw object from the stream; corrects byte order assuming stream uses big endian order.
 		//! @param p_object Receives object read from the stream on success.
 		//! @param p_abort abort_callback object signaling user aborting the operation.
-		template<typename T> inline void read_bendian_t(T& p_object,abort_callback & p_abort) {read_object_t(p_object,p_abort); byte_order::order_be_to_native_t(p_object);}
+		template<typename T> inline void read_bendian_t(T& p_object, abort_callback& p_abort) { read_object_t(p_object, p_abort); byte_order::order_be_to_native_t(p_object); }
+		template<typename T> inline T read_bendian_t(abort_callback& a) { T val; this->read_bendian_t(val, a); return val; }
 
 		//! Helper function; reads a string (with a 32-bit header indicating length in bytes followed by UTF-8 encoded data without a null terminator).
 		void read_string(pfc::string_base & p_out,abort_callback & p_abort);
@@ -334,6 +339,9 @@ namespace foobar2000_io
 
 		t_filesize skip(t_filesize p_bytes,abort_callback & p_abort);
 		t_filesize skip_seek(t_filesize p_bytes,abort_callback & p_abort);
+
+		//! file_get_metadata wrapper.
+		service_ptr get_metadata_(abort_callback& a);
 
 		FB2K_MAKE_SERVICE_INTERFACE(file,service_base);
 	};
@@ -829,6 +837,25 @@ namespace foobar2000_io
 		//! @param f File object to open if needed (buffering mandated by user settings). May be valid or null prior to call. May be valid or null (no buffering) after call.
 		//! @param path Path to open. May be null if f is not null. At least one of f and path must be valid prior to call.
 		virtual void open_file_helper(file::ptr & f, const char * path, abort_callback & aborter) = 0;
+	};
+
+	//! \since 1.6.7
+	class file_get_metadata : public file {
+		FB2K_MAKE_SERVICE_INTERFACE(file_get_metadata, file);
+	public:
+		//! Returns an object with protocol specific metadata of the file. \n
+		//! It is essential that this object is made available to the caller by any wrappers working on top if a file object. \n
+		//! The returned object can be of any implementation-defined class; for http it's file_metdata_http. \n
+		//! Null return is allowed if no metadata is available.
+		virtual service_ptr get_metadata(abort_callback&) = 0;
+	};
+
+	//! \since 1.6.7
+	class file_metadata_http : public service_base {
+		FB2K_MAKE_SERVICE_INTERFACE(file_metadata_http, service_base);
+	public:
+		virtual bool get_http_header(const char* name, pfc::string_base& out) = 0;
+		virtual void get_connected_path(pfc::string_base& out) = 0;
 	};
 }
 

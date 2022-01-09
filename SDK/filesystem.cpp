@@ -911,6 +911,9 @@ PFC_NORETURN void foobar2000_io::exception_io_from_win32(DWORD p_code) {
 		throw exception_io("Source and destination must be on the same device");
 	case 0x80310000:
 		throw exception_io("Drive locked by BitLocker");
+	case ERROR_INVALID_FUNCTION:
+		// Happens when trying to link files on FAT32 etc
+		throw exception_io_unsupported_feature();
 	default:
 		throw exception_io_win32_ex(p_code);
 	}
@@ -1066,10 +1069,10 @@ pfc::string stream_reader::read_string(abort_callback & p_abort) {
 	return read_string_ex(len,p_abort);
 }
 pfc::string stream_reader::read_string_ex(t_size p_len,abort_callback & p_abort) {
-	pfc::rcptr_t<pfc::string8> temp; temp.new_t();
-	read_object(temp->lock_buffer(p_len),p_len,p_abort);
-	temp->unlock_buffer();
-	return pfc::string::t_data(temp);
+	pfc::string temp;
+	read_object(temp.lock_buffer(p_len),p_len,p_abort);
+	temp.unlock_buffer();
+	return temp;
 }
 
 
@@ -1199,13 +1202,15 @@ bool foobar2000_io::matchContentType_MP3( const char * type) {
     return matchContentType(type,"audio/mp3") || matchContentType(type,"audio/mpeg") || matchContentType(type,"audio/mpg") || matchContentType(type,"audio/x-mp3") || matchContentType(type,"audio/x-mpeg") || matchContentType(type,"audio/x-mpg");
 }
 bool foobar2000_io::matchContentType_MP4( const char * type ) {
-    return matchContentType(type, "audio/mp4") || matchContentType(type, "audio/x-mp4")
+    return matchContentType_MP4audio(type)
     || matchContentType(type, "video/mp4") ||  matchContentType(type, "video/x-mp4")
     || matchContentType(type, "application/mp4") ||  matchContentType(type, "application/x-mp4");
     
 }
 bool foobar2000_io::matchContentType_MP4audio( const char * type ) {
-    return matchContentType(type, "audio/mp4") || matchContentType(type, "audio/x-mp4");
+    // Gerbera uses audio/x-m4a instead of audio/mp4 ....
+    return matchContentType(type, "audio/mp4") || matchContentType(type, "audio/x-mp4") ||
+        matchContentType(type, "audio/m4a") || matchContentType(type, "audio/x-m4a");
 }
 bool foobar2000_io::matchContentType_Ogg( const char * type) {
     return matchContentType(type, "application/ogg") || matchContentType(type, "application/x-ogg") || matchContentType(type, "audio/ogg") || matchContentType(type, "audio/x-ogg");
@@ -1596,4 +1601,11 @@ bool file::g_copy_timestamps(file::ptr from, file::ptr to, abort_callback& a) {
 		}
 	}
 	return false;
+}
+
+service_ptr file::get_metadata_(abort_callback& a) {
+	service_ptr ret;
+	file_get_metadata::ptr getter;
+	if (getter &= this) ret = getter->get_metadata(a);
+	return ret;
 }

@@ -346,5 +346,8 @@
     <ClInclude Include="image_load_save.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="audio_render_float.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

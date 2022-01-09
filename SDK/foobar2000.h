@@ -9,11 +9,11 @@
 // #define FOOBAR2000_TARGET_VERSION 76 // 1.0
 // #define FOOBAR2000_TARGET_VERSION 77 // 1.1, 1.2
 // #define FOOBAR2000_TARGET_VERSION 78 // 1.3
-#define FOOBAR2000_TARGET_VERSION 79 // 1.4
-// #define FOOBAR2000_TARGET_VERSION 80 // 1.5, 1.6
+// #define FOOBAR2000_TARGET_VERSION 79 // 1.4
+#define FOOBAR2000_TARGET_VERSION 80 // 1.5, 1.6
 
 // Use this to determine what foobar2000 SDK version is in use, undefined for releases older than 2018
-#define FOOBAR2000_SDK_VERSION 20210223
+#define FOOBAR2000_SDK_VERSION 20220104
 
 
 #include "foobar2000-pfc.h"

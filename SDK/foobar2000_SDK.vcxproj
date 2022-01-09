@@ -231,6 +231,7 @@
     <ClInclude Include="metadb.h" />
     <ClInclude Include="metadb_handle.h" />
     <ClInclude Include="modeless_dialog.h" />
+    <ClInclude Include="noInfo.h" />
     <ClInclude Include="ole_interaction.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="packet_decoder.h" />
