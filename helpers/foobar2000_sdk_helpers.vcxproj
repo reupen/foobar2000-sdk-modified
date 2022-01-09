@@ -277,6 +277,7 @@
     <ClInclude Include="advconfig_runtime.h" />
     <ClInclude Include="album_art_helpers.h" />
     <ClInclude Include="atl-misc.h" />
+    <ClInclude Include="audio_render_float.h" />
     <ClInclude Include="AutoComplete.h" />
     <ClInclude Include="BumpableElem.h" />
     <ClInclude Include="CDialogResizeHelper.h" />

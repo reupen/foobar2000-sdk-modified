@@ -1,3 +1,4 @@
+#pragma once
 //! Structure containing ReplayGain scan results from some playable object, also providing various helper methods to manipulate those results.
 struct replaygain_info
 {
@@ -217,7 +218,7 @@ public:
 
 	bool is_encoding_lossy() const;
 	bool is_encoding_overkill() const;
-
+	bool is_encoding_float() const;
 
 	void info_calculate_bitrate(t_filesize p_filesize,double p_length);
 

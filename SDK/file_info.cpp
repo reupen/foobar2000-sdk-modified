@@ -414,6 +414,15 @@ void file_info::info_calculate_bitrate(t_filesize p_filesize,double p_length)
 	if ( b > 0 ) info_set_bitrate(b);
 }
 
+bool file_info::is_encoding_float() const {
+	auto bs = info_get_int("bitspersample");
+	auto extra = info_get("bitspersample_extra");
+	if (bs == 32 || bs == 64) {
+		if (extra == nullptr || strcmp(extra, "floating-point") == 0) return true;
+	}
+	return false;
+}
+
 bool file_info::is_encoding_overkill() const {
 	auto bs = info_get_int("bitspersample");
 	auto extra = info_get("bitspersample_extra");

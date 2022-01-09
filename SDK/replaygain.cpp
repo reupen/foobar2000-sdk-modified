@@ -78,24 +78,18 @@ audio_sample replaygain_manager::core_settings_query_scale(const metadb_handle_p
 
 //enum t_source_mode {source_mode_none,source_mode_track,source_mode_album};
 //enum t_processing_mode {processing_mode_none,processing_mode_gain,processing_mode_gain_and_peak,processing_mode_peak};
-namespace {
-class format_dbdelta
-{
-public:
-	format_dbdelta(double p_val);
-	operator const char*() const {return m_buffer;}
-private:
-	pfc::string_fixed_t<128> m_buffer;
-};
-static const char * querysign(int val) {
-	return val<0 ? "-" : val>0 ? "+" : "\xc2\xb1";
+
+static const char* querysign(int val) {
+	return val < 0 ? "-" : val>0 ? "+" : "\xc2\xb1";
 }
 
-format_dbdelta::format_dbdelta(double p_val) {
-	int val = (int)(p_val * 10);
-	m_buffer << querysign(val) << (abs(val)/10) << "." << (abs(val)%10) << "dB";
+static pfc::string_fixed_t<128> format_dbdelta(double p_val) {
+	pfc::string_fixed_t<128> ret;
+	int val = (int)pfc::rint32(p_val * 10);
+	ret << querysign(val) << (abs(val) / 10) << "." << (abs(val) % 10) << "dB";
+	return ret;
 }
-}
+
 void t_replaygain_config::format_name(pfc::string_base & p_out) const
 {
 	switch(m_processing_mode)

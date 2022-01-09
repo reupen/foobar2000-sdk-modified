@@ -108,13 +108,13 @@ int popup_message_v3::messageBox(HWND parent, const char* msg, const char* title
 	}
 	switch (flags & 0xF0) {
 	case MB_ICONHAND:
-		q.icon = iconWarning;
+		q.icon = iconError;
 		break;
 	case MB_ICONQUESTION:
 		q.icon = iconQuestion;
 		break;
 	case MB_ICONEXCLAMATION:
-		q.icon = iconError;
+		q.icon = iconWarning;
 		break;
 	case MB_ICONASTERISK:
 		q.icon = iconInformation;

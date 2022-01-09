@@ -193,7 +193,7 @@ public:
 	virtual const char * get_name() = 0;
 
 	//! Obsolete, do not use.
-	virtual void advanced_settings_popup(HWND p_parent,POINT p_menupoint) = 0;
+	virtual void advanced_settings_popup(HWND p_parent, POINT p_menupoint) {}
 
 	enum {
 		flag_needs_bitdepth_config = 1 << 0,

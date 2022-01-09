@@ -406,11 +406,11 @@ public:
 	//! Decrements reference count; deletes the object if reference count reaches zero. This is normally not called directly but managed by service_ptr_t<> template. \n
 	//! Implemented by service_impl_* classes.
 	//! @returns New reference count. For debug purposes only, in certain conditions return values may be unreliable.
-	virtual int service_release() throw() = 0;
+	virtual int service_release() noexcept = 0;
 	//! Increments reference count. This is normally not called directly but managed by service_ptr_t<> template. \n
 	//! Implemented by service_impl_* classes.
 	//! @returns New reference count. For debug purposes only, in certain conditions return values may be unreliable.
-	virtual int service_add_ref() throw() = 0;
+	virtual int service_add_ref() noexcept = 0;
 	//! Queries whether the object supports specific interface and retrieves a pointer to that interface. This is normally not called directly but managed by service_query_t<> function template. \n
 	//! Checks the parameter against GUIDs of interfaces supported by this object, if the GUID is one of supported interfaces, p_out is set to service_base pointer that can be static_cast<>'ed to queried interface and the method returns true; otherwise the method returns false. \n
 	//! Implemented by service_impl_* classes. \n
@@ -838,8 +838,13 @@ public:
 #define FB2K_SERVICE_FACTORY_ATTR __attribute__ (( __used__ ))
 #endif
 
-#define FB2K_SERVICE_FACTORY( TYPE ) static ::service_factory_single_t< TYPE > g_##TYPE##factory FB2K_SERVICE_FACTORY_ATTR;
-#define FB2K_SERVICE_FACTORY_DYNAMIC( TYPE ) static ::service_factory_t< TYPE > g_##TYPE##factory FB2K_SERVICE_FACTORY_ATTR;
+#define _FB2K_CONCAT(a, b) _FB2K_CONCAT_INNER(a, b)
+#define _FB2K_CONCAT_INNER(a, b) a ## b
+
+#define _FB2K_UNIQUE_NAME(base) _FB2K_CONCAT(base, __COUNTER__)
+
+#define FB2K_SERVICE_FACTORY( TYPE ) static ::service_factory_single_t< TYPE > _FB2K_UNIQUE_NAME(g_factory_) FB2K_SERVICE_FACTORY_ATTR;
+#define FB2K_SERVICE_FACTORY_DYNAMIC( TYPE ) static ::service_factory_t< TYPE > _FB2K_UNIQUE_NAME(g_factory_) FB2K_SERVICE_FACTORY_ATTR;
 
 
 #define FB2K_FOR_EACH_SERVICE(type, call) {service_enum_t<typename type::t_interface_entrypoint> e; service_ptr_t<type> ptr; while(e.next(ptr)) {ptr->call;} }
