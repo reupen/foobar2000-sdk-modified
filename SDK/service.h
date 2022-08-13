@@ -658,6 +658,7 @@ private:
 
 template<typename t_interface>
 class service_enum_t {
+	typedef service_enum_t<t_interface> self_t;
 public:
 	service_enum_t() : m_index(0) {
 		pfc::assert_same_type<t_interface,typename t_interface::t_interface_entrypoint>();
@@ -705,11 +706,29 @@ public:
 	service_ptr_t<t_interface> operator*() const {
 		return get();
 	}
+
+	// ==== modern for loop support ====
+	// Instead of using service_enum_t<> / service_ptr_t<>, use:
+	// for( auto ptr : someclass::enumerate() ) { ... }
+	self_t begin() const {
+		self_t ret = *this;
+		ret.m_index = 0;
+		return ret;
+	}
+	self_t end() const {
+		self_t ret = *this;
+		ret.m_index = ret.m_helper.get_count();
+		return ret;
+	}
+	bool operator==(self_t const& other) const {return m_index == other.m_index;}
+	bool operator!=(self_t const& other) const { return m_index != other.m_index; }
+
+
 private:
 	bool _next(service_ptr_t<t_interface> & p_out) {
 		return m_helper.create(p_out,m_index++);
 	}
-	unsigned m_index;
+	size_t m_index;
 	service_class_helper_t<t_interface> m_helper;
 };
 
@@ -734,7 +753,7 @@ namespace fb2k {
 	}
 
 	//! Modern get-std-api helper. \n
-	//! Returns true on scucess (ret ptr is valid), false on failure (API not found).
+	//! Returns true on success (ret ptr is valid), false on failure (API not found).
 	template<typename api_t>
 	bool std_api_try_get( service_ptr_t<api_t> & ret ) {
 		typedef typename api_t::t_interface_entrypoint entrypoint_t;
