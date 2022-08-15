@@ -17,7 +17,7 @@ namespace bitreader_helper {
 	}
     inline static void write_bit( uint8_t * p_stream, size_t p_offset, size_t bit ) {
         size_t bshift = 7 - (p_offset&7);
-        size_t mask = 1 << bshift;
+        size_t mask = (size_t)1 << bshift;
         uint8_t & b = p_stream[p_offset>>3];
         b = (b & ~mask) | ((bit&1) << bshift);
     }

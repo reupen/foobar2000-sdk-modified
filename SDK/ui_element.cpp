@@ -221,3 +221,37 @@ ui_element_replace_dialog_notify::ptr ui_element_replace_dialog_notify::create(s
 	obj->reply = reply;
 	return obj;
 }
+
+bool ui_config_manager::is_dark_mode() {
+	t_ui_color clr = 0xFFFFFF;
+	if (this->query_color(ui_color_darkmode, clr)) return clr == 0;
+	return false;
+}
+
+#ifdef _WIN32
+t_ui_color ui_config_manager::getSysColor(int sysColorIndex) {
+	GUID guid = ui_color_from_sys_color_index(sysColorIndex);
+	if (guid != pfc::guid_null) {
+		t_ui_color ret = 0;
+		if (query_color(guid, ret)) return ret;
+	}
+	return GetSysColor(sysColorIndex);
+}
+#endif
+
+ui_config_callback_impl::ui_config_callback_impl() {
+#if FOOBAR2000_TARGET_VERSION >= 81
+	ui_config_manager::get()->add_callback(this); 
+#else
+	auto api = ui_config_manager::tryGet();
+	if (api.is_valid()) api->add_callback(this);
+#endif
+}
+ui_config_callback_impl::~ui_config_callback_impl() { 
+#if FOOBAR2000_TARGET_VERSION >= 81
+	ui_config_manager::get()->remove_callback(this); 
+#else
+	auto api = ui_config_manager::tryGet();
+	if (api.is_valid()) api->remove_callback(this);
+#endif
+}

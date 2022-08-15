@@ -198,10 +198,14 @@ namespace {
 			v2 &= owner;
 
 			if ( is_subdirectory ) {
-				if (v2.is_valid()) {
-					v2->list_directory_ex(url, *this, flags(), p_abort);
-				} else {
-					owner->list_directory(url, *this, p_abort );
+				try {
+					if (v2.is_valid()) {
+						v2->list_directory_ex(url, *this, flags(), p_abort);
+					} else {
+						owner->list_directory(url, *this, p_abort);
+					}
+				} catch (exception_io const& e) {
+					FB2K_console_formatter() << "Error walking directory (" << e << "): " << url;
 				}
 			} else {
 				// In fb2k 1.4 the default filesystem is v2 and performs hidden file checks

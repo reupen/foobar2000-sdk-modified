@@ -102,6 +102,9 @@ public:
 
 		//! \since 1.4.1
 		needs_rescan_library = 32,
+
+        //! \since 2.0
+        dark_mode_supported = 1 << 16,
 	};
 };
 

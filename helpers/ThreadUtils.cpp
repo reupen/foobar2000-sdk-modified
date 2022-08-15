@@ -86,7 +86,7 @@ namespace ThreadUtils {
 		}
 		pHandles[0] = abort.get_abort_event();
 		pfc::memcpy_t(pHandles + 1, ev, evCount);
-		DWORD status = MultiWait_MsgLoop(pHandles, evCountEx);
+		DWORD status = MultiWait_MsgLoop(pHandles, (DWORD) evCountEx);
 		abort.check();
 		size_t ret = (size_t)(status - WAIT_OBJECT_0 - 1);
 		PFC_ASSERT(ret < evCount);
