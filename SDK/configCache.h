@@ -18,7 +18,7 @@ namespace fb2k {
 	private:
 		const char* const m_var;
 		const bool m_def;
-		std::atomic_bool m_value = false;
+		std::atomic_bool m_value{false};
 		std::once_flag m_init;
 	};
 
@@ -35,7 +35,7 @@ namespace fb2k {
 	private:
 		const char* const m_var;
 		const int64_t m_def;
-		std::atomic_int64_t m_value = 0;
+		std::atomic_int64_t m_value{0};
 		std::once_flag m_init;
 	};
 }

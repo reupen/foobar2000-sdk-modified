@@ -58,7 +58,7 @@ namespace cfg_var_modern {
 #endif
 
 		const int64_t m_initVal;
-		std::atomic_int64_t m_val = 0;
+		std::atomic_int64_t m_val{0};
 		std::once_flag m_init;
 	};
 
@@ -78,7 +78,7 @@ namespace cfg_var_modern {
 #endif
 
 		const bool m_initVal;
-		std::atomic_bool m_val = false;
+		std::atomic_bool m_val{false};
 		std::once_flag m_init;
 	};
 
@@ -142,7 +142,7 @@ namespace cfg_var_modern {
 #endif
 
 		const double m_initVal;
-		std::atomic<double> m_val = 0;
+		std::atomic<double> m_val{0};
 		std::once_flag m_init;
 	};
 }
