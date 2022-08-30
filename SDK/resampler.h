@@ -68,7 +68,7 @@ class resampler_manager_v3 : public resampler_manager_v2 {
 	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(resampler_manager_v3, resampler_manager_v2);
 public:
 	//! Extended make_chain that also manipulates channel layout.
-	virtual void make_chain_v3(dsp_chain_config& outChain, unsigned rateFromm, unsigned rateTo, float qualityScale, unsigned chmask) = 0;
+	virtual void make_chain_v3(dsp_chain_config& outChain, unsigned rateFrom, unsigned rateTo, float qualityScale, unsigned chmask) = 0;
 };
 #endif
 

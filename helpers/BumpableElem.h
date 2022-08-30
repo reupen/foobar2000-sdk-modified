@@ -23,8 +23,8 @@ public:
 	}
 
 	static bool Bump() {
-		for(auto walk = instances.cfirst(); walk.is_valid(); ++walk) {
-			if ((*walk)->_bump()) return true;
+		for (auto& walk : instances) {
+			if (walk->_bump()) return true;
 		}
 		return false;
 	}
@@ -47,12 +47,11 @@ private:
 		return true;
 	}
 	void _init() {
-		m_selfDestruct = false;
 		PFC_ASSERT(core_api::is_main_thread());
 		instances += this;
 	}
 	static pfc::avltree_t<TSelf*> instances;
-	bool m_selfDestruct;
+	bool m_selfDestruct = false;
 	CFlashWindow m_flash;
 };
 

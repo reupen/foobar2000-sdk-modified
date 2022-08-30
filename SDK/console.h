@@ -1,3 +1,6 @@
+#pragma once
+
+
 //! Namespace with functions for sending text to console. All functions are fully multi-thread safe, though they must not be called during dll initialization or deinitialization (e.g. static object constructors or destructors) when service system is not available.
 namespace console
 {
@@ -51,3 +54,7 @@ public:
 
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(console_receiver);
 };
+
+
+
+

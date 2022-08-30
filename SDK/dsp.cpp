@@ -1,4 +1,6 @@
-#include "foobar2000.h"
+#include "foobar2000-sdk-pch.h"
+#include "dsp.h"
+#include "resampler.h"
 
 #ifdef FOOBAR2000_HAVE_DSP
 
@@ -86,9 +88,7 @@ void dsp_chunk_list::remove_bad_chunks()
 		if (!chunk->is_valid())
 		{
 #if PFC_DEBUG
-			{
-				FB2K_console_formatter() << "Removing bad chunk: " << chunk->formatChunkSpec();
-			}
+			FB2K_console_formatter() << "Removing bad chunk: " << chunk->formatChunkSpec();
 #endif
 			chunk->reset();
 			remove_by_idx(idx);
@@ -105,8 +105,7 @@ bool dsp_entry_hidden::g_dsp_exists(const GUID & p_guid) {
 }
 
 bool dsp_entry_hidden::g_get_interface( dsp_entry_hidden::ptr & out, const GUID & guid ) {
-	service_enum_t<dsp_entry_hidden> e; service_ptr_t<dsp_entry_hidden> p;
-	while( e.next(p) ) {
+	for (auto p : enumerate()) {
 		if (p->get_guid() == guid) {
 			out = p; return true;
 		}
@@ -165,6 +164,28 @@ void dsp_chain_config::contents_to_stream(stream_writer * p_stream,abort_callbac
 	}
 }
 
+fb2k::memBlock::ptr dsp_chain_config::to_blob() const {
+	stream_writer_buffer_simple out;
+	this->contents_to_stream(&out, fb2k::noAbort);
+	return fb2k::memBlock::blockWithVector(out.m_buffer);
+}
+
+void dsp_chain_config::from_blob(const void* p, size_t size) {
+	if (size == 0) {
+		remove_all(); return;
+	}
+	stream_reader_memblock_ref reader(p, size);
+	this->contents_from_stream(&reader, fb2k::noAbort);
+}
+
+void dsp_chain_config::from_blob(fb2k::memBlock::ptr b) {
+	if (b.is_valid()) {
+		from_blob(b->data(), b->size());
+	} else {
+		this->remove_all();
+	}
+}
+
 void dsp_chain_config::contents_from_stream(stream_reader * p_stream,abort_callback & p_abort) {
 	t_uint32 n,count;
 
@@ -179,50 +200,6 @@ void dsp_chain_config::contents_from_stream(stream_reader * p_stream,abort_callb
 		add_item(temp);
 	}
 }
-
-
-void cfg_dsp_chain_config::get_data(dsp_chain_config & p_data) const {
-	p_data.copy(m_data);
-}
-
-void cfg_dsp_chain_config::set_data(const dsp_chain_config & p_data) {
-	m_data.copy(p_data);
-}
-
-void cfg_dsp_chain_config::reset() {
-	m_data.remove_all();
-}
-
-void cfg_dsp_chain_config::get_data_raw(stream_writer * p_stream,abort_callback & p_abort) {
-	m_data.contents_to_stream(p_stream,p_abort);
-}
-
-void cfg_dsp_chain_config::set_data_raw(stream_reader * p_stream,t_size,abort_callback & p_abort) {
-	m_data.contents_from_stream(p_stream,p_abort);
-}
-
-void cfg_dsp_chain_config_mt::reset() {
-	dsp_chain_config_impl dummy; set_data(dummy);
-}
-void cfg_dsp_chain_config_mt::get_data(dsp_chain_config & p_data) {
-	inReadSync( m_sync );
-	p_data.copy(m_data);
-}
-void cfg_dsp_chain_config_mt::set_data(const dsp_chain_config & p_data) {
-	inWriteSync( m_sync );
-	m_data.copy( p_data );
-}
-
-void cfg_dsp_chain_config_mt::get_data_raw(stream_writer * p_stream, abort_callback & p_abort) {
-	dsp_chain_config_impl temp;
-	get_data( temp );
-	temp.contents_to_stream( p_stream, p_abort );
-}
-void cfg_dsp_chain_config_mt::set_data_raw(stream_reader * p_stream, t_size p_sizehint, abort_callback & p_abort) {
-	dsp_chain_config_impl temp; temp.contents_from_stream( p_stream, p_abort );
-	set_data( temp );
-}
-
 
 void dsp_chain_config::remove_item(t_size p_index)
 {
@@ -264,17 +241,21 @@ t_size dsp_chain_config_impl::get_count() const
 
 const dsp_preset & dsp_chain_config_impl::get_item(t_size p_index) const
 {
-	return *m_data[p_index];
+	return m_data[p_index]->data;
 }
 
 void dsp_chain_config_impl::replace_item(const dsp_preset & p_data,t_size p_index)
 {
-	*m_data[p_index] = p_data;
+	auto& obj = *m_data[p_index];
+	if (p_data.get_owner() != obj.data.get_owner()) {
+		obj.dspName = p_data.get_owner_name();
+	}
+	obj.data = p_data;
 }
 
 void dsp_chain_config_impl::insert_item(const dsp_preset & p_data,t_size p_index)
 {
-	m_data.insert_item(new dsp_preset_impl(p_data),p_index);
+	this->insert_item_v2(p_data, nullptr, p_index);
 }
 
 void dsp_chain_config_impl::remove_mask(const bit_array & p_mask)
@@ -285,6 +266,29 @@ void dsp_chain_config_impl::remove_mask(const bit_array & p_mask)
 dsp_chain_config_impl::~dsp_chain_config_impl()
 {
 	m_data.delete_all();
+}
+
+const char* dsp_chain_config_impl::get_dsp_name(size_t idx) const {
+	auto& n = m_data[idx]->dspName;
+	if (n.is_empty()) return nullptr;
+	return n.c_str();
+}
+
+void dsp_chain_config_impl::insert_item_v2(const dsp_preset& data, const char* dspName_, size_t index) {
+	pfc::string8 dspName;
+	if (dspName_) dspName = dspName_;
+	if (dspName.length() == 0) dspName = data.get_owner_name();
+	m_data.insert_item(new entry_t{ data, std::move(dspName) }, index);
+}
+
+const char* dsp_chain_config_impl::find_dsp_name(const GUID& guid) const {
+	for (size_t walk = 0; walk < m_data.get_size(); ++walk) {
+		auto& obj = *m_data[walk];
+		if (obj.data.get_owner() == guid && obj.dspName.length() > 0) {
+			return obj.dspName.c_str();
+		}
+	}
+	return nullptr;
 }
 
 pfc::string8 dsp_preset::get_owner_name() const {
@@ -307,9 +311,12 @@ pfc::string8 dsp_preset::get_owner_name_debug() const {
 	return ret;
 }
 
-pfc::string8 dsp_preset::debug() const {
+pfc::string8 dsp_preset::debug(const char * knownName) const {
+	pfc::string8 name;
+	if (knownName) name = knownName;
+	else name = this->get_owner_name_debug();
 	pfc::string8 ret;
-	ret << this->get_owner_name_debug() << " :: " << pfc::print_guid(this->get_owner()) << " :: " << pfc::format_hexdump(this->get_data(), this->get_data_size());
+	ret << name << " :: " << pfc::print_guid(this->get_owner()) << " :: " << pfc::format_hexdump(this->get_data(), this->get_data_size());
 	return ret;
 }
 
@@ -321,6 +328,27 @@ pfc::string8 dsp_chain_config::debug() const {
 		ret << "\n" << get_item(walk).debug();
 	}
 	return ret;	
+}
+
+void dsp_chain_config_impl::add_item_v2(const dsp_preset& data, const char* dspName) {
+	insert_item_v2(data, dspName, get_count());
+}
+
+void dsp_chain_config_impl::copy_v2(dsp_chain_config_impl const& p_source) {
+	remove_all();
+	t_size n, m = p_source.get_count();
+	for (n = 0; n < m; n++)
+		add_item_v2(p_source.get_item(n), p_source.get_dsp_name(n));
+}
+
+pfc::string8 dsp_chain_config_impl::debug() const {
+	const size_t count = get_count();
+	pfc::string8 ret;
+	ret << "dsp_chain_config_impl: " << count << " items";
+	for (size_t walk = 0; walk < count; ++walk) {
+		ret << "\n" << get_item(walk).debug( this->get_dsp_name(walk) );
+	}
+	return ret;
 }
 
 void dsp_preset::contents_to_stream(stream_writer * p_stream,abort_callback & p_abort) const {
@@ -352,8 +380,8 @@ void dsp_preset::g_contents_from_stream_skip(stream_reader * p_stream,abort_call
 }
 
 void dsp_preset_impl::set_data_from_stream(stream_reader * p_stream,t_size p_bytes,abort_callback & p_abort) {
-	m_data.set_size(p_bytes);
-	if (p_bytes > 0) p_stream->read_object(m_data.get_ptr(),p_bytes,p_abort);
+	m_data.resize(p_bytes);
+	if (p_bytes > 0) p_stream->read_object(m_data.ptr(),p_bytes,p_abort);
 }
 
 void dsp_chain_config::copy(const dsp_chain_config & p_source) {
@@ -375,14 +403,15 @@ bool dsp_entry::g_have_config_popup(const dsp_preset & p_preset)
 	return g_have_config_popup(p_preset.get_owner());
 }
 
-bool dsp_entry::g_show_config_popup(dsp_preset & p_preset,HWND p_parent)
+#ifdef _WIN32
+bool dsp_entry::g_show_config_popup(dsp_preset & p_preset,fb2k::hwnd_t p_parent)
 {
 	service_ptr_t<dsp_entry> entry;
 	if (!g_get_interface(entry,p_preset.get_owner())) return false;
 	return entry->show_config_popup(p_preset,p_parent);
 }
 
-void dsp_entry::g_show_config_popup_v2(const dsp_preset & p_preset,HWND p_parent,dsp_preset_edit_callback & p_callback) {
+void dsp_entry::g_show_config_popup_v2(const dsp_preset & p_preset,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback) {
 	service_ptr_t<dsp_entry> entry;
 	if (g_get_interface(entry,p_preset.get_owner())) {
 		service_ptr_t<dsp_entry_v2> entry_v2;
@@ -394,11 +423,17 @@ void dsp_entry::g_show_config_popup_v2(const dsp_preset & p_preset,HWND p_parent
 		}
 	}
 }
+#endif
+
+#ifndef _WIN32
+service_ptr dsp_entry::show_config_popup( fb2k::hwnd_t, dsp_preset_edit_callback_v2::ptr ) {
+    throw pfc::exception_not_implemented();
+}
+#endif
 
 bool dsp_entry::g_get_interface(service_ptr_t<dsp_entry> & p_out,const GUID & p_guid)
 {
-	service_ptr_t<dsp_entry> ptr; service_enum_t<dsp_entry> e;
-	while(e.next(ptr)) {
+	for (auto ptr : enumerate()) {
 		if (ptr->get_guid() == p_guid) {
 			p_out = ptr;
 			return true;
@@ -525,7 +560,8 @@ namespace {
 	};
 };
 
-bool dsp_entry_v2::show_config_popup(dsp_preset & p_data,HWND p_parent) {
+#ifdef _WIN32
+bool dsp_entry_v2::show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) {
 	PFC_ASSERT(p_data.get_owner() == get_guid());
 	dsp_preset_impl temp(p_data);
     
@@ -538,6 +574,7 @@ bool dsp_entry_v2::show_config_popup(dsp_preset & p_data,HWND p_parent) {
 	p_data = temp;
 	return true;
 }
+#endif
 
 void resampler_manager::make_chain_(dsp_chain_config& outChain, unsigned rateFrom, unsigned rateTo, float qualityScale) {
 	resampler_manager_v2::ptr v2;
@@ -553,6 +590,16 @@ void resampler_manager::make_chain_(dsp_chain_config& outChain, unsigned rateFro
 			}
 		}
 	}
+}
+
+void dsp_preset_edit_callback_v2::reset() {
+    dsp_preset_impl temp; get_preset( temp );
+    GUID id = temp.get_owner(); temp.set_data(nullptr, 0);
+    if (dsp_entry::g_get_default_preset( temp, id )) {
+        this->set_preset( temp );
+    } else {
+        PFC_ASSERT(!"Should not get here - no such DSP");
+    }
 }
 
 #endif // FOOBAR2000_HAVE_DSP

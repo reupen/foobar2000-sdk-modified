@@ -1,5 +1,9 @@
-#include "foobar2000.h"
+#include "foobar2000-sdk-pch.h"
+#include "file_info.h"
+#include "console.h"
+#include "filesystem.h"
 
+#include <pfc/unicode-normalize.h>
 #ifndef _MSC_VER
 #define strcat_s strcat
 #define _atoi64 atoll
@@ -408,7 +412,7 @@ bool file_info::meta_format(const char * p_name,pfc::string_base & p_out, const 
 	return true;
 }
 
-void file_info::info_calculate_bitrate(t_filesize p_filesize,double p_length)
+void file_info::info_calculate_bitrate(uint64_t p_filesize,double p_length)
 {
 	unsigned b = audio_math::bitrate_kbps( p_filesize, p_length );
 	if ( b > 0 ) info_set_bitrate(b);
@@ -822,4 +826,24 @@ bool file_info::field_value_equals(const file_info& i1, size_t meta1, const file
 		if (strcmp(i1.meta_enum_value(meta1, walk), i2.meta_enum_value(meta2, walk)) != 0) return false;
 	}
 	return true;
+}
+
+bool file_info::unicode_normalize_C() {
+	const size_t total = this->meta_get_count();
+	bool changed = false;
+	for (size_t mwalk = 0; mwalk < total; ++mwalk) {
+		const char* name = this->meta_enum_name(mwalk);
+		const size_t totalV = this->meta_enum_value_count(mwalk);
+		for (size_t vwalk = 0; vwalk < totalV; ++vwalk) {
+			const char* val = this->meta_enum_value(mwalk, vwalk);
+			if (pfc::stringContainsFormD(val)) {
+				auto norm = pfc::unicodeNormalizeC(val);
+				if (strcmp(norm, val) != 0) {
+					this->meta_modify_value(mwalk, vwalk, norm);
+					changed = true;
+				}
+			}
+		}
+	}
+	return changed;
 }

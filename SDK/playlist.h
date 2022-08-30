@@ -1,6 +1,7 @@
 #pragma once
 
 #include "titleformat.h"
+#include "playback_control.h"
 
 //! This interface allows filtering of playlist modification operations.\n
 //! Implemented by components "locking" playlists; use playlist_manager::playlist_lock_install() etc to takeover specific playlist with your instance of playlist_lock.
@@ -246,6 +247,11 @@ public:
 	bool remove_playlist(t_size p_playlist);
 	//! Helper; removes single playlist of specified index, and switches to another playlist when possible.
 	bool remove_playlist_switch(t_size p_playlist);
+	//! Helper; removes a playlist switching to another; gracefully refuses to remove the only playlist. \n
+	//! It is recommended to call this as a result of user input requesting playlist removal. \n
+	//! Do not call MessageBeep() etc when it returns false, the function handles these for you.
+	bool remove_playlist_user(size_t which);
+	bool remove_playlist_user();
 
 	//! Helper; returns whether specified item on specified playlist is selected or not.
 	bool playlist_is_item_selected(t_size p_playlist,t_size p_item);
@@ -312,15 +318,15 @@ public:
 	bool activeplaylist_insert_items_filter(t_size p_base,const pfc::list_base_const_t<metadb_handle_ptr> & p_data,bool p_select);
 
 	//! \deprecated (since 0.9.3) Use playlist_incoming_item_filter_v2::process_locations_async whenever possible
-	bool playlist_insert_locations(t_size p_playlist,t_size p_base,const pfc::list_base_const_t<const char*> & p_urls,bool p_select,HWND p_parentwnd);
+	bool playlist_insert_locations(t_size p_playlist,t_size p_base,const pfc::list_base_const_t<const char*> & p_urls,bool p_select,fb2k::hwnd_t p_parentwnd);
 	//! \deprecated (since 0.9.3) Use playlist_incoming_item_filter_v2::process_locations_async whenever possible
-	bool activeplaylist_insert_locations(t_size p_base,const pfc::list_base_const_t<const char*> & p_urls,bool p_select,HWND p_parentwnd);
+	bool activeplaylist_insert_locations(t_size p_base,const pfc::list_base_const_t<const char*> & p_urls,bool p_select,fb2k::hwnd_t p_parentwnd);
 
 	bool playlist_add_items_filter(t_size p_playlist,const pfc::list_base_const_t<metadb_handle_ptr> & p_data,bool p_select);
 	bool activeplaylist_add_items_filter(const pfc::list_base_const_t<metadb_handle_ptr> & p_data,bool p_select);
 
-	bool playlist_add_locations(t_size p_playlist,const pfc::list_base_const_t<const char*> & p_urls,bool p_select,HWND p_parentwnd);
-	bool activeplaylist_add_locations(const pfc::list_base_const_t<const char*> & p_urls,bool p_select,HWND p_parentwnd);
+	bool playlist_add_locations(t_size p_playlist,const pfc::list_base_const_t<const char*> & p_urls,bool p_select,fb2k::hwnd_t p_parentwnd);
+	bool activeplaylist_add_locations(const pfc::list_base_const_t<const char*> & p_urls,bool p_select,fb2k::hwnd_t p_parentwnd);
 
 	void reset_playing_playlist();
 
@@ -460,6 +466,11 @@ public:
 		p_data = temp;
 		return true;
 	}
+	pfc::array_t<uint8_t> playlist_get_property(t_size playlist, const GUID& prop) {
+		pfc::array_t<uint8_t> ret;
+		this->playlist_get_property(playlist, prop, ret);
+		return ret;
+	}
 	//! Read a runtime playlist property.
 	//! \param p_playlist Index of the playlist
 	//! \param p_property GUID that identifies the property
@@ -519,6 +530,15 @@ class NOVTABLE playlist_manager_v4 : public playlist_manager_v3 {
 public:
 	virtual void playlist_get_sideinfo(t_size which, stream_writer * stream, abort_callback & abort) = 0;
 	virtual t_size create_playlist_ex(const char * p_name,t_size p_name_length,t_size p_index, metadb_handle_list_cref content, stream_reader * sideInfo, abort_callback & abort) = 0;
+};
+
+//! \since 2.0
+//! Internal, do not use
+class NOVTABLE playlist_manager_v5 : public playlist_manager_v4 {
+	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(playlist_manager_v5, playlist_manager_v4)
+public:
+	virtual GUID playlist_get_guid(size_t idx) = 0;
+	virtual size_t find_playlist_by_guid(const GUID&) = 0;
 };
 
 class NOVTABLE playlist_callback
@@ -747,8 +767,9 @@ public:
 	//! Note that this function creates modal dialog and does not return until the operation has completed.
 	//! @returns True on success, false on user abort.
 	//! \deprecated Use playlist_incoming_item_filter_v2::process_locations_async() when possible.
-	virtual bool process_locations(const pfc::list_base_const_t<const char*> & p_urls,pfc::list_base_t<metadb_handle_ptr> & p_out,bool p_filter,const char * p_restrict_mask_override, const char * p_exclude_mask_override,HWND p_parentwnd) = 0;
+	virtual bool process_locations(const pfc::list_base_const_t<const char*> & p_urls,pfc::list_base_t<metadb_handle_ptr> & p_out,bool p_filter,const char * p_restrict_mask_override, const char * p_exclude_mask_override,fb2k::hwnd_t p_parentwnd) = 0;
 	
+#ifdef _WIN32
 	//! Converts an IDataObject to a list of metadb_handles.
 	//! Using this function is strongly disrecommended as it implies blocking the drag&drop source app (as well as our app).\n
 	//! @returns True on success, false on user abort or unknown data format.
@@ -773,11 +794,14 @@ public:
 	//! Note: since 0.9.3, it is recommended to use playlist_incoming_item_filter_v2::process_dropped_files_async() instead.
 	//! @returns True on success, false when IDataObject does not contain any of known data formats.
 	virtual bool process_dropped_files_delayed(dropped_files_data & p_out,interface IDataObject * pDataObject) = 0;
-
+#endif // _WIN32
 	//! Helper - calls process_locations() with a single URL. See process_locations() for more info.
-	bool process_location(const char * url,pfc::list_base_t<metadb_handle_ptr> & out,bool filter,const char * p_mask,const char * p_exclude,HWND p_parentwnd);
+	bool process_location(const char * url,pfc::list_base_t<metadb_handle_ptr> & out,bool filter,const char * p_mask,const char * p_exclude,fb2k::hwnd_t p_parentwnd);
+    
+#ifdef _WIN32
 	//! Helper - returns a pfc::com_ptr_t<> rather than a raw pointer.
 	pfc::com_ptr_t<interface IDataObject> create_dataobject_ex(metadb_handle_list_cref data);
+#endif // _WIN32
 };
 
 //! For use with playlist_incoming_item_filter_v2::process_locations_async().
@@ -812,14 +836,16 @@ public:
 	//! @param p_exclude_mask_override Override of "exclude file types" setting. Pass NULL to use value from preferences.
 	//! @param p_parentwnd Parent window for spawned progress dialogs.
 	//! @param p_notify Callback receiving notifications about success/abort of the operation as well as output item list.
-	virtual void process_locations_async(const pfc::list_base_const_t<const char*> & p_urls,t_uint32 p_op_flags,const char * p_restrict_mask_override, const char * p_exclude_mask_override,HWND p_parentwnd,process_locations_notify_ptr p_notify) = 0;
+	virtual void process_locations_async(const pfc::list_base_const_t<const char*> & p_urls,t_uint32 p_op_flags,const char * p_restrict_mask_override, const char * p_exclude_mask_override,fb2k::hwnd_t p_parentwnd,process_locations_notify_ptr p_notify) = 0;
 
+#ifdef _WIN32
 	//! Converts an IDataObject to a list of metadb_handles. The function returns immediately; specified callback object receives results when the operation has completed.
 	//! @param p_dataobject IDataObject to process.
 	//! @param p_op_flags Can be null, or one or more of op_flag_* enum values combined, altering behaviors of the operation.
 	//! @param p_parentwnd Parent window for spawned progress dialogs.
 	//! @param p_notify Callback receiving notifications about success/abort of the operation as well as output item list.
 	virtual void process_dropped_files_async(interface IDataObject * p_dataobject,t_uint32 p_op_flags,HWND p_parentwnd,process_locations_notify_ptr p_notify) = 0;
+#endif // _WIN32
 };
 
 //! \since 0.9.5
@@ -850,15 +876,19 @@ public:
 		m_is_paths = true;
 		m_paths = p_paths;
 	}
+    void set_paths(pfc::string_list_impl && paths) {
+        m_paths = std::move(paths);
+        m_is_paths = true;
+    }
 	void set_handles(const pfc::list_base_const_t<metadb_handle_ptr> & p_handles) {
 		m_is_paths = false;
 		m_handles = p_handles;
 	}
 
-	void to_handles_async(bool p_filter,HWND p_parentwnd,service_ptr_t<process_locations_notify> p_notify);
+	void to_handles_async(bool p_filter,fb2k::hwnd_t p_parentwnd,service_ptr_t<process_locations_notify> p_notify);
 	//! @param p_op_flags Can be null, or one or more of playlist_incoming_item_filter_v2::op_flag_* enum values combined, altering behaviors of the operation.
-	void to_handles_async_ex(t_uint32 p_op_flags,HWND p_parentwnd,service_ptr_t<process_locations_notify> p_notify);
-	bool to_handles(pfc::list_base_t<metadb_handle_ptr> & p_out,bool p_filter,HWND p_parentwnd);
+	void to_handles_async_ex(t_uint32 p_op_flags,fb2k::hwnd_t p_parentwnd,service_ptr_t<process_locations_notify> p_notify);
+	bool to_handles(pfc::list_base_t<metadb_handle_ptr> & p_out,bool p_filter,fb2k::hwnd_t p_parentwnd);
 private:
 	pfc::string_list_impl m_paths;
 	metadb_handle_list m_handles;

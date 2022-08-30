@@ -21,7 +21,7 @@ namespace fb2k {
 
 	private:
 		void		set_length(double p_length) override { uBugCheck(); }
-		void		set_replaygain(const replaygain_info& p_info) { uBugCheck(); }
+		void		set_replaygain(const replaygain_info& p_info) override { uBugCheck(); }
 
 		t_size		info_set_ex(const char* p_name, t_size p_name_length, const char* p_value, t_size p_value_length) override { uBugCheck(); }
 		void		info_remove_mask(const bit_array& p_mask) override { uBugCheck(); }
