@@ -32,13 +32,12 @@ static void SystemTimeToNix(const SYSTEMTIME& st, struct tm& Time) {
     Time.tm_year = st.wYear - 1900;
 }
 
-#if 0
 static t_filetimestamp ExportSystemTime(const SYSTEMTIME& st) {
     struct tm Time;
     SystemTimeToNix(st, Time);
     return pfc::fileTimeUtoW(mktime(&Time));
 }
-#endif
+
 static t_filetimestamp ExportSystemTimeLocal(const SYSTEMTIME& st) {
     struct tm Time, Local;
     SystemTimeToNix(st, Time);
@@ -133,7 +132,6 @@ static t_filetimestamp filetimestamp_from_string_internal(const char* date, bool
     // Accepted format
     // YYYY-MM-DD HH:MM:SS
     try {
-        t_size remaining = strlen(date);
         SYSTEMTIME st = {};
         st.wDay = 1; st.wMonth = 1;
 

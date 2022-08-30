@@ -1,5 +1,7 @@
 #pragma once
 
+#include "commonObjects.h"
+
 #ifdef _WIN32
 namespace Gdiplus {
 	class Image;

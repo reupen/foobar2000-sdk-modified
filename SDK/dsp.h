@@ -1,4 +1,6 @@
 #pragma once
+#include "audio_chunk.h"
+#include "filesystem.h"
 
 #ifdef FOOBAR2000_HAVE_DSP
 
@@ -143,16 +145,16 @@ public:
 	//! To be overridden by a DSP implementation.\n
 	//! Flushes the DSP (drops any buffered data). The implementation should reset the DSP to the same state it was in before receiving any audio data. \n
 	//! Called after seeking, etc.
-	virtual void flush() = 0;
+	virtual void flush() override = 0;
 	//! To be overridden by a DSP implementation.\n
 	//! Retrieves amount of data buffered by the DSP, for syncing visualisation.
 	//! @returns Amount of buffered audio data, in seconds.
-	virtual double get_latency() = 0;
+	virtual double get_latency() override = 0;
 	//! To be overridden by a DSP implementation.\n
 	//! Returns true if DSP needs to know exact track change point (eg. for crossfading, removing silence).\n
 	//! Signaling this will force-flush any DSPs placed before this DSP so when it gets on_endoftrack(), relevant chunks contain last samples of the track.\n
 	//! Signaling this may interfere with gapless playback in certain scenarios (forces flush of DSPs placed before you) so don't use it unless you have reasons to.
-	virtual bool need_track_change_mark() = 0;
+	virtual bool need_track_change_mark() override = 0;
 private:
 	dsp_impl_base_t(const t_self&) = delete;
 	const t_self & operator=(const t_self &) = delete;
@@ -208,7 +210,7 @@ public:
 
 	pfc::string8 get_owner_name() const;
 	pfc::string8 get_owner_name_debug() const;
-	pfc::string8 debug() const;
+	pfc::string8 debug(const char * knownName = nullptr) const;
 protected:
 	dsp_preset() {}
 	~dsp_preset() {}
@@ -252,24 +254,33 @@ private:
 class dsp_preset_impl : public dsp_preset
 {
 public:
-	dsp_preset_impl() : m_owner() {}
+	dsp_preset_impl() {}
 	dsp_preset_impl(const dsp_preset_impl & p_source) {copy(p_source);}
 	dsp_preset_impl(const dsp_preset & p_source) {copy(p_source);}
-	void clear() {m_owner = pfc::guid_null; m_data.set_size(0);}
+	dsp_preset_impl(dsp_preset_impl && p_source) noexcept {move(p_source);}
+	void clear() {m_owner = pfc::guid_null; m_data.clear();}
 	bool is_valid() const { return m_owner != pfc::guid_null; }
 
 	const dsp_preset_impl& operator=(const dsp_preset_impl & p_source) {copy(p_source); return *this;}
 	const dsp_preset_impl& operator=(const dsp_preset & p_source) {copy(p_source); return *this;}
+	const dsp_preset_impl& operator=(dsp_preset_impl&& p_source) noexcept { move(p_source); return *this; }
 
 	GUID get_owner() const {return m_owner;}
 	void set_owner(const GUID & p_owner) {m_owner = p_owner;}
-	const void * get_data() const {return m_data.get_ptr();}
-	t_size get_data_size() const {return m_data.get_size();}
+	const void * get_data() const {return m_data.ptr();}
+	t_size get_data_size() const {return m_data.size();}
 	void set_data(const void * p_data,t_size p_data_size) {m_data.set_data_fromptr((const t_uint8*)p_data,p_data_size);}
 	void set_data_from_stream(stream_reader * p_stream,t_size p_bytes,abort_callback & p_abort);
+
+	void move(dsp_preset_impl& source) noexcept {
+		m_owner = source.m_owner;
+		m_data = std::move(source.m_data);
+	}
+
+	void set_data(pfc::mem_block&& data) { m_data = std::move(data); }
 private:
-	GUID m_owner;
-	pfc::array_t<t_uint8> m_data;
+	GUID m_owner = {};
+	pfc::mem_block m_data;
 };
 
 class NOVTABLE dsp_preset_edit_callback {
@@ -283,6 +294,16 @@ protected:
 	~dsp_preset_edit_callback() {}
 };
 
+class NOVTABLE dsp_preset_edit_callback_v2 : public service_base {
+    FB2K_MAKE_SERVICE_INTERFACE(dsp_preset_edit_callback_v2, service_base);
+public:
+    virtual void get_preset( dsp_preset & outPreset ) = 0;
+    virtual void set_preset( const dsp_preset & inPreset ) = 0;
+    virtual void dsp_dialog_done( bool bOK ) = 0;
+    void reset();
+};
+
+
 class NOVTABLE dsp_entry : public service_base {
 public:
 	virtual void get_name(pfc::string_base & p_out) = 0;
@@ -290,7 +311,11 @@ public:
 	virtual bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) = 0;	
 	virtual GUID get_guid() = 0;
 	virtual bool have_config_popup() = 0;
-	virtual bool show_config_popup(dsp_preset & p_data,HWND p_parent) = 0;
+#ifdef _WIN32
+	virtual bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) = 0;
+#else
+    virtual service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback );
+#endif
 
 	//! Obsolete method, hidden DSPs now use a different entry class.
 	bool is_user_accessible() { return true; }
@@ -303,20 +328,26 @@ public:
 	static bool g_get_default_preset(dsp_preset & p_out,const GUID & p_guid);
 	static bool g_have_config_popup(const GUID & p_guid);
 	static bool g_have_config_popup(const dsp_preset & p_preset);
-	static bool g_show_config_popup(dsp_preset & p_preset,HWND p_parent);
+#ifdef _WIN32
+	static bool g_show_config_popup(dsp_preset & p_preset,fb2k::hwnd_t p_parent);
 
-	static void g_show_config_popup_v2(const dsp_preset & p_preset,HWND p_parent,dsp_preset_edit_callback & p_callback);
-
+	static void g_show_config_popup_v2(const dsp_preset & p_preset,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback);
+#endif
+    
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(dsp_entry);
 };
 
 class NOVTABLE dsp_entry_v2 : public dsp_entry {
 public:
-	virtual void show_config_popup_v2(const dsp_preset & p_data,HWND p_parent,dsp_preset_edit_callback & p_callback) = 0;
-
+#ifdef _WIN32
+	virtual void show_config_popup_v2(const dsp_preset & p_data,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback) = 0;
+#endif
+    
 private:
-	bool show_config_popup(dsp_preset & p_data,HWND p_parent);
-
+#ifdef _WIN32
+	bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) override;
+#endif
+    
 	FB2K_MAKE_SERVICE_INTERFACE(dsp_entry_v2,dsp_entry);
 };
 
@@ -356,45 +387,55 @@ public:
 	GUID get_guid() {return T::g_get_guid();}
 
 	bool have_config_popup() {return false;}
-	bool show_config_popup(dsp_preset & p_data,HWND p_parent) {return false;}
+	bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) {return false;}
 };
 
 template<class T, class t_entry = dsp_entry_v2>
 class dsp_entry_impl_t : public t_entry {
 public:
-	void get_name(pfc::string_base & p_out) {T::g_get_name(p_out);}
-	bool get_default_preset(dsp_preset & p_out) {return T::g_get_default_preset(p_out);}
-	bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) {
+	void get_name(pfc::string_base & p_out) override {T::g_get_name(p_out);}
+	bool get_default_preset(dsp_preset & p_out) override {return T::g_get_default_preset(p_out);}
+	bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) override {
 		if (p_preset.get_owner() == T::g_get_guid()) {
 			p_out = new service_impl_t<T>(p_preset);
 			return true;
 		}
 		else return false;
 	}
-	GUID get_guid() {return T::g_get_guid();}
+	GUID get_guid() override {return T::g_get_guid();}
 
-	bool have_config_popup() {return T::g_have_config_popup();}
-	bool show_config_popup(dsp_preset & p_data,HWND p_parent) {return T::g_show_config_popup(p_data,p_parent);}
-	//void show_config_popup_v2(const dsp_preset & p_data,HWND p_parent,dsp_preset_edit_callback & p_callback) {T::g_show_config_popup(p_data,p_parent,p_callback);}
+	bool have_config_popup() override {return T::g_have_config_popup();}
+#ifdef _WIN32
+	bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) override {return T::g_show_config_popup(p_data,p_parent);}
+#else
+    service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback ) override {
+        return T::g_show_config_popup(parent, callback);
+    }
+#endif
 };
 
 template<class T, class t_entry = dsp_entry_v2>
 class dsp_entry_v2_impl_t : public t_entry {
 public:
-	void get_name(pfc::string_base & p_out) {T::g_get_name(p_out);}
-	bool get_default_preset(dsp_preset & p_out) {return T::g_get_default_preset(p_out);}
-	bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) {
+	void get_name(pfc::string_base & p_out) override {T::g_get_name(p_out);}
+	bool get_default_preset(dsp_preset & p_out) override {return T::g_get_default_preset(p_out);}
+	bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) override {
 		if (p_preset.get_owner() == T::g_get_guid()) {
 			p_out = new service_impl_t<T>(p_preset);
 			return true;
 		}
 		else return false;
 	}
-	GUID get_guid() {return T::g_get_guid();}
+	GUID get_guid() override {return T::g_get_guid();}
 
-	bool have_config_popup() {return T::g_have_config_popup();}
-	//bool show_config_popup(dsp_preset & p_data,HWND p_parent) {return T::g_show_config_popup(p_data,p_parent);}
-	void show_config_popup_v2(const dsp_preset & p_data,HWND p_parent,dsp_preset_edit_callback & p_callback) {T::g_show_config_popup(p_data,p_parent,p_callback);}
+	bool have_config_popup() override {return T::g_have_config_popup();}
+#ifdef _WIN32
+	void show_config_popup_v2(const dsp_preset & p_data,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback) override {T::g_show_config_popup(p_data,p_parent,p_callback);}
+#else
+    service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback ) override {
+        return T::g_show_config_popup(parent, callback);
+    }
+#endif
 };
 
 template<typename T>
@@ -445,6 +486,9 @@ public:
 
 	void contents_to_stream(stream_writer * p_stream,abort_callback & p_abort) const;
 	void contents_from_stream(stream_reader * p_stream,abort_callback & p_abort);
+	fb2k::memBlock::ptr to_blob() const;
+	void from_blob(const void* p, size_t size);
+	void from_blob(fb2k::memBlock::ptr);
 
 	void instantiate(service_list_t<dsp> & p_out);
 
@@ -472,79 +516,64 @@ class dsp_chain_config_impl : public dsp_chain_config
 public:
 	dsp_chain_config_impl() {}
 	dsp_chain_config_impl(const dsp_chain_config & p_source) {copy(p_source);}
-	dsp_chain_config_impl(const dsp_chain_config_impl & p_source) {copy(p_source);}
-	t_size get_count() const;
-	const dsp_preset & get_item(t_size p_index) const;
-	void replace_item(const dsp_preset & p_data,t_size p_index);
-	void insert_item(const dsp_preset & p_data,t_size p_index);
-	void remove_mask(const bit_array & p_mask);
+	dsp_chain_config_impl(const dsp_chain_config_impl & p_source) { copy_v2(p_source);}
+	dsp_chain_config_impl(dsp_chain_config_impl&& p_source) noexcept : m_data(std::move(p_source.m_data)) {}
+	t_size get_count() const override;
+	const dsp_preset & get_item(t_size p_index) const override;
+	void replace_item(const dsp_preset & p_data,t_size p_index) override;
+	void insert_item(const dsp_preset & p_data,t_size p_index) override;
+	void remove_mask(const bit_array & p_mask) override;
+	
+	const char* get_dsp_name(size_t idx) const;
+	void insert_item_v2(const dsp_preset& data, const char* dspName, size_t index);
+	void add_item_v2(const dsp_preset& data, const char* dspName);
+	void copy_v2(dsp_chain_config_impl const&);
+	pfc::string8 debug() const;
 
 	const dsp_chain_config_impl & operator=(const dsp_chain_config & p_source) {copy(p_source); return *this;}
-	const dsp_chain_config_impl & operator=(const dsp_chain_config_impl & p_source) {copy(p_source); return *this;}
+	const dsp_chain_config_impl & operator=(const dsp_chain_config_impl & p_source) {copy_v2(p_source); return *this;}
+	const dsp_chain_config_impl & operator=(dsp_chain_config_impl&& p_source) noexcept { m_data = std::move(p_source.m_data); p_source.m_data.remove_all(); return *this; }
 
 	~dsp_chain_config_impl();
 
 	void reorder( const size_t * order, size_t count );
+
+	void supply_name(size_t idx, pfc::string8 && name) { m_data[idx]->dspName = std::move(name); }
+	const char* find_dsp_name(const GUID& guid) const;
 private:
-	pfc::ptr_list_t<dsp_preset_impl> m_data;
+
+	struct entry_t {
+		dsp_preset_impl data;
+		pfc::string8 dspName;
+	};
+
+
+	pfc::ptr_list_t<entry_t> m_data;
 };
-
-class cfg_dsp_chain_config : public cfg_var {
-protected:
-	void get_data_raw(stream_writer * p_stream,abort_callback & p_abort);
-	void set_data_raw(stream_reader * p_stream,t_size p_sizehint,abort_callback & p_abort);
-public:
-	void reset();
-	inline cfg_dsp_chain_config(const GUID & p_guid) : cfg_var(p_guid) {}
-	t_size get_count() const {return m_data.get_count();}
-	const dsp_preset & get_item(t_size p_index) const {return m_data.get_item(p_index);}
-	void get_data(dsp_chain_config & p_data) const;
-	void set_data(const dsp_chain_config & p_data);
-	dsp_chain_config_impl & _data() {return m_data; }
-private:
-	dsp_chain_config_impl m_data;
-};
-
-class cfg_dsp_chain_config_mt : private cfg_var {
-public:
-	cfg_dsp_chain_config_mt( const GUID & id ) : cfg_var(id) {}
-	void reset();
-	void get_data(dsp_chain_config & p_data);
-	void set_data(const dsp_chain_config & p_data);
-protected:
-	void get_data_raw(stream_writer * p_stream, abort_callback & p_abort);
-	void set_data_raw(stream_reader * p_stream, t_size p_sizehint, abort_callback & p_abort);
-private:
-	pfc::readWriteLock m_sync;
-	dsp_chain_config_impl m_data;
-};
-
-
-
 
 //! Helper.
 class dsp_preset_parser : public stream_reader_formatter<> {
 public:
-	dsp_preset_parser(const dsp_preset & in) : m_data(in), _m_stream(in.get_data(),in.get_data_size()), stream_reader_formatter(_m_stream,fb2k::noAbort) {}
+	dsp_preset_parser(const dsp_preset& in) : stream_reader_formatter(_m_stream, fb2k::noAbort), m_data(in), _m_stream(in.get_data(), in.get_data_size()) {}
 
-	void reset() {_m_stream.reset();}
-	t_size get_remaining() const {return _m_stream.get_remaining();}
+	void reset() { _m_stream.reset(); }
+	t_size get_remaining() const { return _m_stream.get_remaining(); }
 
 	void assume_empty() const {
 		if (get_remaining() != 0) throw exception_io_data();
 	}
 
-	GUID get_owner() const {return m_data.get_owner();}
+	GUID get_owner() const { return m_data.get_owner(); }
 private:
-	const dsp_preset & m_data;
+	const dsp_preset& m_data;
 	stream_reader_memblock_ref _m_stream;
 };
 
 //! Helper.
 class dsp_preset_builder : public stream_writer_formatter<> {
 public:
-	dsp_preset_builder() : stream_writer_formatter(_m_stream,fb2k::noAbort) {}
-	void finish(const GUID & id, dsp_preset & out) {
+	dsp_preset_builder() : stream_writer_formatter(_m_stream, fb2k::noAbort) {}
+	void finish(const GUID& id, dsp_preset& out) {
 		out.set_owner(id);
 		out.set_data(_m_stream.m_buffer.get_ptr(), _m_stream.m_buffer.get_size());
 	}

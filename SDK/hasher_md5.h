@@ -1,4 +1,5 @@
 #pragma once
+#include "filesystem.h" // FB2K_STREAM_READER_OVERLOAD, FB2K_STREAM_WRITER_OVERLOAD
 
 struct hasher_md5_state {
 	char m_data[128];
@@ -11,7 +12,7 @@ struct hasher_md5_result {
 	GUID asGUID() const;
 	pfc::string8 asString() const;
     GUID toGUID() const;
-
+    
 	static hasher_md5_result null() {hasher_md5_result h = {}; return h;}
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include "filesystem.h"
 
 namespace foobar2000_io {
     typedef std::function< void (const char *, t_filestats const & , bool ) > listDirectoryFunc_t;
@@ -101,20 +102,21 @@ private:
 	t_size m_data_size,m_pointer;
 };
 
-class stream_writer_buffer_simple : public stream_writer {
+template<typename buffer_t>
+class stream_writer_buffer_simple_t : public stream_writer {
 public:
-	void write(const void * p_buffer,t_size p_bytes,abort_callback & p_abort) {
+	void write(const void * p_buffer, t_size p_bytes, abort_callback & p_abort) {
 		p_abort.check();
 		t_size base = m_buffer.get_size();
 		if (base + p_bytes < base) throw std::bad_alloc();
 		m_buffer.set_size(base + p_bytes);
-		memcpy( (t_uint8*) m_buffer.get_ptr() + base, p_buffer, p_bytes );
+		memcpy((t_uint8*)m_buffer.get_ptr() + base, p_buffer, p_bytes);
 	}
-
-	typedef pfc::array_t<t_uint8,pfc::alloc_fast> t_buffer;
-
-	pfc::array_t<t_uint8,pfc::alloc_fast> m_buffer;
+	typedef buffer_t t_buffer; // other classes reference this
+	t_buffer m_buffer;
 };
+
+typedef stream_writer_buffer_simple_t< pfc::array_t<t_uint8, pfc::alloc_fast> > stream_writer_buffer_simple;
 
 template<class t_storage>
 class stream_writer_buffer_append_ref_t : public stream_writer
@@ -276,6 +278,9 @@ public:
 	void read_string_nullterm( pfc::string_base & out ) {
 		m_stream.read_string_nullterm( out, m_abort );
 	}
+    pfc::string8 read_string() {
+        return m_stream.read_string(m_abort);
+    }
 	stream_reader & m_stream;
 	abort_callback & m_abort;
 };

@@ -1,4 +1,6 @@
 #pragma once
+#include "audio_chunk.h"
+
 //! Structure containing ReplayGain scan results from some playable object, also providing various helper methods to manipulate those results.
 struct replaygain_info
 {
@@ -225,7 +227,7 @@ public:
 	bool is_encoding_overkill() const;
 	bool is_encoding_float() const;
 
-	void info_calculate_bitrate(t_filesize p_filesize,double p_length);
+	void info_calculate_bitrate(uint64_t p_filesize,double p_length);
 
 	unsigned info_get_decoded_bps() const;//what bps the stream originally was (before converting to audio_sample), 0 if unknown
 
@@ -278,8 +280,12 @@ public:
 	//! Returns ESTIMATED audio chunk spec from what has been put in the file_info. \n
 	//! Provided for convenience. Do not rely on it for processing decoded data.
 	audio_chunk::spec_t audio_chunk_spec() const; 
-	
+
 	void set_audio_chunk_spec(audio_chunk::spec_t);
+
+	//! Normalize values to Unicode form C
+	//! @returns true if changed, false otherwise
+	bool unicode_normalize_C();
 protected:
 	file_info() {}
 	~file_info() {}
