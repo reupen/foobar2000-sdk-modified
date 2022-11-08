@@ -161,6 +161,6 @@ private:
 //! album_art_path_list implementation helper
 class album_art_path_list_dummy : public album_art_path_list {
 public:
-	const char * get_path(t_size index) const {uBugCheck();}
+	const char * get_path(t_size index) const {FB2K_BugCheck();}
 	t_size get_count() const {return 0;}
 };

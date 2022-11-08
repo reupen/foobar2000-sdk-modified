@@ -19,4 +19,4 @@
 
 
 // Use this to determine what foobar2000 SDK version is in use, undefined for releases older than 2018
-#define FOOBAR2000_SDK_VERSION 20220829
+#define FOOBAR2000_SDK_VERSION 20221020

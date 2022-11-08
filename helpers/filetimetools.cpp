@@ -91,10 +91,12 @@ static t_filetimestamp ExportSystemTimeLocal(const SYSTEMTIME& st) {
 #endif
 }
 static bool MakeSystemTime(SYSTEMTIME& st, t_filetimestamp ts) {
+    if (ts == filetimestamp_invalid) return false;
     return !!FileTimeToSystemTime((const FILETIME*)&ts, &st);
 
 }
 static bool MakeSystemTimeLocal(SYSTEMTIME& st, t_filetimestamp ts) {
+    if (ts == filetimestamp_invalid) return false;
 #ifdef FOOBAR2000_DESKTOP_WINDOWS
     FILETIME ft;
     if (FileTimeToLocalFileTime((FILETIME*)&ts, &ft)) {
@@ -188,7 +190,7 @@ namespace foobar2000_io {
         return filetimestamp_from_string_internal(date, false);
     }
 
-    static const char g_invalidMsg[] = "<invalid timestamp>";
+    static constexpr char g_invalidMsg[] = "<invalid timestamp>";
 
     pfc::string_formatter format_filetimestamp(t_filetimestamp p_timestamp) {
         try {

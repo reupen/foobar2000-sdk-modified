@@ -256,6 +256,8 @@ namespace cfg_var_legacy {
 
 		TObj& val() { return *this; }
 		TObj const& val() const { return *this; }
+		TObj get() const { return val(); }
+		template<typename arg_t> void set(arg_t&& arg) { val() = std::forward<arg_t>(arg); }
 
 		void get_data_raw(stream_writer* p_stream, abort_callback& p_abort) {
 			stream_writer_formatter<> out(*p_stream, p_abort);

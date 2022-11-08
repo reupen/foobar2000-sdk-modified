@@ -199,12 +199,14 @@ public:
 		m_instance.decode_initialize(p_subsong,p_flags,p_abort);
 #if PFC_DEBUG
 		m_eof = false;
+		m_decoding = true;
 #endif
 	}
 
 	bool run(audio_chunk & p_chunk,abort_callback & p_abort) {
 #if PFC_DEBUG
 		PFC_ASSERT( !m_eof );
+		PFC_ASSERT(m_decoding);
 		// Complain if run()/run_raw() gets called again after having returned EOF, this means a logic error on caller's side
 #endif
 		bool ret = m_instance.decode_run(p_chunk,p_abort);
@@ -218,6 +220,7 @@ public:
 #if PFC_DEBUG
 		// Complain if run()/run_raw() gets called again after having returned EOF, this means a logic error on caller's side
 		PFC_ASSERT(!m_eof);
+		PFC_ASSERT(m_decoding);
 #endif
 		bool ret = m_instance.decode_run_raw(p_chunk, p_raw, p_abort);
 #if PFC_DEBUG
@@ -227,6 +230,9 @@ public:
 	}
 
 	void seek(double p_seconds,abort_callback & p_abort) {
+#if PFC_DEBUG
+		PFC_ASSERT(m_decoding); 
+#endif
 		m_instance.decode_seek(p_seconds,p_abort);
 #if PFC_DEBUG
 		m_eof = false;
@@ -285,6 +291,7 @@ private:
 #if PFC_DEBUG
 	// Report illegal API calls in debug build
 	bool m_eof = false;
+	bool m_decoding = false;
 #endif
 };
 
@@ -341,10 +348,31 @@ public:
 	void decode_initialize(t_uint32 p_subsong,unsigned p_flags,abort_callback & p_abort) {
 		if (p_subsong != 0) throw exception_io_bad_subsong_index();
 		m_instance.decode_initialize(p_flags,p_abort);
+#if PFC_DEBUG
+		m_decoding = true; m_eof = false;
+#endif
 	}
 
-	bool decode_run(audio_chunk & p_chunk,abort_callback & p_abort) {return m_instance.decode_run(p_chunk,p_abort);}
-	void decode_seek(double p_seconds,abort_callback & p_abort) {m_instance.decode_seek(p_seconds,p_abort);}
+	bool decode_run(audio_chunk & p_chunk,abort_callback & p_abort) {
+#if PFC_DEBUG
+		PFC_ASSERT(!m_eof);
+		PFC_ASSERT(m_decoding);
+#endif
+		bool rv = m_instance.decode_run(p_chunk,p_abort);
+#if PFC_DEBUG
+		if (!rv) m_eof = true;
+#endif
+		return rv;
+	}
+	void decode_seek(double p_seconds,abort_callback & p_abort) {
+#if PFC_DEBUG
+		PFC_ASSERT(m_decoding);
+#endif
+		m_instance.decode_seek(p_seconds,p_abort);
+#if PFC_DEBUG
+		m_eof = false;
+#endif
+	}
 	bool decode_can_seek() {return m_instance.decode_can_seek();}
 	bool decode_get_dynamic_info(file_info & p_out, double & p_timestamp_delta) {return m_instance.decode_get_dynamic_info(p_out,p_timestamp_delta);}
 	bool decode_get_dynamic_info_track(file_info & p_out, double & p_timestamp_delta) {return m_instance.decode_get_dynamic_info_track(p_out,p_timestamp_delta);}
@@ -356,7 +384,15 @@ public:
 	}
 	
 	bool decode_run_raw(audio_chunk & p_chunk, mem_block_container & p_raw, abort_callback & p_abort) {
-		return m_instance.decode_run_raw(p_chunk, p_raw, p_abort);
+#if PFC_DEBUG
+		PFC_ASSERT(!m_eof);
+		PFC_ASSERT(m_decoding);
+#endif
+		bool rv = m_instance.decode_run_raw(p_chunk, p_raw, p_abort);
+#if PFC_DEBUG
+		if (!rv) m_eof = true;
+#endif
+		return rv;
 	}
 
 	void set_logger(event_logger::ptr ptr) {m_instance.set_logger(ptr);}
@@ -377,6 +413,12 @@ public:
 	}
 private:
 	I m_instance;
+
+#if PFC_DEBUG
+	// Report illegal API calls in debug build
+	bool m_eof = false;
+	bool m_decoding = false;
+#endif
 };
 
 //! Helper; standard input_entry implementation. Do not instantiate this directly, use input_factory_t or one of other input_*_factory_t helpers instead.

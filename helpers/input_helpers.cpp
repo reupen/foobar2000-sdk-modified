@@ -192,6 +192,22 @@ void input_helper::set_logger(event_logger::ptr ptr) {
 	if (m_input->service_query_t(v2)) v2->set_logger(ptr);
 }
 
+bool input_helper::run_raw_v2(audio_chunk& p_chunk, mem_block_container& p_raw, uint32_t knownBPS,abort_callback& p_abort) {
+	PFC_ASSERT(knownBPS >= 8 && knownBPS <= 32);
+	input_decoder_v2::ptr v2;
+	if (v2 &= m_input) {
+		try {
+			return v2->run_raw(p_chunk, p_raw, p_abort);
+			// UGLY: it may STILL FAIL with exception_not_implemented due to some underlying code not being able to handle the request!!
+		} catch (pfc::exception_not_implemented) {}
+	}
+	if (!m_input->run(p_chunk, p_abort)) return false;
+
+	uint32_t pad = knownBPS + 7; pad -= pad % 8;
+	p_chunk.toFixedPoint(p_raw, pad, knownBPS);
+	return true;
+}
+
 bool input_helper::run_raw(audio_chunk & p_chunk, mem_block_container & p_raw, abort_callback & p_abort) {
 	input_decoder_v2::ptr v2;
 	if (!m_input->service_query_t(v2)) throw pfc::exception_not_implemented();

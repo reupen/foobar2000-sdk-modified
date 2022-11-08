@@ -55,6 +55,7 @@ public:
 	
 	//! Helper
 	void process_string(hasher_md5_state & p_state,const char * p_string,t_size p_length = ~0) {return process(p_state,p_string,pfc::strlen_max(p_string,p_length));}
+	hasher_md5_state initialize() { hasher_md5_state ret; initialize(ret); return ret; }
 
 	FB2K_MAKE_SERVICE_COREAPI(hasher_md5);
 };

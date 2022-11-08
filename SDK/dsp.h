@@ -98,16 +98,17 @@ template<class t_baseclass>
 class dsp_impl_base_t : public t_baseclass {
 private:
 	typedef dsp_impl_base_t<t_baseclass> t_self;
-	dsp_chunk_list * m_list;
-	t_size m_chunk_ptr;
-	metadb_handle* m_cur_file;
+	dsp_chunk_list * m_list = nullptr;
+	t_size m_chunk_ptr = 0;
+	metadb_handle* m_cur_file = nullptr;
 	void run_v2(dsp_chunk_list * p_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort) override;
 protected:
 	//! Call only from on_chunk / on_endoftrack (on_endoftrack will give info on track being finished).\n
 	//! May return false when there's no known track and the metadb_handle ptr will be empty/null.
-	bool get_cur_file(metadb_handle_ptr & p_out) {p_out = m_cur_file; return p_out.is_valid();}
+	bool get_cur_file(metadb_handle_ptr & p_out) const {p_out = m_cur_file; return p_out.is_valid();}
+	metadb_handle_ptr get_cur_file() const { return m_cur_file; }
 	
-	dsp_impl_base_t() : m_list(NULL), m_cur_file(NULL), m_chunk_ptr(0) {}
+	dsp_impl_base_t() {}
 	
 	//! Inserts a new chunk of audio data. \n
 	//! You can call this only from on_chunk(), on_endofplayback() and on_endoftrack(). You're NOT allowed to call this from flush() which should just drop any queued data.

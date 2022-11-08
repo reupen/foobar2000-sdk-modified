@@ -212,10 +212,7 @@ public:
 	template<typename source_t>
 	void forcedCastFrom(source_t const & other) {
 		if (!other->cast(*this)) {
-#if PFC_DEBUG
-			FB2K_DebugLog() << "Forced cast failure: " << pfc::print_guid(T::class_guid);
-#endif
-			uBugCheck();
+			FB2K_BugCheckEx("forced cast failure");
 		}
 	}
 };

@@ -173,3 +173,7 @@ namespace fb2k {
 #define FB2K_TRACE(X)
 #define FB2K_TRACE_THIS FB2K_TRACE(__FUNCTION__)
 #define FB2K_TRACE_THIS_FORCED FB2K_TRACE_FORCED(__FUNCTION__)
+
+#define FB2K_BugCheck() fb2k::crashWithMessage( pfc::format("FB2K_BugCheck: ", __FUNCTION__ ) )
+#define FB2K_BugCheckEx(msg) fb2k::crashWithMessage(msg)
+#define FB2K_BugCheckUnlikely() uBugCheck()

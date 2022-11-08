@@ -222,29 +222,30 @@ private:
 };
 
 class string_formatter_tf : public pfc::string_base {
+	[[noreturn]] static void verboten() { FB2K_BugCheck(); }
 public:
 	string_formatter_tf(titleformat_text_out * out, const GUID & inputType = titleformat_inputtypes::meta) : m_out(out), m_inputType(inputType) {}
 
 	const char * get_ptr() const {
-		uBugCheck();
+		verboten();
 	}
 	void add_string(const char * p_string,t_size p_length) {
 		m_out->write(m_inputType,p_string,p_length);
 	}
 	void set_string(const char * p_string,t_size p_length) {
-		uBugCheck();
+		verboten();
 	}
 	void truncate(t_size len) {
-		uBugCheck();
+		verboten();
 	}
 	t_size get_length() const {
-		uBugCheck();
+		verboten();
 	}
 	char * lock_buffer(t_size p_requested_length) {
-		uBugCheck();
+		verboten();
 	}
 	void unlock_buffer() {
-		uBugCheck();
+		verboten();
 	}
 
 private:
