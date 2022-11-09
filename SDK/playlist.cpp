@@ -2,6 +2,11 @@
 #include "playlist.h"
 
 namespace {
+	class enum_items_callback_func : public playlist_manager::enum_items_callback {
+	public:
+		bool on_item(t_size p_index, const metadb_handle_ptr& p_location, bool b_selected) override { return f(p_index, p_location, b_selected); }
+		playlist_manager::enum_items_func f;
+	};
 	class enum_items_callback_retrieve_item : public playlist_manager::enum_items_callback
 	{
 		metadb_handle_ptr m_item;
@@ -149,12 +154,20 @@ t_size playlist_manager::activeplaylist_get_item_count()
 	else return playlist_get_item_count(playlist);
 }
 
+void playlist_manager::playlist_enum_items(size_t which, enum_items_func f, const bit_array& mask) {
+	enum_items_callback_func cb; cb.f = f;
+	this->playlist_enum_items(which, cb, mask);
+}
+
 void playlist_manager::activeplaylist_enum_items(enum_items_callback & p_callback,const bit_array & p_mask)
 {
 	t_size playlist = get_active_playlist();
-	if (playlist != pfc_infinite) playlist_enum_items(playlist,p_callback,p_mask);
+	if (playlist != SIZE_MAX) playlist_enum_items(playlist,p_callback,p_mask);
 }
-
+void playlist_manager::activeplaylist_enum_items(enum_items_func f, const bit_array& mask) {
+	size_t playlist = get_active_playlist();
+	if (playlist != SIZE_MAX) playlist_enum_items(playlist, f, mask);
+}
 t_size playlist_manager::activeplaylist_get_focus_item()
 {
 	t_size playlist = get_active_playlist();

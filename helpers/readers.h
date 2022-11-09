@@ -28,8 +28,9 @@ private:
 
 class reader_membuffer_simple : public reader_membuffer_base {
 public:
+	reader_membuffer_simple(pfc::mem_block&& block, t_filetimestamp ts = filetimestamp_invalid, bool is_remote = false) : m_data(std::move(block)), m_ts(ts), m_isRemote(is_remote) {}
 	reader_membuffer_simple(const void * ptr, t_size size, t_filetimestamp ts = filetimestamp_invalid, bool is_remote = false) : m_ts(ts), m_isRemote(is_remote) {
-		m_data.set_size_discard(size);
+		m_data.resize(size);
 		if ( ptr != nullptr ) memcpy(m_data.get_ptr(), ptr, size);
 	}
 	const void * get_buffer() { return m_data.get_ptr(); }
@@ -39,7 +40,7 @@ public:
 	bool is_remote() { return m_isRemote; }
 
 private:
-	pfc::array_staticsize_t<t_uint8> m_data;
+	pfc::mem_block m_data;
 	t_filetimestamp m_ts;
 	bool m_isRemote;
 };

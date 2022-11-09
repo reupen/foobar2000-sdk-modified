@@ -43,7 +43,7 @@ namespace core_api
 	}
 
 	void ensure_main_thread() {
-		if (!is_main_thread()) uBugCheck();
+		if (!is_main_thread()) FB2K_BugCheck();
 	}
 
 	bool is_main_thread()

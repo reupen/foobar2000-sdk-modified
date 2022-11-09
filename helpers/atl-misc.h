@@ -182,10 +182,14 @@ public:
 			if (window_service_trait_defer_destruction(this) && !InterlockedExchange(&m_delayedDestroyInProgress,1)) {
 				PFC_ASSERT_NO_EXCEPTION( service_impl_helper::release_object_delayed(this); );
 			} else if (this->m_hWnd != NULL) {
-				if (!m_destroyWindowInProgress) { // don't double-destroy in weird scenarios
-					PFC_ASSERT_NO_EXCEPTION( ::DestroyWindow(this->m_hWnd) );
+				if (!InterlockedExchange(&m_destroyWindowInProgress, 1)) {// don't double-destroy in weird scenarios
+					service_ptr_t<service_base> bump(this); // prevent delete this from occurring in mid-DestroyWindow
+					PFC_ASSERT_NO_EXCEPTION(::DestroyWindow(this->m_hWnd));
+					// We don't know what else happened inside DestroyWindow() due to message queue flush
+					// Safely retry destruction by bump object destructor
+					// m_hWnd doesn't have to be null here - we'll possibly get cleaned up by OnFinalMessage() instead
 				}
-			} else {
+			} else { // m_hWnd is NULL
 				PFC_ASSERT_NO_EXCEPTION( delete this );
 			}
 		}
@@ -195,15 +199,19 @@ public:
 
 	template<typename ... arg_t>
 	window_service_impl_t( arg_t && ... arg ) : t_base( std::forward<arg_t>(arg) ... ) {};
+
+	~window_service_impl_t() {
+		PFC_ASSERT(this->m_hWnd == NULL);
+	}
 private:
 	void OnDestroyPassThru() {
-		SetMsgHandled(FALSE); m_destroyWindowInProgress = true;
+		SetMsgHandled(FALSE); m_destroyWindowInProgress = 1;
 	}
-	void OnFinalMessage(HWND p_wnd) {
+	void OnFinalMessage(HWND p_wnd) override {
 		t_base::OnFinalMessage(p_wnd);
 		service_ptr_t<service_base> bump(this);
 	}
-	volatile bool m_destroyWindowInProgress = false;
+	volatile LONG m_destroyWindowInProgress = 0;
 	volatile LONG m_delayedDestroyInProgress = 0;
 	pfc::refcounter m_counter;
 };

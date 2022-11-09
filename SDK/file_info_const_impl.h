@@ -2,23 +2,24 @@
 #include "file_info.h"
 
 class file_info_readonly : public file_info {
+	[[noreturn]] static void verboten() { FB2K_BugCheck(); }
 protected:
-	void		set_length(double p_length) override { uBugCheck(); }
-	void		set_replaygain(const replaygain_info & p_info) override { uBugCheck(); }
+	void		set_length(double p_length) override { verboten(); }
+	void		set_replaygain(const replaygain_info & p_info) override { verboten(); }
 
 
-	t_size		meta_set_ex(const char * p_name, t_size p_name_length, const char * p_value, t_size p_value_length) override { uBugCheck(); }
-	void		meta_insert_value_ex(t_size p_index, t_size p_value_index, const char * p_value, t_size p_value_length) override { uBugCheck(); }
-	void		meta_remove_mask(const bit_array & p_mask) override { uBugCheck(); }
-	void		meta_reorder(const t_size * p_order) override { uBugCheck(); }
-	void		meta_remove_values(t_size p_index, const bit_array & p_mask) override { uBugCheck(); }
-	void		meta_modify_value_ex(t_size p_index, t_size p_value_index, const char * p_value, t_size p_value_length) override { uBugCheck(); }
+	t_size		meta_set_ex(const char * p_name, t_size p_name_length, const char * p_value, t_size p_value_length) override { verboten(); }
+	void		meta_insert_value_ex(t_size p_index, t_size p_value_index, const char * p_value, t_size p_value_length) override { verboten(); }
+	void		meta_remove_mask(const bit_array & p_mask) override { verboten(); }
+	void		meta_reorder(const t_size * p_order) override { verboten(); }
+	void		meta_remove_values(t_size p_index, const bit_array & p_mask) override { verboten(); }
+	void		meta_modify_value_ex(t_size p_index, t_size p_value_index, const char * p_value, t_size p_value_length) override { verboten(); }
 
-	t_size		info_set_ex(const char * p_name, t_size p_name_length, const char * p_value, t_size p_value_length) override { uBugCheck(); }
-	void		info_remove_mask(const bit_array & p_mask) override { uBugCheck(); }
+	t_size		info_set_ex(const char * p_name, t_size p_name_length, const char * p_value, t_size p_value_length) override { verboten(); }
+	void		info_remove_mask(const bit_array & p_mask) override { verboten(); }
 
-	t_size		meta_set_nocheck_ex(const char * p_name, t_size p_name_length, const char * p_value, t_size p_value_length) override { uBugCheck(); }
-	t_size		info_set_nocheck_ex(const char * p_name, t_size p_name_length, const char * p_value, t_size p_value_length) override { uBugCheck(); }
+	t_size		meta_set_nocheck_ex(const char * p_name, t_size p_name_length, const char * p_value, t_size p_value_length) override { verboten(); }
+	t_size		info_set_nocheck_ex(const char * p_name, t_size p_name_length, const char * p_value, t_size p_value_length) override { verboten(); }
 };
 
 #define __file_info_const_impl_have_hintmap__

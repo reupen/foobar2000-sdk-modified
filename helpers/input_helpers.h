@@ -51,8 +51,17 @@ public:
 
 	void close();
 	bool is_open();
+	//! Single decode pass. 
+	//! @returns True if a chunk was returned, false if EOF (no more audio to return).
 	bool run(audio_chunk & p_chunk,abort_callback & p_abort);
+	//! Single decode pass with raw output for integrity verification. \n
+	//! Throws pfc::exception_not_implemented if this input doesn't support run_raw().
+	//! @returns True if a chunk was returned, false if EOF (no more audio to return).
 	bool run_raw(audio_chunk & p_chunk, mem_block_container & p_raw, abort_callback & p_abort);
+	//! Single decode pass with raw output for integrity verification. \n
+	//! If the input doesn't support run_raw(), raw PCM is recreated from audio_chunk.
+	//! @returns True if a chunk was returned, false if EOF (no more audio to return).
+	bool run_raw_v2(audio_chunk& p_chunk, mem_block_container& p_raw, uint32_t knownBPS, abort_callback& p_abort);
 	void seek(double seconds,abort_callback & p_abort);
 	bool can_seek();
     size_t extended_param( const GUID & type, size_t arg1 = 0, void * arg2 = nullptr, size_t arg2size = 0);
@@ -88,6 +97,9 @@ public:
 	static void fileOpenTools(service_ptr_t<file>& p_file, const char* p_path, ioFilters_t const& filters, abort_callback& p_abort);
 
 	bool test_if_lockless(abort_callback&);
+
+	uint32_t get_subsong_count() const { return m_input->get_subsong_count(); }
+	uint32_t get_subsong(uint32_t i) const { return m_input->get_subsong(i); }
 private:
 	bool m_file_in_memory = false;
 	service_ptr_t<input_decoder> m_input;

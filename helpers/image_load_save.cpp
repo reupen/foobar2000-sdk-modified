@@ -17,6 +17,7 @@ namespace fb2k {
 				ext = pfc::stringToLower( info.formatName );
 				if (nameCapitalized == "WEBP") nameCapitalized = "WebP";
 				pfc::string8 extmask;
+				if (ext == "jpeg-xl") ext = "jxl";
 				if (ext == "jpeg") {
 					ext = "jpg";
 					extmask = "*.jpg;*.jpeg";

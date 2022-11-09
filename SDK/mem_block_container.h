@@ -24,6 +24,8 @@ public:
 
 	const mem_block_container & operator=(const mem_block_container & p_source) {copy(p_source);return *this;}
 
+	void resize(size_t v) { set_size(v); }
+	size_t size() const { return get_size(); }
 protected:
 	mem_block_container() {}
 	~mem_block_container() {}

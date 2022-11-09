@@ -2,5 +2,7 @@
 #include "DarkMode.h"
 
 bool fb2k::isDarkMode() {
-	return ui_config_manager::get()->is_dark_mode();
+	auto api = ui_config_manager::tryGet();
+	if (api.is_valid()) return api->is_dark_mode();
+	else return false;
 }

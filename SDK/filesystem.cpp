@@ -554,7 +554,7 @@ namespace {
 		directory_callback_impl_copy(const char * p_target, filesystem::ptr fs) : m_fs(fs)
 		{
 			m_target = p_target;
-			m_target.fix_dir_separator('\\');
+			m_target.fix_dir_separator();
 		}
 
 		bool on_entry(filesystem * owner,abort_callback & p_abort,const char * url,bool is_subdirectory,const t_filestats & p_stats) {
@@ -565,7 +565,7 @@ namespace {
 				try {
 					m_fs->create_directory(m_target,p_abort);
 				} catch(exception_io_already_exists) {}
-				m_target += "\\";
+				m_target.end_with_slash();
 				owner->list_directory(url,*this,p_abort);
 			} else {
 				_copy(url, m_target, owner, p_abort);
@@ -584,6 +584,7 @@ namespace {
 			if (size > 0) {
 				try {
 					file::g_transfer_object(r_src,r_dst,size,p_abort);
+					file::g_copy_timestamps(r_src, r_dst, p_abort);
 				} catch(...) {
 					r_dst.release();
                     try {m_fs->remove(dst,fb2k::noAbort);} catch(...) {}
@@ -623,12 +624,16 @@ void filesystem::remove_(const char* path, abort_callback& a, double timeout) {
 	});
 }
 
+void filesystem::copy_directory_contents(const char* p_src, const char* p_dst, abort_callback& p_abort) {
+	directory_callback_impl_copy cb(p_dst, this);
+	list_directory(p_src, cb, p_abort);
+}
+
 void filesystem::copy_directory(const char * src, const char * dst, abort_callback & p_abort) {
 	try {
 		this->create_directory( dst, p_abort );
 	} catch(exception_io_already_exists) {}
-	directory_callback_impl_copy cb(dst, this);
-	list_directory(src, cb, p_abort);
+	this->copy_directory_contents(src, dst, p_abort);
 }
 
 void filesystem::g_copy_directory(const char * src,const char * dst,abort_callback & p_abort) {
@@ -935,7 +940,7 @@ PFC_NORETURN void foobar2000_io::exception_io_from_win32(DWORD p_code) {
 		throw exception_io("Device error");
 	case ERROR_BAD_NETPATH:
 		// known to be inflicted by momentary net connectivity issues - NOT the same as exception_io_not_found
-		throw exception_io("Network path not found");
+		throw exception_io_network_not_reachable("Network path not found");
 #if FB2K_SUPPORT_TRANSACTED_FILESYSTEM
 	case ERROR_TRANSACTIONAL_OPEN_NOT_ALLOWED:
 	case ERROR_TRANSACTIONS_UNSUPPORTED_REMOTE:
@@ -952,7 +957,7 @@ PFC_NORETURN void foobar2000_io::exception_io_from_win32(DWORD p_code) {
 #endif // FB2K_SUPPORT_TRANSACTED_FILESYSTEM
 	case ERROR_UNEXP_NET_ERR:
 		// QNAP threw this when messing with very long file paths and concurrent conversion, probably SMB daemon crashed
-		throw exception_io("Unexpected network error");
+		throw exception_io_network_not_reachable("Unexpected network error");
 	case ERROR_NOT_SAME_DEVICE:
 		throw exception_io("Source and destination must be on the same device");
 	case 0x80310000:
@@ -1341,6 +1346,16 @@ const char * foobar2000_io::afterProtocol( const char * fullString ) {
 	if ( s != nullptr && s[1] != '\\' && s[1] != 0 ) return s + 1;
 	PFC_ASSERT(!"Should not get here");
 	return fullString;
+}
+
+bool foobar2000_io::testIfHasProtocol( const char * input ) {
+    // Take arbitrary untrusted string, return whether looks like foo://
+    if ( pfc::char_is_ascii_alpha(input[0])) {
+        const char * walk = input+1;
+        while(pfc::char_is_ascii_alpha(*walk)) ++ walk;
+        if ( walk[0] == ':' && walk[1] == '/' && walk[2] == '/') return true;
+    }
+    return false;
 }
 
 bool foobar2000_io::matchProtocol(const char * fullString, const char * protocolName) {

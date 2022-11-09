@@ -29,6 +29,8 @@ namespace cfg_var_modern {
 		void operator=(const char* v) { set(v); }
 
 		pfc::string8 get_value() { return get(); }
+
+		operator pfc::string8() { return get(); }
 	private:
 #ifdef FOOBAR2000_HAVE_CFG_VAR_LEGACY
 		void set_data_raw(stream_reader* p_stream, t_size p_sizehint, abort_callback& p_abort) override;
@@ -58,7 +60,7 @@ namespace cfg_var_modern {
 #endif
 
 		const int64_t m_initVal;
-		std::atomic_int64_t m_val{0};
+		std::atomic_int64_t m_val = { 0 };
 		std::once_flag m_init;
 	};
 
@@ -78,7 +80,7 @@ namespace cfg_var_modern {
 #endif
 
 		const bool m_initVal;
-		std::atomic_bool m_val{false};
+		std::atomic_bool m_val = { false };
 		std::once_flag m_init;
 	};
 
@@ -142,7 +144,7 @@ namespace cfg_var_modern {
 #endif
 
 		const double m_initVal;
-		std::atomic<double> m_val{0};
+		std::atomic<double> m_val = { 0 };
 		std::once_flag m_init;
 	};
 }

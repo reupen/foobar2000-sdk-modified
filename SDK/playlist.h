@@ -2,6 +2,7 @@
 
 #include "titleformat.h"
 #include "playback_control.h"
+#include <functional>
 
 //! This interface allows filtering of playlist modification operations.\n
 //! Implemented by components "locking" playlists; use playlist_manager::playlist_lock_install() etc to takeover specific playlist with your instance of playlist_lock.
@@ -80,6 +81,8 @@ class NOVTABLE playlist_manager : public service_base
 {
 public:
 
+	typedef std::function<bool(size_t, const metadb_handle_ptr&, bool) > enum_items_func;
+
 	//! Callback interface for playlist enumeration methods.
 	class NOVTABLE enum_items_callback {
 	public:
@@ -114,6 +117,7 @@ public:
 	virtual t_size playlist_get_item_count(t_size p_playlist) = 0;
 	//! Enumerates contents of specified playlist.
 	virtual void playlist_enum_items(t_size p_playlist,enum_items_callback & p_callback,const bit_array & p_mask) = 0;
+	void playlist_enum_items(size_t which, enum_items_func, const bit_array&);
 	//! Retrieves index of focus item on specified playlist; returns infinite when no item has focus.
 	virtual t_size playlist_get_focus_item(t_size p_playlist) = 0;
 	//! Retrieves name of specified playlist. Should never fail unless the parameters are invalid.
@@ -285,6 +289,7 @@ public:
 	//retrieving status
 	t_size activeplaylist_get_item_count();
 	void activeplaylist_enum_items(enum_items_callback & p_callback,const bit_array & p_mask);
+	void activeplaylist_enum_items(enum_items_func, const bit_array&);
 	t_size activeplaylist_get_focus_item();//focus may be infinite if no item is focused
 	bool activeplaylist_get_name(pfc::string_base & p_out);
 

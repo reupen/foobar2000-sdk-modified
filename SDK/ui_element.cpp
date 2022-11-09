@@ -243,7 +243,11 @@ bool ui_config_manager::is_dark_mode() {
 	if (this->query_color(ui_color_darkmode, clr)) return clr == 0;
 	return false;
 }
-
+bool ui_config_manager::g_is_dark_mode() {
+	auto api = tryGet();
+	if (api.is_valid()) return api->is_dark_mode();
+	else return false;
+}
 #ifdef _WIN32
 t_ui_color ui_config_manager::getSysColor(int sysColorIndex) {
 	GUID guid = ui_color_from_sys_color_index(sysColorIndex);
@@ -256,9 +260,11 @@ t_ui_color ui_config_manager::getSysColor(int sysColorIndex) {
 #endif
 
 ui_config_callback_impl::ui_config_callback_impl() { 
-	ui_config_manager::get()->add_callback(this); 
+	auto api = ui_config_manager::tryGet();
+	if (api.is_valid()) api->add_callback(this);
 }
 
 ui_config_callback_impl::~ui_config_callback_impl() { 
-	ui_config_manager::get()->remove_callback(this); 
+	auto api = ui_config_manager::tryGet();
+	if (api.is_valid()) api->remove_callback(this);
 }

@@ -58,32 +58,22 @@ namespace fb2k {
 
 		
 		CCoreDarkModeHooks() {
-#if FOOBAR2000_TARGET_VERSION < 81
-			auto api = fb2k::coreDarkMode::tryGet();
+			fb2k::coreDarkMode::ptr api;
+			if (core_api::are_services_available()) api = fb2k::coreDarkMode::tryGet();
 			if (!api.is_valid()) return;
-#else
-			auto api = fb2k::coreDarkMode::get();
-#endif
 			m_obj = api->createAuto();
 		}
 		CCoreDarkModeHooks(bool v) {
-#if FOOBAR2000_TARGET_VERSION < 81
-			auto api = fb2k::coreDarkMode::tryGet();
+			fb2k::coreDarkMode::ptr api;
+			if (core_api::are_services_available()) api = fb2k::coreDarkMode::tryGet();
 			if (!api.is_valid()) return;
-#else
-			auto api = fb2k::coreDarkMode::get();
-#endif
 			m_obj = api->create(v);
 		}
 		CCoreDarkModeHooks(const CCoreDarkModeHooks&) = delete;
 		void operator=(const CCoreDarkModeHooks&) = delete;
 	private:
 		bool is_valid() const {
-#if FOOBAR2000_TARGET_VERSION < 81
-			return m_obj.is_valid(); // may be missing with target API < 81
-#else
-			return true; // always valid with API 81 or higher
-#endif
+			return m_obj.is_valid();
 		}
 		fb2k::coreDarkModeObj::ptr m_obj;
 	};

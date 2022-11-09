@@ -271,7 +271,7 @@ public:
 
 	//! Returns GUID of the element. The return value must be the same as your ui_element::get_guid().
 	virtual GUID get_guid() = 0;
-	//! Returns subclass GUID of the element. The return value must be the same as your ui_element::get_guid().
+	//! Returns subclass GUID of the element. The return value must be the same as your ui_element::get_subclass().
 	virtual GUID get_subclass() = 0;
 
 	//! Returns element's focus priority.
@@ -628,6 +628,10 @@ public:
 #ifdef _WIN32
 	t_ui_color getSysColor(int sysColorIndex);
 #endif
+
+	//! Special method that's safe to call without checking if ui_config_manager exists, that is, it works on foobar2000 < 2.0.
+	//! Returns false if ui_conifg_manager doesn't exist and therefore dark mode isn't supported by this foobar2000 revision.
+	static bool g_is_dark_mode();
 };
 
 //! \since 2.0

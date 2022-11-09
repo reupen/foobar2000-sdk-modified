@@ -215,7 +215,7 @@ public:
 	inline t_int64 info_get_bitrate_vbr() const {return info_get_int("bitrate_dynamic");}
 	inline void info_set_bitrate_vbr(t_int64 val) {info_set_int("bitrate_dynamic",val);}
 	inline t_int64 info_get_bitrate() const {return info_get_int("bitrate");}
-	inline void info_set_bitrate(t_int64 val) {info_set_int("bitrate",val);}
+	inline void info_set_bitrate(t_int64 val) { PFC_ASSERT(val > 0); info_set_int("bitrate", val); }
 
 	void info_set_channels(uint32_t);
 	void info_set_channels_ex(uint32_t channels, uint32_t mask);
