@@ -166,6 +166,12 @@ void tag_processor::skip_id3v2(const service_ptr_t<file> & p_file,t_filesize & p
 	tag_processor_id3v2::g_skip(p_file,p_size_skipped,p_abort);
 }
 
+t_filesize tag_processor::skip_id3v2(file::ptr const & f, abort_callback & a) {
+    t_filesize ret = 0;
+    skip_id3v2(f, ret, a);
+    return ret;
+}
+
 bool tag_processor::is_id3v1_sufficient(const file_info & p_info)
 {
 	return tag_processor_trailing::get()->is_id3v1_sufficient(p_info);

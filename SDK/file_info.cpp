@@ -9,28 +9,27 @@
 #define _atoi64 atoll
 #endif
 
-const float replaygain_info::peak_invalid = -1;
-const float replaygain_info::gain_invalid = -1000;
+static constexpr char info_WAVEFORMATEXTENSIBLE_CHANNEL_MASK[] = "WAVEFORMATEXTENSIBLE_CHANNEL_MASK";
 
 t_size file_info::meta_find_ex(const char * p_name,t_size p_name_length) const
 {
 	t_size n, m = meta_get_count();
 	for(n=0;n<m;n++)
 	{
-		if (pfc::stricmp_ascii_ex(meta_enum_name(n),pfc_infinite,p_name,p_name_length) == 0) return n;
+		if (pfc::stricmp_ascii_ex(meta_enum_name(n),SIZE_MAX,p_name,p_name_length) == 0) return n;
 	}
-	return pfc_infinite;
+	return SIZE_MAX;
 }
 
 bool file_info::meta_exists_ex(const char * p_name,t_size p_name_length) const
 {
-	return meta_find_ex(p_name,p_name_length) != pfc_infinite;
+	return meta_find_ex(p_name,p_name_length) != SIZE_MAX;
 }
 
 void file_info::meta_remove_field_ex(const char * p_name,t_size p_name_length)
 {
-	t_size index = meta_find_ex(p_name,p_name_length);
-	if (index!=pfc_infinite) meta_remove_index(index);
+	auto index = meta_find_ex(p_name,p_name_length);
+	if (index!= SIZE_MAX) meta_remove_index(index);
 }
 
 
@@ -51,8 +50,8 @@ void file_info::meta_remove_value(t_size p_index,t_size p_value)
 
 t_size file_info::meta_get_count_by_name_ex(const char * p_name,t_size p_name_length) const
 {
-	t_size index = meta_find_ex(p_name,p_name_length);
-	if (index == pfc_infinite) return 0;
+	auto index = meta_find_ex(p_name,p_name_length);
+	if (index == SIZE_MAX) return 0;
 	return meta_enum_value_count(index);
 }
 
@@ -60,14 +59,14 @@ t_size file_info::info_find_ex(const char * p_name,t_size p_name_length) const
 {
 	t_size n, m = info_get_count();
 	for(n=0;n<m;n++) {
-		if (pfc::stricmp_ascii_ex(info_enum_name(n),pfc_infinite,p_name,p_name_length) == 0) return n;
+		if (pfc::stricmp_ascii_ex(info_enum_name(n), SIZE_MAX,p_name,p_name_length) == 0) return n;
 	}
-	return pfc_infinite;
+	return SIZE_MAX;
 }
 
 bool file_info::info_exists_ex(const char * p_name,t_size p_name_length) const
 {
-	return info_find_ex(p_name,p_name_length) != pfc_infinite;
+	return info_find_ex(p_name,p_name_length) != SIZE_MAX;
 }
 
 void file_info::info_remove_index(t_size p_index)
@@ -82,8 +81,8 @@ void file_info::info_remove_all()
 
 bool file_info::info_remove_ex(const char * p_name,t_size p_name_length)
 {
-	t_size index = info_find_ex(p_name,p_name_length);
-	if (index != pfc_infinite)
+	auto index = info_find_ex(p_name,p_name_length);
+	if (index != SIZE_MAX)
 	{
 		info_remove_index(index);
 		return true;
@@ -107,7 +106,7 @@ void file_info::copy_meta_single_nocheck(const file_info & p_source,t_size p_ind
 {
 	const char * name = p_source.meta_enum_name(p_index);
 	t_size n, m = p_source.meta_enum_value_count(p_index);
-	t_size new_index = pfc_infinite;
+	t_size new_index = SIZE_MAX;
 	for(n=0;n<m;n++)
 	{
 		const char * value = p_source.meta_enum_value(p_index,n);
@@ -118,26 +117,26 @@ void file_info::copy_meta_single_nocheck(const file_info & p_source,t_size p_ind
 
 void file_info::copy_meta_single_by_name_ex(const file_info & p_source,const char * p_name,t_size p_name_length)
 {
-	t_size index = p_source.meta_find_ex(p_name,p_name_length);
-	if (index != pfc_infinite) copy_meta_single(p_source,index);
+	auto index = p_source.meta_find_ex(p_name,p_name_length);
+	if (index != SIZE_MAX) copy_meta_single(p_source,index);
 }
 
 void file_info::copy_info_single_by_name_ex(const file_info & p_source,const char * p_name,t_size p_name_length)
 {
-	t_size index = p_source.info_find_ex(p_name,p_name_length);
-	if (index != pfc_infinite) copy_info_single(p_source,index);
+	auto index = p_source.info_find_ex(p_name,p_name_length);
+	if (index != SIZE_MAX) copy_info_single(p_source,index);
 }
 
 void file_info::copy_meta_single_by_name_nocheck_ex(const file_info & p_source,const char * p_name,t_size p_name_length)
 {
-	t_size index = p_source.meta_find_ex(p_name,p_name_length);
-	if (index != pfc_infinite) copy_meta_single_nocheck(p_source,index);
+	auto index = p_source.meta_find_ex(p_name,p_name_length);
+	if (index != SIZE_MAX) copy_meta_single_nocheck(p_source,index);
 }
 
 void file_info::copy_info_single_by_name_nocheck_ex(const file_info & p_source,const char * p_name,t_size p_name_length)
 {
-	t_size index = p_source.info_find_ex(p_name,p_name_length);
-	if (index != pfc_infinite) copy_info_single_nocheck(p_source,index);
+	auto index = p_source.info_find_ex(p_name,p_name_length);
+	if (index != SIZE_MAX) copy_info_single_nocheck(p_source,index);
 }
 
 void file_info::copy_info_single(const file_info & p_source,t_size p_index)
@@ -183,17 +182,17 @@ void file_info::copy(const file_info & p_source)
 
 const char * file_info::meta_get_ex(const char * p_name,t_size p_name_length,t_size p_index) const
 {
-	t_size index = meta_find_ex(p_name,p_name_length);
-	if (index == pfc_infinite) return 0;
-	t_size max = meta_enum_value_count(index);
+	auto index = meta_find_ex(p_name,p_name_length);
+	if (index == SIZE_MAX) return 0;
+	auto max = meta_enum_value_count(index);
 	if (p_index >= max) return 0;
 	return meta_enum_value(index,p_index);
 }
 
 const char * file_info::info_get_ex(const char * p_name,t_size p_name_length) const
 {
-	t_size index = info_find_ex(p_name,p_name_length);
-	if (index == pfc_infinite) return 0;
+	auto index = info_find_ex(p_name,p_name_length);
+	if (index == SIZE_MAX) return 0;
 	return info_enum_value(index);
 }
 
@@ -309,19 +308,19 @@ void file_info::reset_replaygain()
 void file_info::copy_meta_single_rename_ex(const file_info & p_source,t_size p_index,const char * p_new_name,t_size p_new_name_length)
 {
 	t_size n, m = p_source.meta_enum_value_count(p_index);
-	t_size new_index = pfc_infinite;
+	t_size new_index = SIZE_MAX;
 	for(n=0;n<m;n++)
 	{
 		const char * value = p_source.meta_enum_value(p_index,n);
-		if (n == 0) new_index = meta_set_ex(p_new_name,p_new_name_length,value,pfc_infinite);
+		if (n == 0) new_index = meta_set_ex(p_new_name,p_new_name_length,value,SIZE_MAX);
 		else meta_add_value(new_index,value);
 	}
 }
 
 t_size file_info::meta_add_ex(const char * p_name,t_size p_name_length,const char * p_value,t_size p_value_length)
 {
-	t_size index = meta_find_ex(p_name,p_name_length);
-	if (index == pfc_infinite) return meta_set_nocheck_ex(p_name,p_name_length,p_value,p_value_length);
+	auto index = meta_find_ex(p_name,p_name_length);
+	if (index == SIZE_MAX) return meta_set_nocheck_ex(p_name,p_name_length,p_value,p_value_length);
 	else
 	{
 		meta_add_value_ex(index,p_value,p_value_length);
@@ -406,8 +405,8 @@ void file_info::meta_format_entry(t_size index, pfc::string_base & out, const ch
 
 bool file_info::meta_format(const char * p_name,pfc::string_base & p_out, const char * separator) const {
 	p_out.reset();
-	t_size index = meta_find(p_name);
-	if (index == pfc_infinite) return false;
+	auto index = meta_find(p_name);
+	if (index == SIZE_MAX) return false;
 	meta_format_entry(index, p_out, separator);
 	return true;
 }
@@ -523,7 +522,7 @@ bool file_info::g_is_info_equal(const file_info & p_item1,const file_info & p_it
 	}
 	for(t_size n1=0; n1<count; n1++) {
 		t_size n2 = p_item2.info_find(p_item1.info_enum_name(n1));
-		if (n2 == pfc_infinite) {
+		if (n2 == SIZE_MAX) {
 			//uDebugLog() << "item2 does not have " << p_item1.info_enum_name(n1);
 			return false;
 		}
@@ -613,26 +612,48 @@ void file_info::info_set_channels_ex(uint32_t channels, uint32_t mask) {
 	info_set_wfx_chanMask(mask);
 }
 
+static bool parse_wfx_chanMask(const char* str, uint32_t& out) {
+	try {
+		if (pfc::strcmp_partial(str, "0x") != 0) return false;
+		out = pfc::atohex<uint32_t>(str + 2, strlen(str + 2));
+		return true;
+	} catch (...) { return false; }
+}
+
+void file_info::info_tidy_channels() {
+	const char * info = this->info_get(info_WAVEFORMATEXTENSIBLE_CHANNEL_MASK);
+	if (info != nullptr) {
+		bool keep = false;
+		uint32_t v;
+		if (parse_wfx_chanMask(info, v)) {
+			if (v != 0 && v != 3 && v != 4) {
+				// valid, not mono, not stereo
+				keep = true;
+			}
+		}
+		if (!keep) this->info_remove(info_WAVEFORMATEXTENSIBLE_CHANNEL_MASK);
+	}
+}
+
 void file_info::info_set_wfx_chanMask(uint32_t val) {
 	switch(val) {
 	case 0:
 	case 4:
 	case 3:
-		this->info_remove("WAVEFORMATEXTENSIBLE_CHANNEL_MASK");
+		this->info_remove(info_WAVEFORMATEXTENSIBLE_CHANNEL_MASK);
 		break;
 	default:
-		info_set ("WAVEFORMATEXTENSIBLE_CHANNEL_MASK", pfc::format("0x", pfc::format_hex(val) ) );
+		info_set (info_WAVEFORMATEXTENSIBLE_CHANNEL_MASK, pfc::format("0x", pfc::format_hex(val) ) );
 		break;
 	}
 }
 
 uint32_t file_info::info_get_wfx_chanMask() const {
-	const char * str = this->info_get("WAVEFORMATEXTENSIBLE_CHANNEL_MASK");
+	const char * str = this->info_get(info_WAVEFORMATEXTENSIBLE_CHANNEL_MASK);
 	if (str == NULL) return 0;
-	if (pfc::strcmp_partial( str, "0x") != 0) return 0;
-	try {
-		return pfc::atohex<uint32_t>( str + 2, strlen(str+2) );
-	} catch(...) { return 0;}
+	uint32_t ret;
+	if (parse_wfx_chanMask(str, ret)) return ret;
+	return 0;
 }
 
 bool file_info::field_is_person(const char * fieldName) {
@@ -710,11 +731,11 @@ void file_info::from_stream( stream_reader * stream, abort_callback & abort ) {
 		for(;;) {
 			in.read_string_nullterm( tempName );
 			if (tempName.length() == 0) break;
-			size_t metaIndex = pfc_infinite;
+			size_t metaIndex = SIZE_MAX;
 			for(;;) {
 				in.read_string_nullterm( tempValue );
 				if (tempValue.length() == 0) break;
-				if (metaIndex == pfc_infinite) metaIndex = this->meta_add( tempName, tempValue );
+				if (metaIndex == SIZE_MAX) metaIndex = this->meta_add( tempName, tempValue );
 				else this->meta_add_value( metaIndex, tempValue );
 			}
 		}
@@ -777,11 +798,11 @@ void file_info::from_mem( const void * memPtr, size_t memSize ) {
 		for(;;) {
 			const char * metaName = _readString( walk, remaining );
 			if (*metaName == 0) break;
-			size_t metaIndex = pfc_infinite;
+			size_t metaIndex = SIZE_MAX;
 			for(;;) {
 				const char * metaValue = _readString( walk, remaining );
 				if (*metaValue == 0) break;
-				if (metaIndex == pfc_infinite) metaIndex = this->meta_add( metaName, metaValue );
+				if (metaIndex == SIZE_MAX) metaIndex = this->meta_add( metaName, metaValue );
 				else this->meta_add_value( metaIndex, metaName );
 			}
 		}
@@ -846,4 +867,16 @@ bool file_info::unicode_normalize_C() {
 		}
 	}
 	return changed;
+}
+
+void file_info::meta_enumerate(meta_enumerate_t cb) const {
+	const size_t nMeta = this->meta_get_count();
+	for (size_t metaWalk = 0; metaWalk < nMeta; ++metaWalk) {
+		const char* name = this->meta_enum_name(metaWalk);
+		const size_t nValue = this->meta_enum_value_count(metaWalk);
+		for (size_t valueWalk = 0; valueWalk < nValue; ++valueWalk) {
+			const char* value = this->meta_enum_value(metaWalk, valueWalk);
+			cb(name, value);
+		}
+	}
 }

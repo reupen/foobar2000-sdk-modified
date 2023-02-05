@@ -1,4 +1,5 @@
 #pragma once
+#include "callback_merit.h"
 
 //! Callback service receiving notifications about metadb contents changes.
 class NOVTABLE metadb_io_callback : public service_base {
@@ -43,6 +44,15 @@ public:
 };
 
 //! \since 2.0
+class NOVTABLE metadb_io_edit_callback_v2 : public metadb_io_edit_callback {
+	FB2K_MAKE_SERVICE_INTERFACE(metadb_io_edit_callback_v2, metadb_io_edit_callback)
+public:
+	//! With original on_edited(), the implementation could not tell what the info in metadb was before, 'before' parameter being actual infos freshly read from the file prior to writing. \n
+	//! on_edited_v2() clarifies this, additional argument passes old metadb state to deal with cases where it was different than file contents.
+	virtual void on_edited_v2(metadb_handle_list_cref items, t_infosref before, t_infosref after, t_infosref beforeInMetadb) = 0;
+};
+
+//! \since 2.0
 //! Parameter for on_changed_sorted_v2()
 class NOVTABLE metadb_io_callback_v2_data {
 public:
@@ -55,16 +65,16 @@ class NOVTABLE metadb_io_callback_v2 : public metadb_io_callback {
 	FB2K_MAKE_SERVICE_INTERFACE(metadb_io_callback_v2, metadb_io_callback);
 public:
 	virtual void on_changed_sorted_v2(metadb_handle_list_cref itemsSorted, metadb_io_callback_v2_data & data, bool bFromHook) = 0;
-	//! Reserved for future use.
-	virtual double get_callback_merit() { return 0; }
+	//! Controls callback merit, see: fb2k::callback_merit_t
+	virtual fb2k::callback_merit_t get_callback_merit() { return fb2k::callback_merit_default; }
 };
 
-
+//! \since 2.0
 class NOVTABLE metadb_io_callback_v2_dynamic {
 public:
 	virtual void on_changed_sorted_v2(metadb_handle_list_cref itemsSorted, metadb_io_callback_v2_data & data, bool bFromHook) = 0;
-	//! Reserved for future use.
-	virtual double get_callback_merit() { return 0; }
+	//! Controls callback merit, see: fb2k::callback_merit_t
+	virtual fb2k::callback_merit_t get_callback_merit() { return fb2k::callback_merit_default; }
 
 	bool try_register_callback(); void try_unregister_callback();
 	void register_callback(); void unregister_callback();

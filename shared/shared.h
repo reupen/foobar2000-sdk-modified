@@ -89,8 +89,10 @@ BOOL SHARED_EXPORT uGetClipboardString(pfc::string_base & out);
 BOOL SHARED_EXPORT uSetClipboardRawData(UINT format,const void * ptr,t_size size);//does not empty the clipboard
 BOOL SHARED_EXPORT uGetClassName(HWND wnd,pfc::string_base & out);
 t_size SHARED_EXPORT uCharLength(const char * src);
+#ifdef DragQueryFile // don't declare if relevant Windows #include has been omitted, breaks on HDROP
 BOOL SHARED_EXPORT uDragQueryFile(HDROP hDrop,UINT idx,pfc::string_base & out);
 UINT SHARED_EXPORT uDragQueryFileCount(HDROP hDrop);
+#endif
 BOOL SHARED_EXPORT uGetTextExtentPoint32(HDC dc,const char * text,UINT cb,LPSIZE size);//note, cb is number of bytes, not actual unicode characters in the string (read: plain strlen() will do)
 BOOL SHARED_EXPORT uExtTextOut(HDC dc,int x,int y,UINT flags,const RECT * rect,const char * text,UINT cb,const int * lpdx);
 BOOL SHARED_EXPORT uTextOutColors(HDC dc,const char * src,UINT len,int x,int y,const RECT * clip,BOOL is_selected,DWORD default_color);

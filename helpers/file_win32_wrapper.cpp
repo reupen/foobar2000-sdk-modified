@@ -6,16 +6,9 @@
 
 namespace file_win32_helpers {
 	t_filesize get_size(HANDLE p_handle) {
-		union {
-			t_uint64 val64;
-			t_uint32 val32[2];
-		} u;
-
-		u.val64 = 0;
-		SetLastError(NO_ERROR);
-		u.val32[0] = GetFileSize(p_handle,reinterpret_cast<DWORD*>(&u.val32[1]));
-		if (GetLastError()!=NO_ERROR) exception_io_from_win32(GetLastError());
-		return u.val64;
+		LARGE_INTEGER v = {};
+		WIN32_IO_OP(GetFileSizeEx(p_handle, &v));
+		return make_uint64(v);
 	}
 	void seek(HANDLE p_handle,t_sfilesize p_position,file::t_seek_mode p_mode) {
 		union  {
@@ -225,6 +218,45 @@ namespace file_win32_helpers {
 		return 0;
 	}
 
+	t_filestats2 stats2_from_handle(HANDLE h, const wchar_t * fallbackPath, uint32_t flags, abort_callback& a) {
+		a.check();
+		// Sadly GetFileInformationByHandle() is UNRELIABLE with certain net shares
+		BY_HANDLE_FILE_INFORMATION info = {};
+		if (GetFileInformationByHandle(h, &info)) {
+			return file_win32_helpers::translate_stats2(info);
+		}
+
+		a.check();
+		t_filestats2 ret;
+		
+		// ALWAYS get size, fail if bad handle
+		ret.m_size = get_size(h);
+
+		if (flags & (stats2_timestamp | stats2_timestampCreate)) {
+			static_assert(sizeof(t_filetimestamp) == sizeof(FILETIME), "struct sanity");
+			FILETIME ftCreate = {}, ftWrite = {};
+			if (GetFileTime(h, &ftCreate, nullptr, &ftWrite)) {
+				ret.m_timestamp = make_uint64(ftWrite); ret.m_timestampCreate = make_uint64(ftCreate);
+			}
+		}
+		if (flags & stats2_flags) {
+			// No other way to get this from handle?
+			if (fallbackPath != nullptr && *fallbackPath != 0) {
+				DWORD attr = GetFileAttributes(fallbackPath);
+				if (attr != INVALID_FILE_ATTRIBUTES) {
+					attribs_from_win32(ret, attr);
+				}
+			}
+		}
+		return ret;
+	}
+	void attribs_from_win32(t_filestats2& out, DWORD in) {
+		out.set_readonly((in & FILE_ATTRIBUTE_READONLY) != 0);
+		out.set_folder((in & FILE_ATTRIBUTE_DIRECTORY) != 0);
+		out.set_hidden((in & FILE_ATTRIBUTE_HIDDEN) != 0);
+		out.set_system((in & FILE_ATTRIBUTE_SYSTEM) != 0);
+		out.set_remote(false);
+	}
 }
 
 #endif // _WIN32

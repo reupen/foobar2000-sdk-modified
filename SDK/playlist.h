@@ -3,6 +3,7 @@
 #include "titleformat.h"
 #include "playback_control.h"
 #include <functional>
+#include "callback_merit.h"
 
 //! This interface allows filtering of playlist modification operations.\n
 //! Implemented by components "locking" playlists; use playlist_manager::playlist_lock_install() etc to takeover specific playlist with your instance of playlist_lock.
@@ -538,7 +539,6 @@ public:
 };
 
 //! \since 2.0
-//! Internal, do not use
 class NOVTABLE playlist_manager_v5 : public playlist_manager_v4 {
 	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(playlist_manager_v5, playlist_manager_v4)
 public:
@@ -546,6 +546,14 @@ public:
 	virtual size_t find_playlist_by_guid(const GUID&) = 0;
 };
 
+//! \since 2.0 beta 8
+class NOVTABLE playlist_manager_v6 : public playlist_manager_v5 {
+	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(playlist_manager_v6, playlist_manager_v5);
+public:
+	virtual void set_callback_merit(class playlist_callback*, fb2k::callback_merit_t) = 0;
+	virtual void set_callback_merit(class playlist_callback_single*, fb2k::callback_merit_t) = 0;
+	
+};
 class NOVTABLE playlist_callback
 {
 public:

@@ -26,6 +26,13 @@ public:
 		return acc;
 	}
 
+	uint64_t queryAsAnySampleCount() const {
+		if (m_sampleCounts.get_count() == 1) {
+			return m_sampleCounts.first()->m_value;
+		}
+		return 0;
+	}
+
 	uint64_t queryAsSampleCount(uint32_t rate) const {
 		uint64_t samples = 0;
 		double acc = m_offset;

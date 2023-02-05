@@ -4,6 +4,8 @@
 
 #ifdef FOOBAR2000_HAVE_DSP
 
+class dsp_preset; // forward declaration
+
 //! Interface to a DSP chunk list. A DSP chunk list object is passed to the DSP chain each time, since DSPs are allowed to remove processed chunks or insert new ones.
 class NOVTABLE dsp_chunk_list {
 public:
@@ -68,6 +70,10 @@ public:
 
 	void run_abortable(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort);
 
+	//! Attempts to apply preset without recreating the DSP, if supported. 
+	//! @returns True on success, false if not supported (DSP needs re-creating).
+	bool apply_preset_(const dsp_preset&);
+
 	FB2K_MAKE_SERVICE_INTERFACE(dsp,service_base);
 };
 
@@ -82,6 +88,14 @@ private:
 	}
 
 	FB2K_MAKE_SERVICE_INTERFACE(dsp_v2,dsp);
+};
+
+//! Extended version allowing live changes in configuration without reinitialization.
+class NOVTABLE dsp_v3 : public dsp_v2 {
+	FB2K_MAKE_SERVICE_INTERFACE(dsp_v3, dsp_v2);
+public:
+	//! Live change of DSP settings. Return true if accepted, false if not (DSP will be destroyed and recreated).
+	virtual bool apply_preset(const dsp_preset&) = 0;
 };
 
 //! Helper class for implementing dsps. You should derive from dsp_impl_base instead of from dsp directly.\n
@@ -313,15 +327,19 @@ public:
 	virtual GUID get_guid() = 0;
 	virtual bool have_config_popup() = 0;
 #ifdef _WIN32
+	//! Shows configuration popup. Call from main thread only! \n
+	//! Blocks until done. Returns true if preset has been altered, false otherwise.
 	virtual bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) = 0;
 #else
-    virtual service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback );
+	//! Shows configuration popup. Main thread only!
+	virtual service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback );
 #endif
 
 	//! Obsolete method, hidden DSPs now use a different entry class.
 	bool is_user_accessible() { return true; }
 
 	static bool g_get_interface(service_ptr_t<dsp_entry> & p_out,const GUID & p_guid);
+	static service_ptr_t<dsp_entry> g_get_interface(const GUID&);
 	static bool g_instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset);
 	static bool g_instantiate_default(service_ptr_t<dsp> & p_out,const GUID & p_guid);
 	static bool g_name_from_guid(pfc::string_base & p_out,const GUID & p_guid);
@@ -330,26 +348,61 @@ public:
 	static bool g_have_config_popup(const GUID & p_guid);
 	static bool g_have_config_popup(const dsp_preset & p_preset);
 #ifdef _WIN32
+	//! Shows configuration popup. Main thread only! \n
+	//! Blocks until done. Returns true if preset has been altered, false otherwise.
 	static bool g_show_config_popup(dsp_preset & p_preset,fb2k::hwnd_t p_parent);
-
+	//! Shows configuration popup. Main thread only!
+	//! Blocks until done. Uses callback to notify host about preset change.
 	static void g_show_config_popup_v2(const dsp_preset & p_preset,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback);
+
+	//! Shows configuration popup. Main thread only! \n
+	//! Blocks until done. Uses callback to notify host about preset change. \n
+	//! Implements a fallback using legacy methods if show_config_popup_v2() is not available. \n
+	//! @returns OK/cancel status (true/false), if the dialog supports it; otherwise always true.
+	bool show_config_popup_v2_(const dsp_preset& p_preset, fb2k::hwnd_t p_parent, dsp_preset_edit_callback& p_callback);
+
+	//! Shows configuration popup. Main thread only! \n
+	//! May either block until done and return null, or run asynchronously and return an object to release to cancel the dialog. \n
+	//! Implements a fallback using legacy methods if show_config_popup_v3() is not available.
+	service_ptr show_config_popup_v3_(fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback);
 #endif
-    
+
+	bool get_display_name_supported();
+	void get_display_name_(const dsp_preset& arg, pfc::string_base& out);
+
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(dsp_entry);
 };
 
 class NOVTABLE dsp_entry_v2 : public dsp_entry {
 public:
 #ifdef _WIN32
+	//! Shows configuration popup. Main thread only!
 	virtual void show_config_popup_v2(const dsp_preset & p_data,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback) = 0;
 #endif
-    
-private:
+
 #ifdef _WIN32
-	bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) override;
+	// Obsolete method, redirected to show_config_popup_v2() by default, no need to implement.
+	bool show_config_popup(dsp_preset& p_data, fb2k::hwnd_t p_parent) override;
 #endif
+private:
     
 	FB2K_MAKE_SERVICE_INTERFACE(dsp_entry_v2,dsp_entry);
+};
+
+class NOVTABLE dsp_entry_v3 : public dsp_entry_v2 {
+	FB2K_MAKE_SERVICE_INTERFACE(dsp_entry_v3, dsp_entry_v2);
+public:
+	//! Returns the text to show in DSP list, for this specific preset.
+	virtual void get_display_name(const dsp_preset& arg, pfc::string_base& out) = 0;
+
+#ifdef _WIN32
+	//! Shows configuration popup, asynchronous version - creates dialog then returns immediately. \n
+	//! Since not every DSP implements this, caller must be prepated to call legacy blocking show_config_popup methods instead. \n
+	//! show_config_popup_v3() may throw pfc::exception_not_implemented() to signal host that this DSP doesn't support this method yet. \n
+	//! Main thread only! \n
+	//! @returns Object to retain by host, to be released to request the dialog to be closed.
+	virtual service_ptr show_config_popup_v3(fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback) = 0;
+#endif
 };
 
 class NOVTABLE dsp_entry_hidden : public service_base {
@@ -391,21 +444,26 @@ public:
 	bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) {return false;}
 };
 
-template<class T, class t_entry = dsp_entry_v2>
-class dsp_entry_impl_t : public t_entry {
+template<typename T, typename interface_t>
+class dsp_entry_common_t : public interface_t {
 public:
-	void get_name(pfc::string_base & p_out) override {T::g_get_name(p_out);}
-	bool get_default_preset(dsp_preset & p_out) override {return T::g_get_default_preset(p_out);}
-	bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) override {
+	void get_name(pfc::string_base& p_out) override { T::g_get_name(p_out); }
+	bool get_default_preset(dsp_preset& p_out) override { return T::g_get_default_preset(p_out); }
+	bool instantiate(service_ptr_t<dsp>& p_out, const dsp_preset& p_preset) override {
 		if (p_preset.get_owner() == T::g_get_guid()) {
 			p_out = new service_impl_t<T>(p_preset);
 			return true;
-		}
-		else return false;
+		} else return false;
 	}
-	GUID get_guid() override {return T::g_get_guid();}
+	GUID get_guid() override { return T::g_get_guid(); }
 
-	bool have_config_popup() override {return T::g_have_config_popup();}
+	bool have_config_popup() override { return T::g_have_config_popup(); }
+};
+
+template<class T, class t_entry = dsp_entry>
+class dsp_entry_impl_t : public dsp_entry_common_t<T, t_entry> {
+public:
+
 #ifdef _WIN32
 	bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) override {return T::g_show_config_popup(p_data,p_parent);}
 #else
@@ -416,26 +474,28 @@ public:
 };
 
 template<class T, class t_entry = dsp_entry_v2>
-class dsp_entry_v2_impl_t : public t_entry {
+class dsp_entry_v2_impl_t : public dsp_entry_common_t<T, t_entry> {
 public:
-	void get_name(pfc::string_base & p_out) override {T::g_get_name(p_out);}
-	bool get_default_preset(dsp_preset & p_out) override {return T::g_get_default_preset(p_out);}
-	bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) override {
-		if (p_preset.get_owner() == T::g_get_guid()) {
-			p_out = new service_impl_t<T>(p_preset);
-			return true;
-		}
-		else return false;
-	}
-	GUID get_guid() override {return T::g_get_guid();}
-
-	bool have_config_popup() override {return T::g_have_config_popup();}
 #ifdef _WIN32
 	void show_config_popup_v2(const dsp_preset & p_data,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback) override {T::g_show_config_popup(p_data,p_parent,p_callback);}
 #else
     service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback ) override {
         return T::g_show_config_popup(parent, callback);
     }
+#endif
+};
+
+template<class T, class t_entry = dsp_entry_v3>
+class dsp_entry_v3_impl_t : public dsp_entry_v2_impl_t<T, t_entry> {
+public:
+	void get_display_name(const dsp_preset& arg, pfc::string_base& out) override {
+		T::g_get_display_name(arg, out);
+	}
+
+#ifdef _WIN32
+	service_ptr show_config_popup_v3(fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback) override {
+		return T::g_show_config_popup_v3(parent, callback);
+	}
 #endif
 };
 
@@ -493,6 +553,7 @@ public:
 
 	void instantiate(service_list_t<dsp> & p_out);
 
+	pfc::string8 get_name_list() const;
 	void get_name_list(pfc::string_base & p_out) const;
 
 	static bool equals(dsp_chain_config const & v1, dsp_chain_config const & v2);

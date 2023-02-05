@@ -259,7 +259,6 @@ namespace foobar2000_io
 	};
 
 	//! \since 2.0
-	//! WORK IN PROGRESS
 	class filesystem_v3 : public filesystem_v2 {
 		FB2K_MAKE_SERVICE_INTERFACE(filesystem_v3, filesystem_v2);
 	public:

@@ -12,6 +12,7 @@ PFC_DECLARE_EXCEPTION(exception_unexpected_audio_format_change, exception_io_dat
 //! Interface to container of a chunk of audio data. See audio_chunk_impl for an implementation.
 class NOVTABLE audio_chunk {
 public:
+	struct spec_t; // forward decl
 
 	enum {
 		sample_rate_min = 1000, sample_rate_max = 20000000
@@ -42,6 +43,7 @@ public:
 
 		channel_config_mono = channel_front_center,
 		channel_config_stereo = channel_front_left | channel_front_right,
+		channel_config_2point1 = channel_front_left | channel_front_right | channel_lfe,
 		channel_config_3point0 = channel_front_left | channel_front_right | channel_front_center,
 		channel_config_4point0 = channel_front_left | channel_front_right | channel_back_left | channel_back_right,
 		channel_config_4point1 = channel_front_left | channel_front_right | channel_back_left | channel_back_right | channel_lfe,
@@ -78,6 +80,7 @@ public:
 	static unsigned g_find_channel_idx(unsigned p_flag);
 	static void g_formatChannelMaskDesc(unsigned flags, pfc::string_base & out);
 	static pfc::string8 g_formatChannelMaskDesc(unsigned flags);
+	static const char* g_channelMaskName(unsigned flags);
 
 	
 
@@ -169,10 +172,9 @@ public:
 	}
 	
 	//! Helper, sets chunk data to contents of specified buffer, with specified number of channels / sample rate / channel map.
-	void set_data(const audio_sample * src,t_size samples,unsigned nch,unsigned srate,unsigned channel_config);
-	
-	//! Helper, sets chunk data to contents of specified buffer, with specified number of channels / sample rate, using default channel map for specified channel count.
-	inline void set_data(const audio_sample * src,t_size samples,unsigned nch,unsigned srate) {set_data(src,samples,nch,srate,g_guess_channel_config(nch));}
+	void set_data(const audio_sample * src,size_t samples,unsigned nch,unsigned srate,unsigned channel_config);
+	void set_data(const audio_sample* src, size_t samples, spec_t const& spec);
+	void set_data(const audio_sample* src, t_size samples, unsigned nch, unsigned srate);
 
 	void set_data_int16(const int16_t * src,t_size samples,unsigned nch,unsigned srate,unsigned channel_config);
 	
@@ -200,8 +202,10 @@ public:
 	void set_data_fixedpoint_ms(const void * ptr, size_t bytes, unsigned sampleRate, unsigned channels, unsigned bps, unsigned channelConfig);
 
 	void set_data_floatingpoint_ex(const void * ptr,t_size bytes,unsigned p_sample_rate,unsigned p_channels,unsigned p_bits_per_sample,unsigned p_flags,unsigned p_channel_config);//signed/unsigned flags dont apply
+	static bool is_supported_floatingpoint(unsigned bps) { return bps == 32 || bps == 64; }
 
 	void set_data_32(const float* src, t_size samples, unsigned nch, unsigned srate);
+	void set_data_32(const float* src, t_size samples, spec_t const & spec );
 
 	//! Appends silent samples at the end of the chunk. \n
 	//! The chunk may be empty prior to this call, its sample rate & channel count will be set to the specified values then. \n

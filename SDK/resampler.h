@@ -21,14 +21,16 @@ public:
 	FB2K_MAKE_SERVICE_INTERFACE(resampler_entry,dsp_entry);
 };
 
-template<typename T>
-class resampler_entry_impl_t : public dsp_entry_impl_t<T,resampler_entry>
-{
+template<typename impl_t, typename base_t>
+class implement_resampler_entry : public base_t {
 public:
-	bool is_conversion_supported(unsigned p_srate_from,unsigned p_srate_to) {return T::g_is_conversion_supported(p_srate_from,p_srate_to);}
-	bool create_preset(dsp_preset & p_out,unsigned p_target_srate,float p_qualityscale) {return T::g_create_preset(p_out,p_target_srate,p_qualityscale);}
-	float get_priority() {return T::g_get_priority();}
+	bool is_conversion_supported(unsigned p_srate_from, unsigned p_srate_to) override { return impl_t::g_is_conversion_supported(p_srate_from, p_srate_to); }
+	bool create_preset(dsp_preset& p_out, unsigned p_target_srate, float p_qualityscale) override { return impl_t::g_create_preset(p_out, p_target_srate, p_qualityscale); }
+	float get_priority() override { return impl_t::g_get_priority(); }
 };
+
+template<typename T>
+class resampler_entry_impl_t : public implement_resampler_entry<T, dsp_entry_impl_t<T,resampler_entry> > {};
 
 template<typename T>
 class resampler_factory_t : public service_factory_single_t<resampler_entry_impl_t<T> > {};
