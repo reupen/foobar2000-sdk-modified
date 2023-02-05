@@ -125,6 +125,30 @@ private:
 };
 
 template<typename TClass>
+class ImplementModalTracking : public TClass {
+public:
+	template<typename ... arg_t> ImplementModalTracking(arg_t && ... arg) : TClass(std::forward<arg_t>(arg) ...) {}
+
+	BEGIN_MSG_MAP_EX(ImplementModalTracking)
+		MSG_WM_INITDIALOG(OnInitDialog)
+		MSG_WM_DESTROY(OnDestroy)
+		CHAIN_MSG_MAP(TClass)
+	END_MSG_MAP()
+private:
+	void OnDestroy() {
+		m_modal.deinitialize();
+		SetMsgHandled(FALSE);
+	}
+	BOOL OnInitDialog(CWindow, LPARAM) {
+		m_modal.initialize(this->m_hWnd);
+		SetMsgHandled(FALSE);
+		return FALSE;
+	}
+	modal_dialog_scope m_modal;
+
+};
+
+template<typename TClass>
 class ImplementModelessTracking : public TClass {
 public:
 	template<typename ... arg_t> ImplementModelessTracking(arg_t && ... arg ) : TClass(std::forward<arg_t>(arg) ... ) {}
@@ -287,6 +311,15 @@ public:
 };
 
 
+namespace fb2k {
+	template<typename TImpl, typename ... args_t>
+	ui_element_instance::ptr newUIElement(HWND parent, args_t && ... args) {
+		auto item = fb2k::service_new_window < ui_element_instance_impl_helper < TImpl > >(std::forward<args_t>(args) ...);
+		item->initialize_window(parent);
+		return item;
+	}
+}
+
 template<typename TImpl, typename TInterface = ui_element> class ui_element_impl : public TInterface {
 public:
 	GUID get_guid() { return TImpl::g_get_guid(); }
@@ -295,9 +328,7 @@ public:
 
 	template<typename ... args_t>
 	ui_element_instance::ptr instantiate_helper(HWND parent, args_t && ... args) {
-		auto item = fb2k::service_new_window < ui_element_instance_impl_helper < TImpl > > (std::forward<args_t>(args) ...);
-		item->initialize_window(parent);
-		return item;
+		return fb2k::newUIElement<TImpl>(parent, std::forward<args_t>(args) ...);
 	}
 
 	ui_element_instance::ptr instantiate(HWND parent, ui_element_config::ptr cfg, ui_element_instance_callback::ptr callback) {
@@ -308,5 +339,6 @@ public:
 	ui_element_children_enumerator_ptr enumerate_children(ui_element_config::ptr cfg) { return NULL; }
 	bool get_description(pfc::string_base & out) { out = TImpl::g_get_description(); return true; }
 };
+
 
 #endif // _WIN32

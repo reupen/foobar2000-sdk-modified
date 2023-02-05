@@ -41,7 +41,7 @@ static bool test_rect(const RECT * rc) {
 }
 
 
-bool cfg_window_placement_common::read_from_window(HWND window)
+bool cfg_window_placement::read_from_window(HWND window)
 {
 	WINDOWPLACEMENT wp = {};
 	if (g_is_enabled()) {
@@ -68,7 +68,7 @@ bool cfg_window_placement_common::read_from_window(HWND window)
 	return wp.length == sizeof(wp);
 }
 
-bool cfg_window_placement_common::apply_to_window(HWND window, bool allowHidden) {
+bool cfg_window_placement::apply_to_window(HWND window, bool allowHidden) {
 	bool ret = false;
 	if (g_is_enabled())
 	{
@@ -117,8 +117,7 @@ static BOOL SetWindowSize(HWND p_wnd,unsigned p_x,unsigned p_y)
 		return FALSE;
 }
 
-bool cfg_window_size::on_window_creation(HWND p_wnd)
-{
+bool cfg_window_size::apply_to_window(HWND p_wnd) {
 	bool ret = false;
 
 	if (g_is_enabled())
@@ -127,10 +126,13 @@ bool cfg_window_size::on_window_creation(HWND p_wnd)
 		if (v.cx > 0 && v.cy > 0) {
 			if (SetWindowSize(p_wnd, v.cx, v.cy)) ret = true;
 		}
-		
-	}
 
+	}
 	return ret;
+}
+bool cfg_window_size::on_window_creation(HWND p_wnd)
+{
+	return apply_to_window(p_wnd);
 }
 
 void cfg_window_size::on_window_destruction(HWND p_wnd)

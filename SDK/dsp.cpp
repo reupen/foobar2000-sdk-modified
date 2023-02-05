@@ -411,17 +411,49 @@ bool dsp_entry::g_show_config_popup(dsp_preset & p_preset,fb2k::hwnd_t p_parent)
 	return entry->show_config_popup(p_preset,p_parent);
 }
 
-void dsp_entry::g_show_config_popup_v2(const dsp_preset & p_preset,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback) {
-	service_ptr_t<dsp_entry> entry;
-	if (g_get_interface(entry,p_preset.get_owner())) {
+bool dsp_entry::show_config_popup_v2_(const dsp_preset& p_preset, fb2k::hwnd_t p_parent, dsp_preset_edit_callback& p_callback) {
+	PFC_ASSERT(p_preset.get_owner() == this->get_guid());
+	try {
 		service_ptr_t<dsp_entry_v2> entry_v2;
-		if (entry->service_query_t(entry_v2)) {
-			entry_v2->show_config_popup_v2(p_preset,p_parent,p_callback);
-		} else {
-			dsp_preset_impl temp(p_preset);
-			if (entry->show_config_popup(temp,p_parent)) p_callback.on_preset_changed(temp);
+		if (entry_v2 &= this) {
+			entry_v2->show_config_popup_v2(p_preset, p_parent, p_callback);
+			return true;
+		}
+	} catch (pfc::exception_not_implemented const&) {}
+
+	dsp_preset_impl temp(p_preset);
+	bool rv = this->show_config_popup(temp, p_parent);
+	if (rv) p_callback.on_preset_changed(temp);
+	return rv;
+}
+namespace {
+	class dsp_preset_edit_callback_callV2 : public dsp_preset_edit_callback {
+	public:
+		dsp_preset_edit_callback_v2::ptr chain;
+		void on_preset_changed(const dsp_preset& arg) override { chain->set_preset(arg); }
+	};
+}
+service_ptr dsp_entry::show_config_popup_v3_(fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback) {
+	dsp_entry_v3::ptr v3;
+	if (v3 &= this) {
+		try {
+			return v3->show_config_popup_v3(parent, callback);
+		} catch (pfc::exception_not_implemented) {
 		}
 	}
+
+	dsp_preset_edit_callback_callV2 cb;
+	cb.chain = callback;
+
+	dsp_preset_impl initPreset; callback->get_preset(initPreset);
+	bool status = this->show_config_popup_v2_(initPreset, parent, cb);
+	callback->dsp_dialog_done(status);
+	return nullptr;
+
+}
+void dsp_entry::g_show_config_popup_v2(const dsp_preset & p_preset,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback) {
+	auto api = g_get_interface(p_preset.get_owner());
+	if (api.is_valid()) api->show_config_popup_v2_(p_preset, p_parent, p_callback);
 }
 #endif
 
@@ -430,6 +462,13 @@ service_ptr dsp_entry::show_config_popup( fb2k::hwnd_t, dsp_preset_edit_callback
     throw pfc::exception_not_implemented();
 }
 #endif
+
+service_ptr_t<dsp_entry> dsp_entry::g_get_interface(const GUID& guid) {
+	for (auto ptr : enumerate()) {
+		if (ptr->get_guid() == guid) return ptr;
+	}
+	return nullptr;
+}
 
 bool dsp_entry::g_get_interface(service_ptr_t<dsp_entry> & p_out,const GUID & p_guid)
 {
@@ -525,29 +564,42 @@ bool dsp_chain_config::equals_debug(dsp_chain_config const& v1, dsp_chain_config
 	FB2K_DebugLog() << "DSP chains are identical";
 	return true;
 }
-void dsp_chain_config::get_name_list(pfc::string_base & p_out) const
-{
-	const t_size count = get_count();
-	bool added = false;
-	for(unsigned n=0;n<count;n++)
-	{
-		service_ptr_t<dsp_entry> ptr;
-		if (dsp_entry::g_get_interface(ptr,get_item(n).get_owner()))
-		{
-			if (added) p_out += ", ";
-			added = true;
 
+void dsp_chain_config::get_name_list(pfc::string_base & p_out) const {
+	p_out = get_name_list();
+}
+
+pfc::string8 dsp_chain_config::get_name_list() const {
+	const size_t count = get_count();
+	pfc::string8 output; output.prealloc(1024);
+	for (size_t n = 0; n < count; n++)
+	{
+		const auto& preset = get_item(n);
+		service_ptr_t<dsp_entry> ptr;
+		if (dsp_entry::g_get_interface(ptr, preset.get_owner()))
+		{
 			pfc::string8 temp;
-			ptr->get_name(temp);
-			p_out += temp;
+			ptr->get_display_name_(preset, temp);
+			if (temp.length() > 0) {
+				if (output.length() > 0) output += ", ";
+				output += temp;
+			}
 		}
 	}
+
+	return output;
 }
 
 void dsp::run_abortable(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort) {
 	service_ptr_t<dsp_v2> this_v2;
 	if (this->service_query_t(this_v2)) this_v2->run_v2(p_chunk_list,p_cur_file,p_flags,p_abort);
 	else run(p_chunk_list,p_cur_file,p_flags);
+}
+
+bool dsp::apply_preset_(const dsp_preset& arg) {
+	dsp_v3::ptr v3;
+	if (v3 &= this) return v3->apply_preset(arg);
+	return false;
 }
 
 namespace {
@@ -600,6 +652,20 @@ void dsp_preset_edit_callback_v2::reset() {
     } else {
         PFC_ASSERT(!"Should not get here - no such DSP");
     }
+}
+
+bool dsp_entry::get_display_name_supported() {
+	dsp_entry_v3::ptr v3;
+	return v3 &= this;
+}
+
+void dsp_entry::get_display_name_(const dsp_preset& arg, pfc::string_base& out) {
+	PFC_ASSERT(arg.get_owner() == this->get_guid());
+	dsp_entry_v3::ptr v3;
+	if (v3 &= this) {
+		v3->get_display_name(arg, out); return;
+	}
+	get_name(out);
 }
 
 #endif // FOOBAR2000_HAVE_DSP

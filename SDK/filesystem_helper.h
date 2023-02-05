@@ -275,9 +275,12 @@ public:
 		t_uint32 size; *this >> size; data.set_size(size);
 		for(t_uint32 walk = 0; walk < size; ++walk) *this >> data[walk];
 	}
-	void read_string_nullterm( pfc::string_base & out ) {
-		m_stream.read_string_nullterm( out, m_abort );
+	void read_string_nullterm( pfc::string_base & ret ) {
+		m_stream.read_string_nullterm( ret, m_abort );
 	}
+    pfc::string8 read_string_nullterm() {
+        pfc::string8 ret; this->read_string_nullterm(ret); return ret;
+    }
     pfc::string8 read_string() {
         return m_stream.read_string(m_abort);
     }

@@ -34,3 +34,7 @@ void fb2k::splitTask( pfc::thread::arg_t const & arg, std::function<void ()> f) 
         (void)taskref; // retain until here
         } );
 }
+
+abort_callback& fb2k::mainAborter() {
+	return async_task_manager::get()->get_aborter();
+}

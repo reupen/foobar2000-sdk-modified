@@ -965,6 +965,10 @@ PFC_NORETURN void foobar2000_io::exception_io_from_win32(DWORD p_code) {
 	case ERROR_INVALID_FUNCTION:
 		// Happens when trying to link files on FAT32 etc
 		throw exception_io_unsupported_feature();
+#if 0
+	case ERROR_BAD_LENGTH:
+		FB2K_BugCheckEx("ERROR_BAD_LENGTH");
+#endif
 	default:
 		throw exception_io_win32_ex(p_code);
 	}
@@ -1957,6 +1961,7 @@ void filesystem::list_directory_(const char* path, list_callback_t f, unsigned l
 			directory_callback_to_lambda cb;
 			cb.f = f;
 			v2->list_directory_ex(path, cb, listMode, a);
+			return;
 		}
 	}
 

@@ -508,7 +508,7 @@ public:
 protected:
 	template<typename in_t>
 	static void pass_instance(service_ptr& out, in_t* in) {
-		// in_t could be multi inherited, fix mulit inheritance issues here
+		// in_t could be multi inherited, fix multi inheritance issues here
 		// caller will static cast the returned service_base* to B* later on
 		// make sure that what we hand over supports such
 		service_ptr_t< B > temp;

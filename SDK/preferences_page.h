@@ -28,7 +28,7 @@ class NOVTABLE preferences_page : public service_base {
 public:
 	//! Obsolete.
     virtual fb2k::hwnd_t create(fb2k::hwnd_t p_parent) { uBugCheck(); }
-	//! Retrieves name of the prefernces page to be displayed in preferences tree (static string).
+	//! Retrieves name of the preferences page to be displayed in preferences tree (static string).
 	virtual const char * get_name() = 0;
 	//! Retrieves GUID of the page.
 	virtual GUID get_guid() = 0;

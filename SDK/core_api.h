@@ -39,10 +39,13 @@ namespace core_api {
 	bool is_quiet_mode_enabled();
 };
 
+#define FB2K_SUPPORT_LOW_MEM_MODE (SIZE_MAX <= UINT32_MAX)
+
 namespace fb2k {
-#ifdef _WIN32
-    inline bool isDebugModeActive() { return !! PFC_DEBUG ;}
-#else
     bool isDebugModeActive();
+#if FB2K_SUPPORT_LOW_MEM_MODE
+	bool isLowMemModeActive();
+#else
+	inline constexpr bool isLowMemModeActive() { return false; }
 #endif
 }

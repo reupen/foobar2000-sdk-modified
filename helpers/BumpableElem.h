@@ -17,7 +17,7 @@ public:
 		CHAIN_MSG_MAP(__super)
 	END_MSG_MAP_HOOK()
 
-	void notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size) {
+	void notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size) override {
 		if (p_what == ui_element_notify_visibility_changed && p_param1 == 0 && m_flash.m_hWnd != NULL) m_flash.Deactivate();
 		__super::notify(p_what, p_param1, p_param2, p_param2size);
 	}
