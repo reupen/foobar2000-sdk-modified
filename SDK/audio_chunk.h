@@ -41,19 +41,22 @@ public:
 		channel_top_back_center		= 1<<16,
 		channel_top_back_right		= 1<<17,
 
-		channel_config_mono = channel_front_center,
-		channel_config_stereo = channel_front_left | channel_front_right,
-		channel_config_2point1 = channel_front_left | channel_front_right | channel_lfe,
-		channel_config_3point0 = channel_front_left | channel_front_right | channel_front_center,
-		channel_config_4point0 = channel_front_left | channel_front_right | channel_back_left | channel_back_right,
-		channel_config_4point1 = channel_front_left | channel_front_right | channel_back_left | channel_back_right | channel_lfe,
-		channel_config_5point0 = channel_front_left | channel_front_right | channel_front_center | channel_back_left | channel_back_right,
-		channel_config_5point1 = channel_front_left | channel_front_right | channel_front_center | channel_lfe | channel_back_left | channel_back_right,
-		channel_config_5point1_side = channel_front_left | channel_front_right | channel_front_center | channel_lfe | channel_side_left | channel_side_right,
-		channel_config_7point1 = channel_config_5point1 | channel_side_left | channel_side_right,
-
 		channels_back_left_right = channel_back_left | channel_back_right,
 		channels_side_left_right = channel_side_left | channel_side_right,
+
+		channel_config_mono = channel_front_center,
+		channel_config_stereo = channel_front_left | channel_front_right,
+		channel_config_2point1 = channel_config_stereo | channel_lfe,
+		channel_config_3point0 = channel_config_stereo | channel_front_center,
+		channel_config_4point0 = channel_config_stereo | channels_back_left_right,
+		channel_config_4point0_side = channel_config_stereo | channels_side_left_right,
+		channel_config_4point1 = channel_config_4point0 | channel_lfe,
+		channel_config_5point0 = channel_config_4point0 | channel_front_center,
+		channel_config_6point0 = channel_config_4point0 | channels_side_left_right,
+		channel_config_5point1 = channel_config_4point0 | channel_front_center | channel_lfe,
+		channel_config_5point1_side = channel_config_4point0_side | channel_front_center | channel_lfe,
+		channel_config_7point1 = channel_config_5point1 | channels_side_left_right,
+
 
 		defined_channel_count = 18,
 	};
@@ -64,14 +67,14 @@ public:
 	static unsigned g_guess_channel_config_xiph(unsigned count);
 
 	//! Helper function; translates audio_chunk channel map to WAVEFORMATEXTENSIBLE channel map.
-	static uint32_t g_channel_config_to_wfx(unsigned p_config);
+	static constexpr uint32_t g_channel_config_to_wfx(unsigned p_config) { return p_config;}
 	//! Helper function; translates WAVEFORMATEXTENSIBLE channel map to audio_chunk channel map.
-	static unsigned g_channel_config_from_wfx(uint32_t p_wfx);
+	static constexpr unsigned g_channel_config_from_wfx(uint32_t p_wfx) { return p_wfx;}
 
 	//! Extracts flag describing Nth channel from specified map. Usable to figure what specific channel in a stream means.
 	static unsigned g_extract_channel_flag(unsigned p_config,unsigned p_index);
 	//! Counts channels specified by channel map.
-	static unsigned g_count_channels(unsigned p_config);
+	static constexpr unsigned g_count_channels(unsigned p_config) { return pfc::countBits32(p_config); }
 	//! Calculates index of a channel specified by p_flag in a stream where channel map is described by p_config.
 	static unsigned g_channel_index_from_flag(unsigned p_config,unsigned p_flag);
 

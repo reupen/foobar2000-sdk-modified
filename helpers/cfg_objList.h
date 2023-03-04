@@ -23,17 +23,20 @@ namespace cfg_var_modern {
 			if (gone > 0) save();
 			return gone;
 		}
+		//! Returns number of items removed.
 		template<typename pred_t> size_t remove_if(pred_t&& p) {
 			init();
 			PFC_INSYNC_WRITE(m_listGuard);
-			size_t gone = pfc::remove_if_t(m_list, std::forward<pred_t>(p));
+			const auto nBefore = m_list.size();
+			const size_t nAfter = pfc::remove_if_t(m_list, std::forward<pred_t>(p));
+			const auto gone = nAfter - nBefore;
 			if (gone > 0) save();
 			return gone;
 		}
 		bool remove_item(obj_t const& v) {
 			return remove_if([&v](const obj_t& arg) { return v == arg; }) != 0;
 		}
-		size_t size() { init(); return m_list.size(); }
+		size_t size() { init(); PFC_INSYNC_READ(m_listGuard);return m_list.size(); }
 		size_t get_count() { return size(); }
 		size_t get_size() { return size(); }
 
