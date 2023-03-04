@@ -63,7 +63,7 @@ bool cfg_window_placement::read_from_window(HWND window)
 		}*/
 	}
 
-	set(wp);
+	try { set(wp); } catch(...) {} // this tends to be called often / we really couldn't care less about this failing
 
 	return wp.length == sizeof(wp);
 }

@@ -18,13 +18,15 @@ typedef void * configStoreNotifyHandle_t;
 //! Interface to access foobar2000's configuration store, backed by SQLite database. \n
 //! get* methods can be called at any time. set*/delete* \n
 //! set*/delete* methods will trigger immediate commit when invoked without a transaction scope. \n
-//! Use acquireTransactionScope() to commit multiple operations together. \n
-//! Transactions scope use a global reference counter; commit happens when all transaction scopes have exited. \n
 //! Use commitBlocking() to commit synchronously to be sure that the data has been flushed before continuing execution.
 class configStore : public service_base {
 	FB2K_MAKE_SERVICE_COREAPI( configStore );
 public:
+    //! Obsolete since late 2.0 beta, returns null. Delay-write cache is always used, no need to specifically request transactions. \n
+    //! To specifically flush after changing a bunch of variables, use commitBlocking().
     virtual fb2k::objRef acquireTransactionScope() = 0;
+
+    //! Synchronously flushes changes to disk. Doesn't return until changes have actually been written.
     virtual void commitBlocking() = 0;
     
     virtual int64_t getConfigInt( const char * name, int64_t defVal = 0 ) = 0;

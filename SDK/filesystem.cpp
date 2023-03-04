@@ -998,7 +998,8 @@ PFC_NORETURN void foobar2000_io::exception_io_from_nix(int code) {
             // Should not actually get here
             PFC_ASSERT(!"Trying to seek a nonseekable stream");
             throw exception_io_object_not_seekable();
-
+        case ENOTDIR:
+            throw exception_io_not_directory();
             
         default:
             pfc::throw_exception_with_message< exception_io>( PFC_string_formatter() << "Unknown I/O error (#" << code << ")");
