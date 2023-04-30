@@ -5,6 +5,10 @@
 namespace foobar2000_io {
 	class archive;
 
+	//! Callback passed to archive listing methods. \n
+	//! For backwards compatibility, this inherits with abort_callback as well. \n
+	//! When implementiong, you must override abort_callback methods redirecting them to your abort_callback. \n
+	//! It is recommended to use lambda-based archive_list helper instead of implementing this interface.
 	class NOVTABLE archive_callback : public abort_callback {
 	public:
 		virtual bool on_entry(archive * owner,const char * url,const t_filestats & p_stats,const service_ptr_t<file> & p_reader) = 0;
@@ -17,10 +21,11 @@ namespace foobar2000_io {
 		typedef std::function<void(const char* url, const t_filestats& stats, file::ptr reader) > list_func_t;
 
 		//! Lists archive contents. \n
-        //! May be called with any path, not only path accepted by is_our_archive.
+        //! May be called with any path, not only path accepted by is_our_archive. \n
+		//! It is strongly recommended to use the lambda_based archive_list() helper instead of calling this directly.
 		virtual void archive_list(const char * p_path,const service_ptr_t<file> & p_reader,archive_callback & p_callback,bool p_want_readers) = 0;
 		
-		//! Helper implemented on top of the other archive_list, uses lambda instead of callback.
+		//! Helper implemented on top of the other archive_list, uses lambda instead of callback, avoids having to implement archive_callback.
 		void archive_list(const char * path, file::ptr, list_func_t, bool wantReaders, abort_callback&);
 
 		//! Optional method to weed out unsupported formats prior to calling archive_list. \n

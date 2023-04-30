@@ -1145,6 +1145,30 @@ bool foobar2000_io::extract_native_path_ex(const char * p_fspath, pfc::string_ba
 	return true;
 }
 
+static bool extract_native_path_fsv3(const char* in, pfc::string_base& out, abort_callback& a) {
+	if (foobar2000_io::extract_native_path(in, out)) return true;
+	filesystem_v3::ptr v3;
+	if (v3 &= filesystem::tryGet(in)) {
+		auto n = v3->getNativePath(in, a);
+		if ( n.is_valid() ) {
+			out = n->c_str(); return true;
+		}
+	}
+	return false;
+}
+
+bool foobar2000_io::extract_native_path_archive_aware_ex(const char* in, pfc::string_base& out, abort_callback& a) {
+	if (extract_native_path_fsv3(in, out, a)) return true;
+	
+	if (archive_impl::g_is_unpack_path(in)) {
+		pfc::string8 arc, dummy;
+		if (archive_impl::g_parse_unpack_path(in, arc, dummy)) {
+			return extract_native_path_fsv3(arc, out, a);
+		}
+	}
+	return false;
+}
+
 bool foobar2000_io::extract_native_path_archive_aware(const char * in, pfc::string_base & out) {
 	if (foobar2000_io::extract_native_path(in, out)) return true;
 	if (archive_impl::g_is_unpack_path(in)) {

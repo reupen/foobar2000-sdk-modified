@@ -397,7 +397,7 @@ public:
 
 #ifdef _WIN32
 	//! Shows configuration popup, asynchronous version - creates dialog then returns immediately. \n
-	//! Since not every DSP implements this, caller must be prepated to call legacy blocking show_config_popup methods instead. \n
+	//! Since not every DSP implements this, caller must be prepared to call legacy blocking show_config_popup methods instead. \n
 	//! show_config_popup_v3() may throw pfc::exception_not_implemented() to signal host that this DSP doesn't support this method yet. \n
 	//! Main thread only! \n
 	//! @returns Object to retain by host, to be released to request the dialog to be closed.

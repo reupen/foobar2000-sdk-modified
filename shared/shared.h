@@ -280,6 +280,7 @@ UINT SHARED_EXPORT uGetMenuItemType(HMENU menu,UINT position);
 HMODULE SHARED_EXPORT LoadSystemLibrary(const TCHAR * name);
 
 void SHARED_EXPORT uPrintCrashInfo_OnEvent(const char * message, t_size length);
+void SHARED_EXPORT uPrintCrashInfo_StartLogging(const char * path);
 
 }//extern "C"
 
