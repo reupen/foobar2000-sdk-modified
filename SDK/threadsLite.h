@@ -14,11 +14,17 @@ namespace fb2k {
 // ======================================================================================================
 namespace fb2k {
 	//! Queue a call in main thread. Returns immediately. \n
-	//! You can call this from any thread, including main thread - to execute some code outside the current call stack / global fb2k callbacks / etc.
+	//! You can call this from any thread, including main thread - to execute some code outside the current call stack / global fb2k callbacks / etc. \n
+	//! Guaranteed FIFO order of execution. See also: main_thread_callback::add_callback().
 	void inMainThread(std::function<void() > f);
 	//! Call f synchronously if called from main thread, queue call if called from another.
 	void inMainThread2(std::function<void() > f);
 
-	//! Synchronous version.
+	//! Synchronous / abortable version. May exit *before* f() finishes, if abort becomes set.
 	void inMainThreadSynchronous(std::function<void() > f, abort_callback& abort);
+
+	//! Synchronous blocking version. \n
+	//! Uses new foobar2000 v2.0 methods if available, synchronizing to main thread via SendMessage(). \n
+	//! Introduced to help recovering from method-called-from-wrong-context scenarios. Does *not* guarentee FIFO execution order contrary to plain inMainThread().
+	void inMainThreadSynchronous2(std::function<void() > f);
 }

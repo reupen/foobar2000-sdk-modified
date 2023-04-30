@@ -417,6 +417,20 @@ void file_info::info_calculate_bitrate(uint64_t p_filesize,double p_length)
 	if ( b > 0 ) info_set_bitrate(b);
 }
 
+void file_info::info_set_bitspersample(uint32_t val, bool isFloat) {
+	// Bits per sample semantics
+	// "bitspersample" is set to integer value of bits per sample
+	// "bitspersample_extra" is used for bps of 32 or 64, either "floating-point" or "fixed-point"
+	// bps other than 32 or 64 are implicitly fixed-point as floating-point for such makes no sense
+
+	info_set_int("bitspersample", val);
+	if ( isFloat || val == 32 || val == 64 ) {
+		info_set("bitspersample_extra", isFloat ? "floating-point" : "fixed-point");
+	} else {
+		info_remove("bitspersample_extra");
+	}
+}
+
 bool file_info::is_encoding_float() const {
 	auto bs = info_get_int("bitspersample");
 	auto extra = info_get("bitspersample_extra");
@@ -586,7 +600,10 @@ void file_info::to_console() const {
 	FB2K_console_formatter1() << "File info dump:";
 	if (get_length() > 0) FB2K_console_formatter() << "Duration: " << pfc::format_time_ex(get_length(), 6);
 	pfc::string_formatter temp;
-	for(t_size metaWalk = 0; metaWalk < meta_get_count(); ++metaWalk) {
+	const auto numMeta = meta_get_count(), numInfo = info_get_count();
+	if (numMeta == 0) {
+		FB2K_console_formatter() << "Meta is blank";
+	} else for(t_size metaWalk = 0; metaWalk < numMeta; ++metaWalk) {
 		const char * name = meta_enum_name( metaWalk );
 		const auto valCount = meta_enum_value_count( metaWalk );
 		for ( size_t valWalk = 0; valWalk < valCount; ++valWalk ) {
@@ -598,7 +615,9 @@ void file_info::to_console() const {
 		FB2K_console_formatter() << "Meta: " << meta_enum_name(metaWalk) << " = " << temp;
 		*/
 	}
-	for(t_size infoWalk = 0; infoWalk < info_get_count(); ++infoWalk) {
+	if (numInfo == 0) {
+		FB2K_console_formatter() << "Info is blank";
+	} else for(t_size infoWalk = 0; infoWalk < numInfo; ++infoWalk) {
 		FB2K_console_formatter() << "Info: " << info_enum_name(infoWalk) << " = " << info_enum_value(infoWalk);
 	}
 }

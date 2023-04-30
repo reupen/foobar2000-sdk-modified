@@ -235,9 +235,15 @@ public:
 	//! Returns channel mask value. 0 if not set, use default for the channel count then.
 	uint32_t info_get_wfx_chanMask() const;
 
+	//! Is a lossy codec?
 	bool is_encoding_lossy() const;
+	//! Is lossless/PCM that can't be sanely represented in this fb2k build due to audio_sample limitations? \n
+	//! Always returns false in 64-bit fb2k.
 	bool is_encoding_overkill() const;
+	//! Floating-point PCM used?
 	bool is_encoding_float() const;
+	//! Helper; sets bit depth of lossless/PCM format.
+	void info_set_bitspersample(uint32_t val, bool isFloat = false);
 
 	//! Sets bitrate value using file size in bytes and duration.
 	void info_calculate_bitrate(uint64_t p_filesize,double p_length);

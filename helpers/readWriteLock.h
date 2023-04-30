@@ -2,7 +2,8 @@
 
 
 namespace fb2k {
-	// fb2k::readWriteLock: abortable readWriteLock, allowing multiple concurrent readers while not writing, or one writer while not reading.
+	//! fb2k::readWriteLock: abortable readWriteLock, allowing multiple concurrent readers while not writing, or one writer while not reading. \n
+	//! Safe to release locks in different threads than obtained, contrary to system object such as SRW locks.
 	class readWriteLock {
 		pfc::mutex m_guard;
 		size_t m_readers = 0, m_writers = 0;

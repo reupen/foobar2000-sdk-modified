@@ -22,11 +22,13 @@ typedef void * configStoreNotifyHandle_t;
 class configStore : public service_base {
 	FB2K_MAKE_SERVICE_COREAPI( configStore );
 public:
-    //! Obsolete since late 2.0 beta, returns null. Delay-write cache is always used, no need to specifically request transactions. \n
-    //! To specifically flush after changing a bunch of variables, use commitBlocking().
+    //! Causes multiple writes to be chained together. \n
+    //! Use of this is no longer essential since late foobar2000 v2.0 betas, as delay-write cache is always used. \n
+    //! You can still use it to guarantee that multiple updates are written together, that is either all or none are saved, should the system or application crash.
     virtual fb2k::objRef acquireTransactionScope() = 0;
 
-    //! Synchronously flushes changes to disk. Doesn't return until changes have actually been written.
+    //! Synchronously flushes changes to disk. Doesn't return until changes have actually been written. \n
+    //! Use of this is strongly recommended against.
     virtual void commitBlocking() = 0;
     
     virtual int64_t getConfigInt( const char * name, int64_t defVal = 0 ) = 0;

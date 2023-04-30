@@ -1,5 +1,7 @@
 #pragma once
 
+// advconfig_impl.h : mainline (foobar2000 v2.0) implementation of advconfig objects
+
 #include "advconfig.h"
 
 //! Standard implementation of advconfig_branch. \n

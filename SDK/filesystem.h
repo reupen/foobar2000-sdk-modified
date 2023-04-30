@@ -418,6 +418,7 @@ namespace foobar2000_io
 	bool extract_native_path_ex(const char * p_fspath, pfc::string_base & p_native);//prepends \\?\ where needed
 
 	bool extract_native_path_archive_aware( const char * fspatch, pfc::string_base & out );
+	bool extract_native_path_archive_aware_ex( const char * fspatch, pfc::string_base & out, abort_callback & a );
 
 	template<typename T>
 	pfc::string getPathDisplay(const T& source) {

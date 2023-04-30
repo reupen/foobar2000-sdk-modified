@@ -379,6 +379,7 @@
     <ClInclude Include="abort_callback.h" />
     <ClInclude Include="advconfig.h" />
     <ClInclude Include="advconfig_impl.h" />
+    <ClInclude Include="advconfig_impl_legacy.h" />
     <ClInclude Include="album_art.h" />
     <ClInclude Include="album_art_helpers.h" />
     <ClInclude Include="app_close_blocker.h" />

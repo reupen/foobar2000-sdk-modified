@@ -11,23 +11,6 @@
 
 static void process_path_internal(const char * p_path,const service_ptr_t<file> & p_reader,playlist_loader_callback::ptr callback, abort_callback & abort,playlist_loader_callback::t_entry_type type,const t_filestats & p_stats);
 
-namespace {
-	class archive_callback_impl : public archive_callback {
-	public:
-		archive_callback_impl(playlist_loader_callback::ptr p_callback, abort_callback & p_abort) : m_callback(p_callback), m_abort(p_abort) {}
-		bool on_entry(archive * owner,const char * p_path,const t_filestats & p_stats,const service_ptr_t<file> & p_reader)
-		{
-			process_path_internal(p_path,p_reader,m_callback,m_abort,playlist_loader_callback::entry_directory_enumerated,p_stats);
-			return !m_abort.is_aborting();
-		}
-		bool is_aborting() const {return m_abort.is_aborting();}
-		abort_callback_event get_abort_event() const {return m_abort.get_abort_event();}
-	private:
-		const playlist_loader_callback::ptr m_callback;
-		abort_callback & m_abort;
-	};
-}
-
 bool playlist_loader::g_try_load_playlist(file::ptr fileHint,const char * p_path,playlist_loader_callback::ptr p_callback, abort_callback & p_abort) {
 	// Determine if this file is a playlist or not (which usually means that it's a media file)
 	pfc::string8 filepath;
@@ -327,7 +310,6 @@ static void process_path_internal(const char * p_path,const service_ptr_t<file> 
 		}
 
 		{
-			archive_callback_impl archive_results(callback, abort);
 			for (auto f : filesystem::enumerate()) {
 				abort.check();
 				service_ptr_t<archive> arch;
@@ -335,7 +317,10 @@ static void process_path_internal(const char * p_path,const service_ptr_t<file> 
 					if (p_reader.is_valid()) p_reader->reopen(abort);
 
 					try {
-						TRACK_CODE("archive::archive_list",arch->archive_list(p_path,p_reader,archive_results,true));
+						archive::list_func_t archive_results = [callback, &abort](const char* p_path, const t_filestats& p_stats, file::ptr p_reader) {
+							process_path_internal(p_path,p_reader,callback,abort,playlist_loader_callback::entry_directory_enumerated,p_stats);
+						};
+						TRACK_CODE("archive::archive_list",arch->archive_list(p_path,p_reader,archive_results,/*want readers*/true, abort));
 						return;
 					} catch(exception_aborted) {throw;} 
 					catch(...) {

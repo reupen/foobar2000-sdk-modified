@@ -412,5 +412,11 @@
     <ClInclude Include="fb2kWorkerTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="callInMainThreadHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

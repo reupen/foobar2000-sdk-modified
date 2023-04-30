@@ -32,14 +32,14 @@ public:
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(advconfig_entry);
 };
 
-//! Creates a new branch in Advanced Preferences. \n
+//! Declares a new branch in Advanced Preferences. \n
 //! Implementation: see advconfig_branch_impl / advconfig_branch_factory.
 class NOVTABLE advconfig_branch : public advconfig_entry {
 public:
 	FB2K_MAKE_SERVICE_INTERFACE(advconfig_branch,advconfig_entry);
 };
 
-//! Creates a checkbox/radiocheckbox entry in Advanced Preferences. \n
+//! Declares a checkbox/radiocheckbox entry in Advanced Preferences. \n
 //! The difference between checkboxes and radiocheckboxes is different icon (obviously) and that checking a radiocheckbox unchecks all other radiocheckboxes in the same branch. \n
 //! Implementation: see advconfig_entry_checkbox_impl / advconfig_checkbox_factory_t.
 class NOVTABLE advconfig_entry_checkbox : public advconfig_entry {
@@ -53,6 +53,7 @@ public:
 	FB2K_MAKE_SERVICE_INTERFACE(advconfig_entry_checkbox,advconfig_entry);
 };
 
+//! Extension to advconfig_entry_checkbox, adds default state and preferences flags.
 class NOVTABLE advconfig_entry_checkbox_v2 : public advconfig_entry_checkbox {
 	FB2K_MAKE_SERVICE_INTERFACE(advconfig_entry_checkbox_v2, advconfig_entry_checkbox)
 public:
@@ -60,7 +61,7 @@ public:
 	virtual t_uint32 get_preferences_flags() {return 0;} //signals whether changing this setting should trigger playback restart or app restart; see: preferences_state::* constants
 };
 
-//! Creates a string/integer editbox entry in Advanced Preferences.\n
+//! Declares a string/integer editbox entry in Advanced Preferences.\n
 //! Implementation: see advconfig_entry_string_impl / advconfig_string_factory.
 class NOVTABLE advconfig_entry_string : public advconfig_entry {
 public:
@@ -78,6 +79,7 @@ public:
 	FB2K_MAKE_SERVICE_INTERFACE(advconfig_entry_string,advconfig_entry);
 };
 
+//! Extension to advconfig_entry_string, adds default state, validation and preferences flags.
 class NOVTABLE advconfig_entry_string_v2 : public advconfig_entry_string {
 	FB2K_MAKE_SERVICE_INTERFACE(advconfig_entry_string_v2, advconfig_entry_string)
 public:
@@ -85,16 +87,3 @@ public:
 	virtual void validate(pfc::string_base & val) {}
 	virtual t_uint32 get_preferences_flags() {return 0;} //signals whether changing this setting should trigger playback restart or app restart; see: preferences_state::* constants
 };
-
-
-//! Not currently used, reserved for future use.
-class NOVTABLE advconfig_entry_enum : public advconfig_entry {
-public:
-	virtual t_size get_value_count() = 0;
-	virtual void enum_value(pfc::string_base & p_out,t_size p_index) = 0;
-	virtual t_size get_state() = 0;
-	virtual void set_state(t_size p_value) = 0;
-	
-	FB2K_MAKE_SERVICE_INTERFACE(advconfig_entry_enum,advconfig_entry);
-};
-

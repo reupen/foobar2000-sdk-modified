@@ -1,5 +1,7 @@
 #pragma once
 
+// DEPRECATED, NOT DPI SAFE
+// use cfgDialogPosition & cfgWindowSize2 instead
 #ifdef FOOBAR2000_DESKTOP_WINDOWS
 
 #include "../SDK/cfg_var.h"

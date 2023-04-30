@@ -132,6 +132,7 @@ namespace fb2k {
 
 namespace fb2k {
 	void callLater(double timeAfter, std::function< void() > func) {
+		PFC_ASSERT( core_api::is_main_thread() );
 		auto releaseMe = std::make_shared<objRef>();
 		*releaseMe = registerTimer(timeAfter, [=] {
 			if (releaseMe->is_valid()) {
@@ -141,6 +142,7 @@ namespace fb2k {
 		});
 	}
 	objRef registerTimer(double interval, std::function<void()> func) {
+		PFC_ASSERT( core_api::is_main_thread() );
 		return static_api_ptr_t<timerManager>()->addTimer(interval, makeCompletionNotify([func](unsigned) { func(); }));
 	}
 }
@@ -337,3 +339,43 @@ namespace fb2k {
 		return callback_merit_default;
 	}
 }
+
+#ifdef _WIN32
+#include "message_loop.h"
+message_filter_impl_base::message_filter_impl_base() {
+	PFC_ASSERT( core_api::is_main_thread() );
+	message_loop::get()->add_message_filter(this);
+}
+message_filter_impl_base::message_filter_impl_base(t_uint32 lowest, t_uint32 highest) {
+	PFC_ASSERT( core_api::is_main_thread() );
+	message_loop_v2::get()->add_message_filter_ex(this, lowest, highest);
+}
+message_filter_impl_base::~message_filter_impl_base() {
+	PFC_ASSERT( core_api::is_main_thread() );
+	message_loop::get()->remove_message_filter(this);
+}
+
+bool message_filter_impl_accel::pretranslate_message(MSG * p_msg) {
+	if (m_wnd != NULL) {
+		if (GetActiveWindow() == m_wnd) {
+			if (TranslateAccelerator(m_wnd,m_accel.get(),p_msg) != 0) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+message_filter_impl_accel::message_filter_impl_accel(HINSTANCE p_instance,const TCHAR * p_accel) {
+	m_accel.load(p_instance,p_accel);
+}
+
+bool message_filter_remap_f1::pretranslate_message(MSG * p_msg) {
+	if (IsOurMsg(p_msg) && m_wnd != NULL && GetActiveWindow() == m_wnd) {
+		::PostMessage(m_wnd, WM_SYSCOMMAND, SC_CONTEXTHELP, -1);
+		return true;
+	}
+	return false;
+}
+
+#endif
