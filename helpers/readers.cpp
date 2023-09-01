@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "readers.h"
+#include "readers_lite.h"
 #include "fullFileBuffer.h"
 #include "fileReadAhead.h"
 #include <SDK/file_info_impl.h>
@@ -382,4 +383,63 @@ file::ptr fileCreateReadAhead(file::ptr chain, size_t readAheadBytes, abort_call
 	// Two paths to cast to file*, pick one explicitly to avoid compiler error
 	file_v2::ptr temp = std::move(obj);
 	return std::move(temp);
+}
+
+
+
+namespace {
+	class CFileWithMemBlock : public reader_membuffer_base {
+	public:
+		CFileWithMemBlock(fb2k::memBlockRef mem, t_filestats const& stats, const char* contentType, bool remote) {
+			m_mem = mem;
+			m_stats = stats;
+			m_stats.m_size = mem->size();
+			if (contentType != nullptr) m_contentType = contentType;
+			m_remote = remote;
+		}
+		const void* get_buffer() {
+			return m_mem->get_ptr();
+		}
+		t_size get_buffer_size() {
+			return m_mem->get_size();
+		}
+		t_filestats get_stats(abort_callback& p_abort) {
+			p_abort.check();
+			return m_stats;
+		}
+		bool get_content_type(pfc::string_base& out) {
+			if (m_contentType.is_empty()) return false;
+			out = m_contentType;
+			return true;
+		}
+		bool is_remote() {
+			return m_remote;
+		}
+	private:
+		bool m_remote;
+		fb2k::memBlockRef m_mem;
+		pfc::string8 m_contentType;
+		t_filestats m_stats;
+	};
+}
+
+file::ptr createFileWithMemBlock(fb2k::memBlock::ptr mem, t_filestats stats, const char* contentType, bool remote) {
+	return new service_impl_t< CFileWithMemBlock >(mem, stats, contentType, remote);
+}
+
+file::ptr createFileLimited(file::ptr base, t_filesize offset, t_filesize size, abort_callback& abort) {
+	return reader_limited::g_create(base, offset, size, abort);
+}
+
+file::ptr createFileBigMemMirror(file::ptr source, abort_callback& abort) {
+	if (source->is_in_memory()) return source;
+	auto r = fb2k::service_new<reader_bigmem_mirror>();
+	r->init(source, abort);
+	return r;
+}
+
+file::ptr createFileMemMirror(file::ptr source, abort_callback& abort) {
+	file::ptr ret;
+	if (!reader_membuffer_mirror::g_create(ret, source, abort)) ret = source;
+	return ret;
 }

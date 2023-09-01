@@ -306,6 +306,13 @@ public:
 	//! Normalize values to Unicode form C
 	//! @returns true if changed, false otherwise
 	bool unicode_normalize_C();
+    
+    
+#ifdef FOOBAR2000_MOBILE
+    void info_set_pictures( const GUID * guids, size_t size );
+    pfc::array_t<GUID> info_get_pictures( ) const;
+    uint64_t makeMetaHash() const;
+#endif
 protected:
 	file_info() {}
 	~file_info() {}

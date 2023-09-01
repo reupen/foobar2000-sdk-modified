@@ -257,6 +257,55 @@ namespace file_win32_helpers {
 		out.set_system((in & FILE_ATTRIBUTE_SYSTEM) != 0);
 		out.set_remote(false);
 	}
+
+
+	// Seek penalty query, effectively: is this an SSD?
+	// Credit:
+	// https://devblogs.microsoft.com/oldnewthing/20201023-00/?p=104395
+	static bool queryVolumeSeekPenalty(HANDLE hVolume, bool& out) {
+		STORAGE_PROPERTY_QUERY query = {};
+		query.PropertyId = StorageDeviceSeekPenaltyProperty;
+		query.QueryType = PropertyStandardQuery;
+		DWORD count = 1;
+		DEVICE_SEEK_PENALTY_DESCRIPTOR result = {};
+		if (!DeviceIoControl(hVolume, IOCTL_STORAGE_QUERY_PROPERTY, &query, sizeof(query), &result, sizeof(result), &count, nullptr)) {
+			return false;
+		}
+		out = result.IncursSeekPenalty;
+		return true;
+	}
+
+	static HANDLE GetVolumeHandleForFile(PCWSTR filePath) {
+		wchar_t volumePath[MAX_PATH] = {};
+		WIN32_OP_D(GetVolumePathName(filePath, volumePath, ARRAYSIZE(volumePath)));
+
+		wchar_t volumeName[MAX_PATH] = {};
+		WIN32_OP_D(GetVolumeNameForVolumeMountPoint(volumePath, volumeName, ARRAYSIZE(volumeName)));
+
+		auto length = wcslen(volumeName);
+		if ( length == 0 ) {
+			PFC_ASSERT(!"???");
+			return NULL;
+		}
+		if (length && volumeName[length - 1] == L'\\') {
+			volumeName[length - 1] = L'\0';
+		}
+
+		HANDLE ret;
+		WIN32_OP_D( ret = CreateFile(volumeName, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr) );
+		return ret;
+	}
+	bool querySeekPenalty(const wchar_t* nativePath, bool& out) {
+		CHandle h;
+		h.Attach( GetVolumeHandleForFile( nativePath ) );
+		if (!h) return false;
+		return queryVolumeSeekPenalty(h, out);
+	}
+	bool querySeekPenalty(const char* fb2k_path, bool& out) {
+		const char * path = fb2k_path;
+		if ( matchProtocol(path, "file")) path = afterProtocol(path);
+		return querySeekPenalty(pfc::wideFromUTF8(path), out);
+	}
 }
 
 #endif // _WIN32

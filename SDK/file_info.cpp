@@ -872,7 +872,6 @@ bool file_info::unicode_normalize_C() {
 	const size_t total = this->meta_get_count();
 	bool changed = false;
 	for (size_t mwalk = 0; mwalk < total; ++mwalk) {
-		const char* name = this->meta_enum_name(mwalk);
 		const size_t totalV = this->meta_enum_value_count(mwalk);
 		for (size_t vwalk = 0; vwalk < totalV; ++vwalk) {
 			const char* val = this->meta_enum_value(mwalk, vwalk);
@@ -899,3 +898,45 @@ void file_info::meta_enumerate(meta_enumerate_t cb) const {
 		}
 	}
 }
+
+#ifdef FOOBAR2000_MOBILE
+#include "album_art.h"
+#include "hasher_md5.h"
+
+void file_info::info_set_pictures( const GUID * guids, size_t size ) {
+    this->info_set("pictures", album_art_ids::ids_to_string(guids, size) );
+}
+
+pfc::array_t<GUID> file_info::info_get_pictures( ) const {
+    return album_art_ids::string_to_ids( this->info_get( "pictures" ) );
+}
+
+uint64_t file_info::makeMetaHash() const {
+	pfc::string_formatter temp;
+
+	auto doMeta = [&] ( const char * meta ) {
+		const char * p = meta_get(meta, 0);
+		if (p != nullptr) temp << p;
+		temp << "\n";
+	};
+	auto doMetaInt = [&] ( const char * meta ) {
+		const char * p = meta_get(meta, 0);
+		if (p != nullptr) {
+			auto s = strchr(p, '/' ); if ( s != nullptr ) p = s+1;
+			while(*p == '0') ++p;
+			temp << p;
+		}
+		temp << "\n";
+	};
+	doMeta("title");
+	doMeta("artist");
+	doMeta("album");
+	doMetaInt("tracknumber");
+	doMetaInt("discnumber");
+
+	if (temp.length() == 5) return 0;
+
+	return hasher_md5::get()->process_single( temp.c_str(), temp.length( ) ).xorHalve();
+}
+
+#endif // FOOBAR2000_MOBILE

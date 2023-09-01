@@ -118,6 +118,7 @@ namespace {
 	class fsItemFileStd : public fsItemFile {
 	public:
 		fsItemFileStd(filesystem::ptr fs, stringRef canonicalPath, t_filestats2 const & opportunistStats) : m_fs(fs), m_path(canonicalPath), m_opportunistStats(opportunistStats) {
+			PFC_ASSERT( m_opportunistStats.m_attribsValid & t_filestats2::attr_remote );
 			m_opportunistStats.set_folder(false);
 		}
 
@@ -195,6 +196,7 @@ namespace {
 	class fsItemFolderStd : public fsItemFolder {
 	public:
 		fsItemFolderStd(filesystem::ptr fs, stringRef canonicalPath, t_filestats2 const & opportunistStats) : m_fs(fs), m_path(canonicalPath), m_opportunistStats(opportunistStats) {
+			PFC_ASSERT( m_opportunistStats.m_attribsValid & t_filestats2::attr_remote );
 			m_opportunistStats.set_folder(true);
 		}
 
@@ -373,36 +375,46 @@ fsItemFolder::ptr filesystem::makeItemFolderStd(const char* pathCanonical, t_fil
 fsItemFile::ptr filesystem::makeItemFileStd(const char* pathCanonical, t_filestats2 const & opportunistStats) {
 	return new service_impl_t<fsItemFileStd>(this, makeString(pathCanonical), opportunistStats);
 }
+fsItemBase::ptr filesystem::findItem_(const char* path, abort_callback& p_abort) {
+	filesystem_v3::ptr v3;
+	if (v3 &= this) {
+		return v3->findItem(path, p_abort);
+	}
+	auto stats = this->get_stats2_(path, stats2_fileOrFolder, p_abort);
+	if (stats.is_folder()) return this->makeItemFolderStd(path, stats);
+	else return this->makeItemFileStd(path, stats);
+
+}
+fsItemFile::ptr filesystem::findItemFile_(const char* path, abort_callback& p_abort) {
+	filesystem_v3::ptr v3;
+	if (v3 &= this) return v3->findItemFile(path, p_abort);
+
+	auto stats = this->get_stats2_(path, stats2_fileOrFolder, p_abort);
+	if (!stats.is_folder()) return this->makeItemFileStd(path, stats);
+	throw exception_io_not_found();
+}
+fsItemFolder::ptr filesystem::findItemFolder_(const char* path, abort_callback& p_abort) {
+	filesystem_v3::ptr v3;
+	if (v3 &= this) return v3->findItemFolder(path, p_abort);
+
+	auto stats = this->get_stats2_(path, stats2_fileOrFolder, p_abort);
+	if (stats.is_folder()) return this->makeItemFolderStd(path, stats);
+	throw exception_io_not_found();
+}
+
 
 fsItemBase::ptr fsItemBase::fromPath(const char* path, abort_callback& aborter) {
-	auto fs = filesystem::get(path);
-	
-	filesystem_v3::ptr v3;
-	if (v3 &= fs) return v3->findItem(path, aborter);
-
-	auto stats = fs->get_stats2_(path, stats2_fileOrFolder, aborter);
-	if (stats.is_folder()) return fs->makeItemFolderStd(path, stats);
-	else return fs->makeItemFileStd(path, stats);
+	return filesystem::get(path)->findItem_(path, aborter);
 }
 
 fsItemFile::ptr fsItemFile::fromPath(const char* path, abort_callback& aborter) {
-	auto fs = filesystem::get(path);
-	
-	filesystem_v3::ptr v3;
-	if ( v3 &= fs ) return v3->findItemFile(path, aborter);
-
-	auto stats = fs->get_stats2_(path, stats2_fileOrFolder, aborter);
-	if (!stats.is_folder()) return fs->makeItemFileStd(path, stats);
-	throw exception_io_not_found();
+	return filesystem::get(path)->findItemFile_(path, aborter);
 }
 
 fsItemFolder::ptr fsItemFolder::fromPath(const char* path, abort_callback& aborter) {
-	auto fs = filesystem::get(path);
+	return filesystem::get(path)->findItemFolder_(path, aborter);
+}
 
-	filesystem_v3::ptr v3;
-	if (v3 &= fs) return v3->findItemFolder(path, aborter);
-
-	auto stats = fs->get_stats2_(path, stats2_fileOrFolder, aborter);
-	if (stats.is_folder()) return fs->makeItemFolderStd(path, stats);
-	throw exception_io_not_found();
+t_filestats fsItemBase::getStats(abort_callback& a) {
+	return getStats2(stats2_all, a).to_legacy();
 }

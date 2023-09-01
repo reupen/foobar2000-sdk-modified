@@ -84,6 +84,8 @@ namespace foobar2000_io {
 		virtual service_ptr_t<filesystem> getFS() = 0;
 
 		static fsItemBase::ptr fromPath(const char* path, abort_callback& aborter);
+
+		t_filestats getStats(abort_callback& a);
 	};
 
 	class fsItemFile : public fsItemBase {
