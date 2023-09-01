@@ -1129,8 +1129,13 @@ bool foobar2000_io::_extract_native_path_ptr(const char * & p_fspath) {
 	return true;
 }
 bool foobar2000_io::extract_native_path(const char * p_fspath,pfc::string_base & p_native) {
-	if (!_extract_native_path_ptr(p_fspath)) return false;
+	if (strstr(p_fspath, "://") != nullptr) {
+		if (!_extract_native_path_ptr(p_fspath)) return false;
+	}
 	p_native = p_fspath;
+#ifndef _WIN32
+	expandHomeDir( p_native );
+#endif
 	return true;
 }
 
@@ -1453,8 +1458,36 @@ bool filesystem::directory_exists(const char * path, abort_callback & abort) {
 		directory_callback_dummy cb;
 		list_directory(path, cb, abort);
 		return true;
-	} catch (exception_io const &) { return false; }
+	} catch (exception_io) { return false; }
 }
+
+bool filesystem::exists(const char* path, abort_callback& a) {
+	// for rare cases of code test if EITHER FILE OR FOLDER exists at path
+	filesystem_v3::ptr v3;
+	if (v3 &= this) {
+		try {
+			v3->get_stats2(path, stats2_fileOrFolder, a);
+			return true;
+		} catch (exception_io_not_found) { return false; }
+	}
+	filesystem_v2::ptr v2;
+	if (v2 &= this) {
+		return v2->file_exists(path, a) || v2->directory_exists(path, a);
+	}
+
+	try {
+		t_filestats stats; bool writable;
+		get_stats(path, stats, writable, a);
+		return true;
+	} catch (exception_io) { }
+	try {
+		directory_callback_dummy cb;
+		list_directory(path, cb, a);
+		return true;
+	} catch (exception_io) { }
+	return false;
+}
+
 bool filesystem::file_exists(const char * path, abort_callback & abort) {
 	filesystem_v2::ptr v2;
 	if ( v2 &= this ) {
@@ -1569,8 +1602,12 @@ void filesystem::read_whole_file_fallback(const char * path, mem_block_container
 }
 
 bool filesystem::is_transacted() {
+#if FB2K_SUPPORT_TRANSACTED_FILESYSTEM
 	filesystem_transacted::ptr p;
 	return ( p &= this );
+#else
+	return false;
+#endif
 }
 
 void filesystem::rewrite_file(const char* path, abort_callback& abort, double opTimeout, const void* payload, size_t bytes) {
@@ -1681,7 +1718,7 @@ bool filesystem_v2::make_directory_check(const char * path, abort_callback & abo
 	return rv;
 }
 
-
+#if FB2K_SUPPORT_TRANSACTED_FILESYSTEM
 filesystem_transacted::ptr filesystem_transacted::create( const char * pathFor ) {
 	service_enum_t<filesystem_transacted_entry> e;
 	filesystem_transacted_entry::ptr p;
@@ -1693,13 +1730,16 @@ filesystem_transacted::ptr filesystem_transacted::create( const char * pathFor )
 	}
 	return nullptr;
 }
+#endif
 
 bool filesystem::commit_if_transacted(abort_callback &abort) {
 	bool rv = false;
+#if FB2K_SUPPORT_TRANSACTED_FILESYSTEM
 	filesystem_transacted::ptr t;
 	if ( t &= this ) {
 		t->commit( abort ); rv = true;
 	}
+#endif
 	return rv;
 }
 
@@ -2003,18 +2043,13 @@ fsItemBase::ptr filesystem_v3::findItem(const char* path, abort_callback& p_abor
 	try {
 #endif
 		pfc::string8 canonical;
-		get_canonical_path(path, canonical);
-
-		if (this->is_remote(canonical)) {
-			// Do not perform expensive checks for remote filesystems
-			return makeItemFileStd(canonical);
-		}
-
-		if (this->file_exists(canonical, p_abort)) {
-			return makeItemFileStd(canonical);
-		}
-		if (this->directory_exists(canonical, p_abort)) {
-			return makeItemFolderStd(canonical);
+		if (get_canonical_path(path, canonical)) {
+			auto stats = this->get_stats2(path, stats2_all, p_abort);
+			if ( stats.is_folder() ) {
+				return makeItemFolderStd(canonical, stats);
+			} else {
+				return makeItemFileStd(canonical, stats );
+			}
 		}
 		throw exception_io_not_found();
 #if PFC_DEBUG
@@ -2032,9 +2067,11 @@ fsItemFile::ptr filesystem_v3::findItemFile(const char* path, abort_callback& p_
 	try {
 #endif
 		pfc::string8 canonical;
-		get_canonical_path(path, canonical);
-		if (this->is_remote(canonical) || this->file_exists(canonical, p_abort)) {
-			return makeItemFileStd(canonical);
+		if (get_canonical_path(path, canonical)) {
+			auto stats = this->get_stats2( canonical, stats2_all, p_abort);
+			if ( stats.is_file() ) {
+				return makeItemFileStd(canonical, stats );
+			}
 		}
 		throw exception_io_not_found();
 #if PFC_DEBUG
@@ -2052,9 +2089,11 @@ fsItemFolder::ptr filesystem_v3::findItemFolder(const char* path, abort_callback
 	try {
 #endif
 		pfc::string8 canonical;
-		if (!get_canonical_path(path, canonical)) throw exception_io_not_found();
-		if (this->is_remote(canonical) || this->directory_exists(canonical, p_abort)) {
-			return makeItemFolderStd(canonical);
+		if (get_canonical_path(path, canonical)) {
+			auto stats = this->get_stats2( canonical, stats2_all, p_abort);
+			if ( stats.is_folder() ) {
+				return makeItemFolderStd(canonical, stats );
+			}
 		}
 		throw exception_io_not_found();
 #if PFC_DEBUG
@@ -2086,7 +2125,7 @@ fb2k::stringRef filesystem_v3::fileNameSanity(const char* fn) {
 	return ret;
 }
 
-void filesystem_v3::readStatsMulti(fb2k::arrayRef items, uint32_t s2flags, t_filestats2* outStats, abort_callback& abort) {
+static void readStatsMultiStd(fb2k::arrayRef items, uint32_t s2flags, t_filestats2* outStats, abort_callback& abort) {
 	const size_t count = items->size();
 	for (size_t w = 0; w < count; ++w) {
 		abort.check();
@@ -2100,6 +2139,23 @@ void filesystem_v3::readStatsMulti(fb2k::arrayRef items, uint32_t s2flags, t_fil
 			out = filestats2_invalid;
 		}
 	}
+}
+
+void filesystem_v3::readStatsMulti(fb2k::arrayRef items, uint32_t s2flags, t_filestats2* outStats, abort_callback& abort) {
+	readStatsMultiStd(items, s2flags, outStats, abort);
+}
+
+pfc::string8 t_filestats::describe() const {
+	pfc::string8 ret;
+	ret << "size: ";
+	if (m_size != filesize_invalid) ret << m_size;
+	else ret << "N/A";
+	ret << "\n";
+	ret << "last-modified: ";
+	if (m_timestamp != filetimestamp_invalid) ret << m_timestamp;
+	else ret << "N/A";
+	ret << "\n";
+	return ret;
 }
 
 pfc::string8 t_filestats2::describe() const {
@@ -2147,10 +2203,15 @@ bool foobar2000_io::nixQueryDirectory( const struct stat & st ) {
 
 t_filestats2 foobar2000_io::nixMakeFileStats2(const struct stat &st) {
     t_filestats2 ret = t_filestats2::from_legacy( nixMakeFileStats( st ) );
+#ifndef __ANDROID__
+	// Android Java API does not report creation time
+	// We could return it from here, but then different fb2k APIs will return different info about the same object, which is not acceptable.
     ret.m_timestampCreate = pfc::fileTimeUtoW( st.st_birthtimespec );
+#endif
     ret.set_readonly(nixQueryReadonly(st));
     if ( nixQueryDirectory( st ) ) ret.set_folder();
     else ret.set_file();
+	ret.set_remote(false);
     return ret;
 }
 
@@ -2204,4 +2265,86 @@ bool filesystem::g_get_display_name_short( const char * path, pfc::string_base &
     }
     out = path;
     return false;
+}
+
+
+bool filesystem::g_compare_paths(const char* p1, const char* p2, int& result) {
+	if (strcmp(p1, p2) == 0) {
+		result = 0; return true;
+	}
+
+	{
+		auto s1 = strstr(p1, "://");
+		auto s2 = strstr(p2, "://");
+		if (s1 == nullptr || s2 == nullptr) {
+			PFC_ASSERT(!"Invalid arguments");
+			return false;
+		}
+		size_t prefix = s1 - p1;
+		if (prefix != s2 - p2) return false; // protocol mismatch
+		if (memcmp(p1, p2, prefix) != 0) return false; // protocol mismatch
+	}
+
+	filesystem::ptr fs;
+	if (!g_get_interface(fs, p1)) {
+		PFC_ASSERT(!"Invalid arguments");
+		return false;
+	}
+	pfc::string8 temp1(p1), temp2(p2);
+	auto delim = fs->pathSeparator();
+	temp1.end_with(delim); temp2.end_with(delim);
+	if (strcmp(temp1, temp2) == 0) { result = 0; return true; }
+
+	//result 1 if p2 is a subpath of p1, -1 if p1 is a subpath of p2
+	if (pfc::string_has_prefix(temp1, temp2)) {
+		// temp1 starts with temp2
+		// p1 a subfolder of p2
+		result = -1;
+		return true;
+	} else if (pfc::string_has_prefix(temp2, temp1)) {
+		// temp2 starts with temp1
+		// p2 a subfolder of p1
+		result = 1;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+size_t file::receive(void* ptr, size_t bytes, abort_callback& a) {
+	stream_receive::ptr obj;
+	if (obj &= this) return obj->receive(ptr, bytes, a);
+	else return this->read(ptr, bytes, a);
+}
+
+void filesystem::g_readStatsMulti(fb2k::arrayRef items, uint32_t s2flags, t_filestats2* outStats, abort_callback& abort) {
+	if (items->size() == 0) return;
+	fsItemPtr aFile; aFile ^= items->itemAt(0);
+	filesystem_v3::ptr fs;
+	if (fs &= aFile->getFS()) {
+		fs->readStatsMulti(items, s2flags, outStats, abort);
+	} else {
+		readStatsMultiStd(items, s2flags, outStats, abort);
+	}
+}
+
+void file::set_stats(t_filestats2 const& stats, abort_callback& a) {
+	if (stats.haveTimestamp() || stats.haveTimestampCreate()) {
+		filetimes_t ft;
+		ft.creation = stats.m_timestampCreate;
+		ft.lastWrite = stats.m_timestamp;
+		this->setFileTimes(ft, a);
+	}
+}
+
+fb2k::stringRef filesystem::fileNameSanity_(const char* fn) {
+    filesystem_v3::ptr v3;
+    if (v3 &= this) return v3->fileNameSanity(fn);
+    throw pfc::exception_not_implemented();
+}
+
+drivespace_t filesystem::getDriveSpace_(const char* pathAt, abort_callback& abort) {
+    filesystem_v3::ptr v3;
+    if (v3 &= this) return v3->getDriveSpace(pathAt, abort);
+    throw pfc::exception_not_implemented();
 }

@@ -113,16 +113,16 @@ namespace cfg_var_modern {
 		void init() {
 			std::call_once(m_init, [this] {
 				auto blob = fb2k::configStore::get()->getConfigBlob(formatName(), nullptr);
-				if (blob.is_valid()) {
+				if (blob.is_valid()) try {
 					stream_reader_formatter_simple<> reader(blob->data(), blob->size());
 					std::vector<obj_t> data;
 					uint32_t count; reader >> count; data.resize(count);
 					for (auto& v : data) reader >> v;
 					set_(std::move(data), false);
-                } else {
-                    set_(m_defaults, false);
-                }
-				});
+					return;
+				} catch(...) {} // fall through, set defaults
+				set_(m_defaults, false);
+			});
 		}
 		template<typename arg_t>
 		void set_(arg_t&& arg, bool bSave = true) {

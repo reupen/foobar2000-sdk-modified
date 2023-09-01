@@ -25,7 +25,9 @@ bool playlist_loader::g_try_load_playlist(file::ptr fileHint,const char * p_path
 		filesystem::ptr fs;
 		if (filesystem::g_get_interface(fs,filepath)) {
 			if (fs->supports_content_types()) {
-				fs->open(l_file,filepath,filesystem::open_mode_read,p_abort);
+				try {
+					fs->open(l_file,filepath,filesystem::open_mode_read,p_abort);
+				} catch(exception_io) { return false; } // fall thru
 			}
 		}
 	}

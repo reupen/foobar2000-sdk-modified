@@ -16,7 +16,8 @@ namespace file_win32_helpers {
 	size_t readStreamOverlapped(HANDLE handle, HANDLE myEvent, void * out, size_t outBytes, abort_callback & abort);
 	HANDLE createFile(LPCTSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile, abort_callback & abort);
 	size_t lowLevelIO(HANDLE hFile, const GUID & guid, size_t arg1, void * arg2, size_t arg2size, bool canWrite, abort_callback & abort);
-
+	bool querySeekPenalty(const char * fb2k_path, bool & out);
+	bool querySeekPenalty(const wchar_t * nativePath, bool & out);
 
 	static uint64_t make_uint64(t_uint32 p_low, t_uint32 p_high) {
 		return ((t_uint64)p_low) + ((t_uint64)p_high << 32);

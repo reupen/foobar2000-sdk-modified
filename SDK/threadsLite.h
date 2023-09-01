@@ -4,6 +4,8 @@ namespace fb2k {
 	void splitTask(std::function<void()>);
 	void splitTask(pfc::thread::arg_t const&, std::function<void()>);
 	abort_callback& mainAborter();
+
+	void inCpuWorkerThread(std::function<void()> f);
 }
 
 

@@ -277,6 +277,9 @@ public:
 	
 	static uint32_t g_flags_for_path( const char * pathFor, uint32_t mask = UINT32_MAX );
 	static uint32_t g_flags_for_content_type( const char * ct, uint32_t mask = UINT32_MAX );
+
+	GUID get_guid_();
+	static input_entry::ptr g_find_by_guid( const GUID & );
 };
 
 //! \since 1.4

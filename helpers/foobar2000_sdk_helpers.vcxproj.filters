@@ -352,9 +352,6 @@
     <ClInclude Include="text_file_loader_v2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="file_readonly.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="winmm-types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -415,8 +412,8 @@
     <ClInclude Include="callInMainThreadHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <ClInclude Include="readers_lite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
