@@ -440,6 +440,14 @@ GUID input_entry::get_guid_() {
 	if ( v2 &= this ) ret = v2->get_guid();
 	return ret;
 }
+
+const char* input_entry::get_name_() {
+	const char * ret = "<legacy object>";
+	input_entry_v2::ptr v2;
+	if ( v2 &= this ) ret = v2->get_name();
+	return ret;
+}
+
 input_entry::ptr input_entry::g_find_by_guid(const GUID& guid) {
 	for (auto ptr : enumerate()) {
 		input_entry_v2::ptr v2;

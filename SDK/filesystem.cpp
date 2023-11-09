@@ -84,7 +84,7 @@ void file::g_transfer_object(stream_reader * p_src,stream_writer * p_dst,t_files
 
 void filesystem::g_get_canonical_path(const char * path,pfc::string_base & out)
 {
-	TRACK_CALL_TEXT("filesystem::g_get_canonical_path");
+	// TRACK_CALL_TEXT("filesystem::g_get_canonical_path");
 	for (auto ptr : enumerate()) {
 		if (ptr->get_canonical_path(path, out)) return;
 	}
@@ -92,9 +92,28 @@ void filesystem::g_get_canonical_path(const char * path,pfc::string_base & out)
 	out = path;
 }
 
+void filesystem::g_get_display_path(const char* path, pfc::string_base& out, filesystem::ptr& reuseMe) {
+
+	if (reuseMe.is_valid() && reuseMe->is_our_path(path)) {
+		if (!reuseMe->get_display_path(path, out)) {
+			// should not get here
+			out = path;
+		}
+	} else {
+		if (!g_get_interface(reuseMe, path)) {
+			out = path;
+			return;
+		}
+		if (!reuseMe->get_display_path(path, out)) {
+			// should not get here
+			out = path;
+		}
+	}
+}
+
 void filesystem::g_get_display_path(const char * path,pfc::string_base & out)
 {
-	TRACK_CALL_TEXT("filesystem::g_get_display_path");
+	// TRACK_CALL_TEXT("filesystem::g_get_display_path");
 	service_ptr_t<filesystem> ptr;
 	if (!g_get_interface(ptr,path))
 	{
@@ -155,7 +174,7 @@ bool filesystem::g_get_interface(service_ptr_t<filesystem> & p_out,const char * 
 
 	for (auto ptr : enumerate()) {
 		if (ptr->is_our_path(path)) {
-			p_out = ptr;
+			p_out = std::move(ptr);
 			return true;
 		}
 	}
@@ -350,6 +369,21 @@ bool archive::is_our_archive( const char * path ) {
 	return true; // accept all files
 }
 
+void archive_impl::extract_filename_ext(const char * path, pfc::string_base & outFN) {
+	pfc::string8 dummy, subpath;
+	if (archive_impl::g_parse_unpack_path(path, dummy, subpath)) {
+		outFN = pfc::filename_ext_v2( subpath );
+	} else {
+		PFC_ASSERT(!"???");
+		filesystem_v3::extract_filename_ext(path, outFN);
+	}
+}
+
+bool archive_impl::get_display_name_short(const char* in, pfc::string_base& out) {
+	extract_filename_ext(in ,out);
+	return true;
+}
+
 bool archive_impl::get_canonical_path(const char * path,pfc::string_base & out)
 {
 	if (is_our_path(path))
@@ -494,6 +528,27 @@ void archive_impl::g_make_unpack_path(pfc::string_base & path,const char * archi
 
 void archive_impl::make_unpack_path(pfc::string_base & path,const char * archive,const char * file) {g_make_unpack_path(path,archive,file,get_archive_type());}
 
+fb2k::arrayRef archive_impl::archive_list_v4( fsItemFilePtr item, file::ptr readerOptional, abort_callback & a ) {
+    
+    const auto baseStats = item->getStatsOpportunist();
+    PFC_ASSERT( ! baseStats.is_folder() );
+    auto ret = fb2k::arrayMutable::arrayWithCapacity(256);
+    
+    auto reader = readerOptional;
+    if ( reader.is_empty() ) reader = item->openRead(a);
+    try {
+        this->archive_list( item->canonicalPath()->c_str(), reader, [&] ( const char * URL, t_filestats const & stats, file::ptr ) {
+            t_filestats2 stats2 = t_filestats2::from_legacy( stats );
+            stats2.set_file(); stats2.set_remote( baseStats.is_remote() ); stats2.set_readonly(true);
+            archive * blah = this; // multi inheritance fix, more than one path to filesystem which has makeItemFileStd()
+            ret->add(blah->makeItemFileStd(URL, stats2));
+        }, false, a);
+    } catch( exception_io_data ) {
+        if ( ret->count() == 0 ) throw;
+    }
+    return ret->makeConst();
+    
+}
 
 namespace {
 
@@ -812,17 +867,20 @@ void stream_reader::read_string(pfc::string_base & p_out,abort_callback & p_abor
 	read_string_ex(p_out,length,p_abort);
 }
 
-void stream_reader::read_string_raw(pfc::string_base & p_out,abort_callback & p_abort) {
-	enum {delta = 256};
+void stream_reader::read_string_raw(pfc::string_base & p_out,abort_callback & p_abort, size_t sanity) {
+	enum {delta = 1024};
 	char buffer[delta];
 	p_out.reset();
+	size_t didRead = 0;
 	for(;;) {
-		t_size delta_done;
-		delta_done = read(buffer,delta,p_abort);
+		auto delta_done = read(buffer,delta,p_abort);
 		p_out.add_string(buffer,delta_done);
 		if (delta_done < delta) break;
+		didRead += delta;
+		if (didRead > sanity) throw exception_io_data();
 	}
 }
+
 void stream_writer::write_string(const char * p_string,t_size p_len,abort_callback & p_abort) {
 	t_uint32 len = pfc::downcast_guarded<t_uint32>(pfc::strlen_max(p_string,p_len));
 	write_lendian_t(len,p_abort);
@@ -1039,14 +1097,18 @@ t_filesize file::get_remaining(abort_callback & p_abort) {
 	return length - position;
 }
 
-void file::probe_remaining(t_filesize bytes, abort_callback & p_abort) {
+bool file::probe_remaining_ex(t_filesize bytes, abort_callback& p_abort) {
 	t_filesize length = get_size(p_abort);
-	if (length != ~0) {
+	if (length != filesize_invalid) {
 		t_filesize remaining = length - get_position(p_abort);
-		if (remaining < bytes) throw exception_io_data_truncation();
+		if (remaining < bytes) return false;
 	}
+	return true;
 }
 
+void file::probe_remaining(t_filesize bytes, abort_callback & p_abort) {
+	if (!probe_remaining_ex(bytes, p_abort)) throw exception_io_data_truncation();
+}
 
 t_filesize file::g_transfer(service_ptr_t<file> p_src,service_ptr_t<file> p_dst,t_filesize p_bytes,abort_callback & p_abort) {
 	return g_transfer(pfc::implicit_cast<stream_reader*>(p_src.get_ptr()),pfc::implicit_cast<stream_writer*>(p_dst.get_ptr()),p_bytes,p_abort);
@@ -1394,7 +1456,7 @@ bool foobar2000_io::testIfHasProtocol( const char * input ) {
 
 bool foobar2000_io::matchProtocol(const char * fullString, const char * protocolName) {
     const t_size len = strlen(protocolName);
-    if (pfc::stricmp_ascii_ex(fullString, len, protocolName, len) != 0) return false;
+    if (!pfc::stringEqualsI_ascii_ex(fullString, len, protocolName, len)) return false;
     return fullString[len] == ':' && fullString[len+1] == '/' && fullString[len+2] == '/';
 }
 void foobar2000_io::substituteProtocol(pfc::string_base & out, const char * fullString, const char * protocolName) {
@@ -1851,7 +1913,20 @@ void filesystem_v3::get_stats(const char* p_path, t_filestats& p_stats, bool& p_
 t_filetimestamp file_v2::get_timestamp(abort_callback& p_abort) {
 	return this->get_stats2(stats2_timestamp, p_abort).m_timestamp;
 }
+bool file_v2::is_remote() {
+	return this->get_stats2(stats2_remote, fb2k::noAbort).is_remote();
+}
 
+t_filesize file_v2::get_size(abort_callback& p_abort) {
+	return this->get_stats2(stats2_size, p_abort).m_size;
+}
+
+pfc::string8 file::get_content_type() {
+	pfc::string8 ret;
+	if (!this->get_content_type(ret)) ret.clear();
+	return ret;
+
+}
 t_filestats2 file::get_stats2_(uint32_t f, abort_callback& a) {
 	t_filestats2 ret;
 
@@ -2182,13 +2257,10 @@ pfc::string8 t_filestats2::describe() const {
 t_filestats foobar2000_io::nixMakeFileStats(const struct stat & st) {
     t_filestats out = filestats_invalid;
     out.m_size = st.st_size;
-#if defined(__ANDROID__)
-    out.m_timestamp = pfc::fileTimeUtoW(st.st_mtime /* + st.st_mtime_nsec / 1000000000 */ );
-#elif !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
-    out.m_timestamp = pfc::fileTimeUtoW(st.st_mtimespec );
-    // out.m_timestampCreate = pfc::fileTimeUtoW( st.st_birthtimespec );
-#else
-    out.m_timestamp = pfc::fileTimeUtoW(st.st_mtime);
+#ifdef __APPLE__
+    out.m_timestamp = pfc::fileTimeUtoW(st.st_mtimespec);
+#else // Linux
+	out.m_timestamp = pfc::fileTimeUtoW(st.st_mtim);
 #endif
     return out;
 }
@@ -2203,10 +2275,10 @@ bool foobar2000_io::nixQueryDirectory( const struct stat & st ) {
 
 t_filestats2 foobar2000_io::nixMakeFileStats2(const struct stat &st) {
     t_filestats2 ret = t_filestats2::from_legacy( nixMakeFileStats( st ) );
-#ifndef __ANDROID__
-	// Android Java API does not report creation time
-	// We could return it from here, but then different fb2k APIs will return different info about the same object, which is not acceptable.
-    ret.m_timestampCreate = pfc::fileTimeUtoW( st.st_birthtimespec );
+#ifdef __APPLE__
+	ret.m_timestampCreate = pfc::fileTimeUtoW(st.st_birthtimespec);
+#else // Linux
+	ret.m_timestampCreate = pfc::fileTimeUtoW(st.st_ctim);
 #endif
     ret.set_readonly(nixQueryReadonly(st));
     if ( nixQueryDirectory( st ) ) ret.set_folder();

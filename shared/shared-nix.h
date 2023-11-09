@@ -23,3 +23,6 @@ bool uGetTempPath(pfc::string_base & out);
 bool uGetTempFileName(const char * path_name,const char * prefix,unsigned unique,pfc::string_base & out);
 pfc::string8 uGetTempFileName();
 
+
+bool uSetCurrentDirectory(const char * path);
+bool uGetCurrentDirectory(pfc::string_base & out);

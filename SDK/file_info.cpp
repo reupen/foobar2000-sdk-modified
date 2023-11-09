@@ -97,6 +97,22 @@ void file_info::overwrite_meta(const file_info & p_source) {
 	}
 }
 
+bool file_info::overwrite_meta_if_changed( const file_info & source ) {
+	const t_size total = source.meta_get_count();
+	bool changed = false;
+	for(t_size walk = 0; walk < total; ++walk) {
+		auto name = source.meta_enum_name(walk);
+		auto idx = this->meta_find(name);
+		if ( idx != SIZE_MAX ) {
+			if (field_value_equals(*this, idx, source, walk)) continue;
+		}
+
+		copy_meta_single(source, walk);
+		changed = true;
+	}
+	return changed;
+}
+
 void file_info::copy_meta_single(const file_info & p_source,t_size p_index)
 {
 	copy_meta_single_rename(p_source,p_index,p_source.meta_enum_name(p_index));
@@ -287,7 +303,24 @@ unsigned file_info::info_get_decoded_bps() const
 	val = info_get_int("bitspersample");
 	if (is_valid_bps(val)) return (unsigned)val;
 	return 0;
+}
 
+bool file_info::info_get_codec_long(pfc::string_base& out, const char * delim) const {
+	const char * codec;
+	codec = this->info_get("codec_long");
+	if (codec != nullptr) {
+		out = codec; return true;
+	}
+	codec = this->info_get("codec");
+	if (codec != nullptr) {
+		out = codec;
+		const char * profile = this->info_get("codec_profile");
+		if (profile != nullptr) {
+			out << delim << profile;
+		}
+		return true;
+	}
+	return false;
 }
 
 void file_info::reset()

@@ -29,4 +29,8 @@ namespace fb2k {
 	//! Uses new foobar2000 v2.0 methods if available, synchronizing to main thread via SendMessage(). \n
 	//! Introduced to help recovering from method-called-from-wrong-context scenarios. Does *not* guarentee FIFO execution order contrary to plain inMainThread().
 	void inMainThreadSynchronous2(std::function<void() > f);
+
+	//! Helper class for threads that call fb2k objects. Mainly needed for Android shims. You can safely ignore this. \n
+	//! Guaranteed to have startHere(), isActive() and waitTillDone() methods only.
+	typedef pfc::thread2 thread;
 }

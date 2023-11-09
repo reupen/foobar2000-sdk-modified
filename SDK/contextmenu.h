@@ -358,7 +358,7 @@ public:
 		p_out = m_desc;
 		return true;
 	}
-	double get_sort_priority() override { return 0; }
+	double get_sort_priority() override { return m_sortPriority; }
 	GUID get_parent() override { return m_parentGuid; }
 private:
 	const std::function<void(metadb_handle_list_cref)> m_func;

@@ -568,7 +568,7 @@ typedef HICON hicon_t;
 typedef HMENU hmenu_t;
 typedef HFONT hfont_t;
 #else
-typedef void* hwnd_t;
+typedef void* hwnd_t; // Mac: bridged NSObject, context specific (NSWindow, NSView, NSViewController)
 typedef void* hicon_t;
 typedef void* hmenu_t;
 typedef void* hfont_t;

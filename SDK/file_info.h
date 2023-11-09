@@ -23,6 +23,10 @@ struct replaygain_info
 	inline bool format_album_peak(char p_buffer[text_buffer_size]) const {return g_format_peak(m_album_peak,p_buffer);}
 	inline bool format_track_peak(char p_buffer[text_buffer_size]) const {return g_format_peak(m_track_peak,p_buffer);}
 
+
+	typedef std::function<void(const char*, const char*)> for_each_t;
+	void for_each(for_each_t) const;
+
 	static float g_parse_gain_text(const char * p_text, t_size p_text_len = SIZE_MAX);
 	void set_album_gain_text(const char * p_text,t_size p_text_len = SIZE_MAX);
 	void set_track_gain_text(const char * p_text,t_size p_text_len = SIZE_MAX);
@@ -205,6 +209,7 @@ public:
 	inline void	copy_meta_single_rename(const file_info & p_source,t_size p_index,const char * p_new_name) {copy_meta_single_rename_ex(p_source,p_index,p_new_name,SIZE_MAX);}
 	void		overwrite_info(const file_info & p_source);
 	void		overwrite_meta(const file_info & p_source);
+	bool		overwrite_meta_if_changed( const file_info & source );
 
 	t_int64 info_get_int(const char * name) const;
 	t_int64 info_get_length_samples() const;
@@ -217,9 +222,9 @@ public:
 	void info_set_replaygain_album_peak(float value);
 
 	inline t_int64 info_get_bitrate_vbr() const {return info_get_int("bitrate_dynamic");}
-	inline void info_set_bitrate_vbr(t_int64 val) {info_set_int("bitrate_dynamic",val);}
+	inline void info_set_bitrate_vbr(t_int64 val_kbps) {info_set_int("bitrate_dynamic",val_kbps);}
 	inline t_int64 info_get_bitrate() const {return info_get_int("bitrate");}
-	inline void info_set_bitrate(t_int64 val) { PFC_ASSERT(val > 0); info_set_int("bitrate", val); }
+	inline void info_set_bitrate(t_int64 val_kbps) { PFC_ASSERT(val_kbps > 0); info_set_int("bitrate", val_kbps); }
 
 	
 	//! Set number of channels
@@ -250,6 +255,9 @@ public:
 
 	//! Returns decoder-output bit depth - what sample format is being converted to foobar2000 audio_sample. 0 if unknown.
 	unsigned info_get_decoded_bps() const;
+
+	//! Foramts long codec name ( codec + profile )
+	bool info_get_codec_long( pfc::string_base & out, const char * delim = " / ") const;
 
 private:
 	void merge(const pfc::list_base_const_t<const file_info*> & p_sources);

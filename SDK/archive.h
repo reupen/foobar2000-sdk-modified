@@ -55,9 +55,15 @@ namespace foobar2000_io {
 		//! Returns a list of extensions, colon delimited, e.g.: "zip,rar,7z"
 		virtual void list_extensions(pfc::string_base & out) = 0;
 	};
+    //! \since 2.1
+    class NOVTABLE archive_v4 : public archive_v3 {
+        FB2K_MAKE_SERVICE_INTERFACE(archive_v4, archive_v3)
+    public:
+        virtual fb2k::arrayRef archive_list_v4( fsItemFilePtr item, file::ptr readerOptional, abort_callback & a) = 0;
+    };
 
 	//! Root class for archive implementations. Derive from this instead of from archive directly.
-	class NOVTABLE archive_impl : public service_multi_inherit<archive_v3, filesystem_v3> {
+	class NOVTABLE archive_impl : public service_multi_inherit<archive_v4, filesystem_v3> {
 	protected:
 		//do not override these
 		bool get_canonical_path(const char * path,pfc::string_base & out) override;
@@ -80,6 +86,9 @@ namespace foobar2000_io {
 		void list_extensions(pfc::string_base & out) override { out = get_archive_type(); }
 		bool supports_content_types() override { return false; }
 		char pathSeparator() override { return '/'; }
+		void extract_filename_ext(const char * path, pfc::string_base & outFN) override;
+		bool get_display_name_short(const char* in, pfc::string_base& out) override;
+        fb2k::arrayRef archive_list_v4( fsItemFilePtr item, file::ptr readerOptional, abort_callback & a ) override;
 	protected:
 		//override these
 		virtual const char * get_archive_type()=0;//eg. "zip", must be lowercase
