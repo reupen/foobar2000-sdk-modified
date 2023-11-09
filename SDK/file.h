@@ -164,7 +164,7 @@ namespace foobar2000_io
 		//! Helper function; reads a string (with a 32-bit header indicating length in bytes followed by UTF-8 encoded data without a null terminator).
 		void read_string(pfc::string_base& p_out, abort_callback& p_abort);
 		//! Helper function; alternate way of storing strings; assumes string takes space up to end of stream.
-		void read_string_raw(pfc::string_base& p_out, abort_callback& p_abort);
+		void read_string_raw(pfc::string_base& p_out, abort_callback& p_abort, size_t sanity = SIZE_MAX);
 		//! Helper function; reads a string (with a 32-bit header indicating length in bytes followed by UTF-8 encoded data without a null terminator).
 		pfc::string read_string(abort_callback& p_abort);
 
@@ -291,6 +291,7 @@ namespace foobar2000_io
 		//! Retrieves mime type of the file.
 		//! @param p_out Receives content type string on success.
 		virtual bool get_content_type(pfc::string_base& p_out) = 0;
+		pfc::string8 get_content_type();
 
 		//! Hint, returns whether the file is already fully buffered into memory.
 		virtual bool is_in_memory() { return false; }
@@ -332,6 +333,7 @@ namespace foobar2000_io
 
 		//! Security helper; fails early with exception_io_data_truncation if it is not possible to read this amount of bytes from this file at this position.
 		void probe_remaining(t_filesize bytes, abort_callback& p_abort);
+		bool probe_remaining_ex(t_filesize bytes, abort_callback& p_abort);
 
 		//! Helper; throws exception_io_object_not_seekable if file is not seekable.
 		void ensure_seekable();
@@ -461,27 +463,10 @@ namespace foobar2000_io
 	//! Implementation helper - contains dummy implementations of methods that modify the file
 	template<typename t_base> class file_readonly_t : public t_base {
 	public:
-		void resize(t_filesize p_size, abort_callback& p_abort) { throw exception_io_denied(); }
-		void write(const void* p_buffer, t_size p_bytes, abort_callback& p_abort) { throw exception_io_denied(); }
+		void resize(t_filesize p_size, abort_callback& p_abort) override { throw exception_io_denied(); }
+		void write(const void* p_buffer, t_size p_bytes, abort_callback& p_abort) override { throw exception_io_denied(); }
 	};
 	typedef file_readonly_t<file> file_readonly;
-
-	class file_streamstub : public file_readonly {
-	public:
-		t_size read(void*, t_size, abort_callback&) { return 0; }
-		t_filesize get_size(abort_callback&) { return filesize_invalid; }
-		t_filesize get_position(abort_callback&) { return 0; }
-		bool get_content_type(pfc::string_base& out) {
-			if (m_contentType.length() > 0) { out = m_contentType; return true; } else return false;
-		}
-		bool is_remote() { return m_remote; }
-		void reopen(abort_callback&) {}
-		void seek(t_filesize, abort_callback&) { throw exception_io_object_not_seekable(); }
-		bool can_seek() { return false; }
-
-		pfc::string8 m_contentType;
-		bool m_remote = true;
-	};
 
 	//! \since 2.0
 	class file_v2 : public file {
@@ -497,8 +482,10 @@ namespace foobar2000_io
 
 		virtual size_t lowLevelIO(const GUID& guid, size_t arg1, void* arg2, size_t arg2size, abort_callback& abort) { return 0; }
 
-		// Old method wrapped to get_stats2()
+		// Old methods wrapped to get_stats2()
 		t_filetimestamp get_timestamp(abort_callback& p_abort) override;
+		bool is_remote() override;
+		t_filesize get_size(abort_callback& p_abort) override;
 	};
 
 	//! \since 1.6.7

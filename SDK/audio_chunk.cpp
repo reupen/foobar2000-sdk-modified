@@ -308,7 +308,7 @@ void audio_chunk::set_data_32(const float* src, size_t samples, unsigned nch, un
 
 void audio_chunk::set_data_floatingpoint_ex(const void * ptr,t_size size,unsigned srate,unsigned nch,unsigned bps,unsigned flags,unsigned p_channel_config)
 {
-	PFC_ASSERT(bps==32 || bps==64);
+	PFC_ASSERT(is_supported_floatingpoint(bps));
 	PFC_ASSERT( check_exclusive(flags,FLAG_LITTLE_ENDIAN|FLAG_BIG_ENDIAN) );
 	PFC_ASSERT( ! (flags & (FLAG_SIGNED|FLAG_UNSIGNED) ) );
 
@@ -331,6 +331,20 @@ void audio_chunk::set_data_floatingpoint_ex(const void * ptr,t_size size,unsigne
 			process_float_multi_swap(out,reinterpret_cast<const double*>(ptr),count);
 		else
 			process_float_multi(out,reinterpret_cast<const double*>(ptr),count);
+	} else if (bps == 16) {
+		const uint16_t * in = reinterpret_cast<const uint16_t*>(ptr);
+		if (use_swap) {
+			for(size_t walk = 0; walk < count; ++walk) out[walk] = audio_math::decodeFloat16(pfc::byteswap_t(in[walk]));
+		} else {
+			for(size_t walk = 0; walk < count; ++walk) out[walk] = audio_math::decodeFloat16(in[walk]);
+		}
+	} else if (bps == 24) {
+		const uint8_t * in = reinterpret_cast<const uint8_t*>(ptr);
+		if (use_swap) {
+			for(size_t walk = 0; walk < count; ++walk) out[walk] = audio_math::decodeFloat24ptrbs(&in[walk*3]);
+		} else {
+			for(size_t walk = 0; walk < count; ++walk) out[walk] = audio_math::decodeFloat24ptr(&in[walk*3]);
+		}
 	} else pfc::throw_exception_with_message< exception_io_data >("invalid bit depth");
 
 	set_sample_count(count/nch);

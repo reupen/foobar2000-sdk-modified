@@ -89,6 +89,7 @@ namespace foobar2000_io
 
 		static void g_get_canonical_path(const char * path,pfc::string_base & out);
 		static void g_get_display_path(const char * path,pfc::string_base & out);
+		static void g_get_display_path(const char* path, pfc::string_base& out, filesystem::ptr & reuseMe);
         //! Retrieves a shortened display name for this file. By default this is implemented by returning filename.ext portion of the path.
         static bool g_get_display_name_short( const char * path, pfc::string_base & out );
         //! Extracts the native filesystem path, sets out to the input path if native path cannot be extracted so the output is always set.

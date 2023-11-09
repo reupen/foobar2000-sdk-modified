@@ -118,8 +118,8 @@ namespace {
 	class fsItemFileStd : public fsItemFile {
 	public:
 		fsItemFileStd(filesystem::ptr fs, stringRef canonicalPath, t_filestats2 const & opportunistStats) : m_fs(fs), m_path(canonicalPath), m_opportunistStats(opportunistStats) {
-			PFC_ASSERT( m_opportunistStats.m_attribsValid & t_filestats2::attr_remote );
 			m_opportunistStats.set_folder(false);
+			m_opportunistStats.set_remote(fs->is_remote(canonicalPath->c_str()));
 		}
 
 		filesystem::ptr getFS() override { return m_fs; }
@@ -185,7 +185,9 @@ namespace {
 					PFC_ASSERT(!"Should not get here");
 					break;
 				}
-				return m_fs->makeItemFileStd(dst);
+				auto stats = m_opportunistStats;
+				stats.set_file();
+				return m_fs->makeItemFileStd(dst, stats);
 			}
 		}
 	private:
@@ -196,8 +198,8 @@ namespace {
 	class fsItemFolderStd : public fsItemFolder {
 	public:
 		fsItemFolderStd(filesystem::ptr fs, stringRef canonicalPath, t_filestats2 const & opportunistStats) : m_fs(fs), m_path(canonicalPath), m_opportunistStats(opportunistStats) {
-			PFC_ASSERT( m_opportunistStats.m_attribsValid & t_filestats2::attr_remote );
 			m_opportunistStats.set_folder(true);
+			m_opportunistStats.set_remote(fs->is_remote(canonicalPath->c_str()));
 		}
 
 		filesystem::ptr getFS() override { return m_fs; }
@@ -241,7 +243,7 @@ namespace {
 
 		fsItemFile::ptr findChildFile(const char* fileName, abort_callback& aborter) override {
 			auto sub = subPath(fileName);
-			auto stats = m_fs->get_stats2_(sub->c_str(), stats2_fileOrFolder, aborter);
+			auto stats = m_fs->get_stats2_(sub->c_str(), stats2_fileOrFolder | foobar2000_io::stats2_remote, aborter);
 			if (!stats.is_folder()) {
 				return m_fs->makeItemFileStd(sub->c_str(), stats);
 			}
@@ -249,14 +251,15 @@ namespace {
 		}
 		fsItemFolder::ptr findChildFolder(const char* fileName, abort_callback& aborter) override {
 			auto sub = subPath(fileName);
-			if (m_fs->directory_exists(sub->c_str(), aborter)) {
-				return m_fs->makeItemFolderStd(sub->c_str());
+			auto stats = m_fs->get_stats2_(sub->c_str(), stats2_fileOrFolder | foobar2000_io::stats2_remote, aborter);
+			if (stats.is_folder()) {
+				return m_fs->makeItemFolderStd(sub->c_str(), stats);
 			}
 			throw exception_io_not_found();
 		}
 		fsItemBase::ptr findChild(const char* fileName, abort_callback& aborter) override {
 			auto sub = subPath(fileName);
-			auto stats = m_fs->get_stats2_(sub->c_str(), stats2_fileOrFolder, aborter);
+			auto stats = m_fs->get_stats2_(sub->c_str(), stats2_fileOrFolder | foobar2000_io::stats2_remote, aborter);
 			if ( stats.is_folder() ) {
 				return m_fs->makeItemFileStd(sub->c_str(), stats );
 			} else {
@@ -268,7 +271,13 @@ namespace {
 				pfc::string8 fn(fileName); uniqueFn(fn, add);
 				auto sub = subPath(fn);
 
-				const bool bDidExist = m_fs->file_exists(sub->c_str(), aborter);
+				t_filestats2 stats;
+
+				bool bDidExist = false;
+				try {
+					stats = m_fs->get_stats2_( sub->c_str(), stats2_all, aborter );
+					bDidExist = stats.is_file();
+				} catch(exception_io_not_found) {}
 				switch (createMode) {
 				case createMode::allowExisting:
 					break; // OK
@@ -289,9 +298,9 @@ namespace {
 					// FIX ME this should be atomic with exists() check
 					file::ptr creator;
 					m_fs->open(creator, sub->c_str(), filesystem::open_mode_write_new, aborter);
-					// creator->commit(aborter);
+					stats = creator->get_stats2_( stats2_all, aborter );
 				}
-				return m_fs->makeItemFileStd(sub->c_str());
+				return m_fs->makeItemFileStd(sub->c_str(), stats);
 			}
 		}
 		fsItemFolder::ptr createFolder(const char* fileName, unsigned createMode, abort_callback& aborter) override {
@@ -319,7 +328,8 @@ namespace {
 					PFC_ASSERT(!"Should not get here");
 					break;
 				}
-				return m_fs->makeItemFolderStd(sub->c_str());
+				// Inherit opportunist stats
+				return m_fs->makeItemFolderStd(sub->c_str(), this->m_opportunistStats);
 			}
 		}
 		fsItemPtr moveTo(fsItemFolderPtr folder, const char* desiredName, unsigned createMode, abort_callback& aborter) override {
@@ -352,7 +362,7 @@ namespace {
 					break;
 				}
 
-				return m_fs->makeItemFolderStd(dst);
+				return m_fs->makeItemFolderStd(dst, m_opportunistStats);
 
 			}
 		}

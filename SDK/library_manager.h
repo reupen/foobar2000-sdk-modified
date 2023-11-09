@@ -107,7 +107,7 @@ public:
 	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(library_manager_v4, library_manager_v3);
 };
 
-//! \since 2.0 beta 13
+//! \since 2.0
 class NOVTABLE library_manager_v5 : public library_manager_v4 {
 	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(library_manager_v5, library_manager_v4);
 public:
@@ -120,7 +120,7 @@ public:
 	bool is_current_callback_from_hook() { return library_status(status_current_callback_from_hook, 0, nullptr, 0) != 0; }
 };
 
-//! \since 2.0 beta 18
+//! \since 2.0
 class NOVTABLE library_manager_v6 : public library_manager_v5 {
 	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(library_manager_v6, library_manager_v5);
 public:

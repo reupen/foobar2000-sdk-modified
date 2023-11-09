@@ -62,32 +62,32 @@ void replaygain_info::reset()
 bool replaygain_info::g_is_meta_replaygain(const char * p_name,t_size p_name_len)
 {
 	return 
-		stricmp_utf8_ex(p_name,p_name_len,meta_album_gain,~0) == 0 ||
-		stricmp_utf8_ex(p_name,p_name_len,meta_album_peak,~0) == 0 ||
-		stricmp_utf8_ex(p_name,p_name_len,meta_track_gain,~0) == 0 ||
-		stricmp_utf8_ex(p_name,p_name_len,meta_track_peak,~0) == 0;
+		stricmp_utf8_ex(p_name,p_name_len,meta_album_gain,SIZE_MAX) == 0 ||
+		stricmp_utf8_ex(p_name,p_name_len,meta_album_peak,SIZE_MAX) == 0 ||
+		stricmp_utf8_ex(p_name,p_name_len,meta_track_gain,SIZE_MAX) == 0 ||
+		stricmp_utf8_ex(p_name,p_name_len,meta_track_peak,SIZE_MAX) == 0;
 }
 
 bool replaygain_info::set_from_meta_ex(const char * p_name,t_size p_name_len,const char * p_value,t_size p_value_len)
 {
 	RG_FPU();
-	if (stricmp_utf8_ex(p_name,p_name_len,meta_album_gain,~0) == 0)
+	if (stricmp_utf8_ex(p_name,p_name_len,meta_album_gain,SIZE_MAX) == 0)
 	{
 		m_album_gain = (float)pfc::string_to_float(p_value,p_value_len);
 		return true;
 	}
-	else if (stricmp_utf8_ex(p_name,p_name_len,meta_album_peak,~0) == 0)
+	else if (stricmp_utf8_ex(p_name,p_name_len,meta_album_peak,SIZE_MAX) == 0)
 	{
 		m_album_peak = (float)pfc::string_to_float(p_value,p_value_len);
 		if (m_album_peak < 0) m_album_peak = 0;
 		return true;
 	}
-	else if (stricmp_utf8_ex(p_name,p_name_len,meta_track_gain,~0) == 0)
+	else if (stricmp_utf8_ex(p_name,p_name_len,meta_track_gain,SIZE_MAX) == 0)
 	{
 		m_track_gain = (float)pfc::string_to_float(p_value,p_value_len);
 		return true;
 	}
-	else if (stricmp_utf8_ex(p_name,p_name_len,meta_track_peak,~0) == 0)
+	else if (stricmp_utf8_ex(p_name,p_name_len,meta_track_peak,SIZE_MAX) == 0)
 	{
 		m_track_peak = (float)pfc::string_to_float(p_value,p_value_len);
 		if (m_track_peak < 0) m_track_peak = 0;
@@ -160,4 +160,13 @@ replaygain_info replaygain_info::g_merge(replaygain_info r1,replaygain_info r2)
 	if (!ret.is_track_gain_present()) ret.m_track_gain = r2.m_track_gain;
 	if (!ret.is_track_peak_present()) ret.m_track_peak = r2.m_track_peak;
 	return ret;
+}
+
+
+void replaygain_info::for_each(for_each_t f) const {
+	t_text_buffer buffer;
+	if (format_track_gain(buffer)) f(meta_track_gain, buffer);
+	if (format_track_peak(buffer)) f(meta_track_peak, buffer);
+	if (format_album_gain(buffer)) f(meta_album_gain, buffer);
+	if (format_album_peak(buffer)) f(meta_album_peak, buffer);
 }

@@ -820,11 +820,13 @@ public:
 //! For use with playlist_incoming_item_filter_v2::process_locations_async().
 //! \since 0.9.3
 class NOVTABLE process_locations_notify : public service_base {
+	FB2K_MAKE_SERVICE_INTERFACE(process_locations_notify, service_base);
 public:
-	virtual void on_completion(const pfc::list_base_const_t<metadb_handle_ptr> & p_items) = 0;
+	virtual void on_completion(metadb_handle_list_cref p_items) = 0;
 	virtual void on_aborted() = 0;
 
-	FB2K_MAKE_SERVICE_INTERFACE(process_locations_notify,service_base);
+	typedef std::function<void(metadb_handle_list_cref)> func_t;
+	static process_locations_notify::ptr create(func_t);
 };
 
 typedef service_ptr_t<process_locations_notify> process_locations_notify_ptr;

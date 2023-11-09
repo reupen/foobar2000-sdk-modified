@@ -525,6 +525,7 @@
     <ClInclude Include="fb2k_threads.h" />
     <ClInclude Include="fb2k_wfx.h" />
     <ClInclude Include="fileReadAhead.h" />
+    <ClInclude Include="file_streamstub.h" />
     <ClInclude Include="foobar2000+atl.h" />
     <ClInclude Include="foobar2000-lite+atl.h" />
     <ClInclude Include="fullFileBuffer.h" />

@@ -105,12 +105,10 @@ public:
 		from_info_overwrite(p_info);
 		from_RG_overwrite(p_info.get_replaygain());
 	}
-	void from_RG_overwrite(replaygain_info info) {
-		replaygain_info::t_text_buffer buffer;
-		if (info.format_album_gain(buffer)) set("replaygain_album_gain", buffer);
-		if (info.format_track_gain(buffer)) set("replaygain_track_gain", buffer);
-		if (info.format_album_peak(buffer)) set("replaygain_album_peak", buffer);
-		if (info.format_track_peak(buffer)) set("replaygain_track_peak", buffer);
+	void from_RG_overwrite(replaygain_info const & info) {
+		info.for_each([&](const char* key, const char* value) {
+			set(key, value);
+		});
 	}
 	void from_info_overwrite(const file_info & p_info) {
 		for(t_size metawalk = 0, metacount = p_info.meta_get_count(); metawalk < metacount; ++metawalk ) {

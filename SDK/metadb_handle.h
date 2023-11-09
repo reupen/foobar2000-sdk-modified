@@ -224,6 +224,16 @@ namespace metadb_handle_list_helper {
 	void sort_by_format_get_order_v2( metadb_handle_list_cref p_list, size_t * order, const service_ptr_t<titleformat_object> & script, titleformat_hook * hook,  int direction, abort_callback & aborter );
 	void sort_by_format_v2(metadb_handle_list_ref p_list, const service_ptr_t<titleformat_object> & script, titleformat_hook * hook, int direction, abort_callback & aborter);
 
+	struct sorter_t {
+		service_ptr_t < titleformat_object > obj;
+		int direction = 1;
+		titleformat_hook* hook = nullptr;
+	};
+
+	//! Late-2023 addition (new fb2k not required) \n
+	//! Multilayer stablesort using single info query pass, with multiple sort objects that can have different directions. 
+	//! @param inOutOrder input & output order, please set to a valid permutration (such as identity) on input.
+	void sort_by_format_get_order_v3(metadb_handle_list_cref p_list, size_t* inOutOrder, sorter_t const * sorters, size_t nSorters, abort_callback& aborter);
 };
 
 template<template<typename> class t_alloc = pfc::alloc_fast >

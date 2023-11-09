@@ -415,5 +415,8 @@
     <ClInclude Include="readers_lite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="file_streamstub.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

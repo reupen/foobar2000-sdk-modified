@@ -25,9 +25,9 @@ protected:
 	bool want_directories() override {return true;}
 public:
 	//! Override me
-	virtual result on_token(const char * token) = 0;
+	virtual result on_token(const char * token) override = 0;
 	//! Override me
-	virtual void on_files_done() {};
+	virtual void on_files_done() override {};
 	//! Override me
 	virtual void on_file(const metadb_handle_ptr & ptr) = 0;
 };

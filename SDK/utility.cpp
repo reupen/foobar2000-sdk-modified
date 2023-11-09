@@ -259,6 +259,7 @@ void fb2k::keyValueIO::putInt( const char * name, int val ) {
 
 // fileDialog.h functionality
 #include "fileDialog.h"
+#include "fsitem.h"
 
 namespace {
     using namespace fb2k;
@@ -277,6 +278,27 @@ fb2k::fileDialogNotify::ptr fb2k::fileDialogNotify::create( std::function<void (
     service_ptr_t<fileDialogNotifyImpl> obj = new service_impl_t< fileDialogNotifyImpl >();
     obj->recv = recv;
     return obj;
+}
+
+void fb2k::fileDialogSetup::run(fileDialogReply_t reply) {
+    this->run(fb2k::fileDialogNotify::create(reply));
+}
+void fb2k::fileDialogSetup::runSimple(fileDialogGetPath_t reply) {
+    fb2k::fileDialogReply_t wrapper = [reply] (fb2k::arrayRef arg) {
+        if ( arg.is_empty() ) {PFC_ASSERT(!"???"); return; }
+        if ( arg->size() != 1 ) { PFC_ASSERT(!"???"); return; }
+        auto obj = arg->itemAt(0);
+        fsItemBase::ptr fsitem;
+        if ( fsitem &= obj ) {
+            reply( fsitem->canonicalPath() ); return;
+        }
+        fb2k::stringRef str;
+        if ( str &= obj ) {
+            reply(str); return;
+        }
+        PFC_ASSERT( !"???" );
+    };
+    this->run(wrapper);
 }
 
 #include "input_file_type.h"
@@ -311,13 +333,13 @@ namespace fb2k {
 #endif
 	}
 
+#if FB2K_SUPPORT_LOW_MEM_MODE
 	static bool _isLowMemModeActive() {
 		auto api = fb2k::configStore::tryGet();
 		if (api.is_empty()) return false;
 		return api->getConfigBool("core.lowMemMode");
 	}
 
-#if FB2K_SUPPORT_LOW_MEM_MODE
 	bool isLowMemModeActive() {
 		static bool cached = _isLowMemModeActive();
 		return cached;
