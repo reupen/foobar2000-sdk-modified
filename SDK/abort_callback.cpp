@@ -50,3 +50,12 @@ void abort_callback::waitForEvent(pfc::event& evt) {
 namespace fb2k {
 	abort_callback_dummy noAbort;
 }
+
+abort_callback_event abort_callback_clone::clone(abort_callback_event arg) {
+    return pfc::fileHandleDup(arg);
+}
+
+void abort_callback_clone::close(abort_callback_event arg) {
+    return pfc::fileHandleClose(arg);
+}
+

@@ -95,12 +95,13 @@ namespace foobar2000_io
         //! Extracts the native filesystem path, sets out to the input path if native path cannot be extracted so the output is always set.
         //! @returns True if native path was extracted successfully, false otherwise (but output is set anyway).
         static bool g_get_native_path( const char * path, pfc::string_base & out, abort_callback & a = fb2k::noAbort);
-        static pfc::string8 g_get_native_path( const char * path );
+        static pfc::string8 g_get_native_path( const char * path, abort_callback & a = fb2k::noAbort );
 
 		static bool g_get_interface(service_ptr_t<filesystem> & p_out,const char * path);//path is AFTER get_canonical_path
 		static filesystem::ptr g_get_interface(const char * path);// throws exception_io_no_handler_for_path on failure
-		static filesystem::ptr get( const char * path ) { return g_get_interface(path); } // shortened
-		static filesystem::ptr tryGet(const char* path);
+		static filesystem::ptr get( const char * path ) { return g_get_interface(path); } // shortened; never returns null, throws on failure
+		static filesystem::ptr getLocalFS(); // returns local filesystem object
+		static filesystem::ptr tryGet(const char* path); // returns null if not found instead of throwing
 		static bool g_is_remote(const char * p_path);//path is AFTER get_canonical_path
 		static bool g_is_recognized_and_remote(const char * p_path);//path is AFTER get_canonical_path
 		static bool g_is_remote_safe(const char * p_path) {return g_is_recognized_and_remote(p_path);}
@@ -404,7 +405,7 @@ namespace foobar2000_io
 		directory_callback_retrieveListRecur(t_list & p_list) : m_list(p_list) {}
 		bool on_entry(filesystem * owner,abort_callback & p_abort,const char * path, bool isSubdir, const t_filestats&) {
 			if (isSubdir) {
-				try { owner->list_directory(path,*this,p_abort); } catch(exception_io) {}
+				try { owner->list_directory(path,*this,p_abort); } catch(exception_io const &) {}
 			} else {
 				m_list.add_item(path);
 			}

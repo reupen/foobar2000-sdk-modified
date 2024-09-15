@@ -4,7 +4,20 @@
 
 #ifdef FOOBAR2000_HAVE_DSP
 
-class dsp_preset; // forward declaration
+#ifdef FOOBAR2000_MOBILE
+#include "dsp-context.h"
+#endif
+
+#include <memory>
+#include <vector>
+
+class dsp_preset; class dsp_chain_config; // forward declaration
+
+#ifdef FOOBAR2000_HAVE_METADB
+typedef metadb_handle_ptr dsp_track_t;
+#else
+typedef trackRef dsp_track_t;
+#endif
 
 //! Interface to a DSP chunk list. A DSP chunk list object is passed to the DSP chain each time, since DSPs are allowed to remove processed chunks or insert new ones.
 class NOVTABLE dsp_chunk_list {
@@ -31,13 +44,19 @@ protected:
 
 class dsp_chunk_list_impl : public dsp_chunk_list//implementation
 {
-	pfc::list_t<pfc::rcptr_t<audio_chunk> > m_data, m_recycled;
+	typedef std::unique_ptr<audio_chunk_impl> chunk_ptr_t;
+	std::vector<chunk_ptr_t> m_data, m_recycled;
 public:
+	dsp_chunk_list_impl() {}
+	dsp_chunk_list_impl(const dsp_chunk_list_impl&) = delete;
+	void operator=(const dsp_chunk_list_impl&) = delete;
 	t_size get_count() const;
 	audio_chunk * get_item(t_size n) const;
 	void remove_by_idx(t_size idx);
 	void remove_mask(const bit_array & mask);
 	audio_chunk * insert_item(t_size idx,t_size hint_size=0);
+
+	audio_chunk_impl* get_item_(size_t n) const { return m_data[n].get(); }
 };
 
 //! Instance of a DSP.\n
@@ -55,7 +74,7 @@ public:
 	//! @param p_chunk_list List of chunks to process. The implementation may alter the list in any way, inserting chunks of different sample rate / channel configuration etc.
 	//! @param p_cur_file Optional, location of currently decoded file. May be null.
 	//! @param p_flags Flags. Can be null, or a combination of END_OF_TRACK and FLUSH constants.
-	virtual void run(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags)=0;
+	virtual void run(dsp_chunk_list * p_chunk_list,const dsp_track_t & p_cur_file,int p_flags)=0;
 
 	//! Flushes the DSP (reinitializes / drops any buffered data). Called after seeking, etc.
 	virtual void flush() = 0;
@@ -68,7 +87,7 @@ public:
 	//! Signaling this will often break regular gapless playback so don't use it unless you have reasons to.
 	virtual bool need_track_change_mark() = 0;
 
-	void run_abortable(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort);
+	void run_abortable(dsp_chunk_list * p_chunk_list,const dsp_track_t & p_cur_file,int p_flags,abort_callback & p_abort);
 
 	//! Attempts to apply preset without recreating the DSP, if supported. 
 	//! @returns True on success, false if not supported (DSP needs re-creating).
@@ -81,9 +100,9 @@ public:
 class NOVTABLE dsp_v2 : public dsp {
 public:
 	//! Abortable version of dsp::run(). See dsp::run() for descriptions of parameters.
-	virtual void run_v2(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort) = 0;
+	virtual void run_v2(dsp_chunk_list * p_chunk_list,const dsp_track_t & p_cur_file,int p_flags,abort_callback & p_abort) = 0;
 private:
-	void run(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags) {
+	void run(dsp_chunk_list * p_chunk_list,const dsp_track_t & p_cur_file,int p_flags) {
 		run_v2(p_chunk_list,p_cur_file,p_flags,fb2k::noAbort);
 	}
 
@@ -114,19 +133,19 @@ private:
 	typedef dsp_impl_base_t<t_baseclass> t_self;
 	dsp_chunk_list * m_list = nullptr;
 	t_size m_chunk_ptr = 0;
-	metadb_handle* m_cur_file = nullptr;
-	void run_v2(dsp_chunk_list * p_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort) override;
+	dsp_track_t m_cur_file = nullptr;
+	void run_v2(dsp_chunk_list * p_list,const dsp_track_t & p_cur_file,int p_flags,abort_callback & p_abort) override;
 protected:
 	//! Call only from on_chunk / on_endoftrack (on_endoftrack will give info on track being finished).\n
 	//! May return false when there's no known track and the metadb_handle ptr will be empty/null.
-	bool get_cur_file(metadb_handle_ptr & p_out) const {p_out = m_cur_file; return p_out.is_valid();}
-	metadb_handle_ptr get_cur_file() const { return m_cur_file; }
+	bool get_cur_file(dsp_track_t & p_out) const {p_out = m_cur_file; return p_out.is_valid();}
+    dsp_track_t get_cur_file() const { return m_cur_file; }
 	
 	dsp_impl_base_t() {}
 	
 	//! Inserts a new chunk of audio data. \n
 	//! You can call this only from on_chunk(), on_endofplayback() and on_endoftrack(). You're NOT allowed to call this from flush() which should just drop any queued data.
-	//! @param hint_size Optional, amount of buffer space that you require (in audio_samples). This is just a hint for memory allocation logic and will not cause the framework to allocate the chunk for you.
+	//! @param p_hint_size Optional, amount of buffer space that you require (in audio_samples). This is just a hint for memory allocation logic and will not cause the framework to allocate the chunk for you.
 	//! @returns A pointer to the newly allocated chunk. Pass the audio data you want to insert to this chunk object. The chunk is owned by the framework, you can't delete it etc.
 	audio_chunk * insert_chunk(t_size p_hint_size = 0) {
 		PFC_ASSERT(m_list != NULL);
@@ -176,9 +195,9 @@ private:
 };
 
 template<class t_baseclass>
-void dsp_impl_base_t<t_baseclass>::run_v2(dsp_chunk_list * p_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort) {
+void dsp_impl_base_t<t_baseclass>::run_v2(dsp_chunk_list * p_list,const dsp_track_t & p_cur_file,int p_flags,abort_callback & p_abort) {
 	pfc::vartoggle_t<dsp_chunk_list*> l_list_toggle(m_list,p_list);
-	pfc::vartoggle_t<metadb_handle*> l_cur_file_toggle(m_cur_file,p_cur_file.get_ptr());
+    auto track_toggle = pfc::autoToggle(m_cur_file, p_cur_file);
 	
 	for(m_chunk_ptr = 0;m_chunk_ptr<m_list->get_count();m_chunk_ptr++) {
 		audio_chunk * c = m_list->get_item(m_chunk_ptr);
@@ -326,15 +345,23 @@ public:
 	virtual bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) = 0;	
 	virtual GUID get_guid() = 0;
 	virtual bool have_config_popup() = 0;
+    
+#ifdef FOOBAR2000_MOBILE
+    virtual void show_config_popup( fb2k::dspConfigContext_t parent, dsp_preset_edit_callback_v2::ptr callback ) {}
+#endif
+
+#ifdef FOOBAR2000_DESKTOP
 #ifdef _WIN32
 	//! Shows configuration popup. Call from main thread only! \n
 	//! Blocks until done. Returns true if preset has been altered, false otherwise.
-	virtual bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) = 0;
-#else
+	//! Legacy method, replaced in dsp_entry_v2 and newer.
+    virtual bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) { return false; }
+#else // non-Windows desktop
 	//! Shows configuration popup. Main thread only! \n
     //! Mac: returns NSObjectWrapper holding NSViewController
-	virtual service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback );
+    virtual service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback ) { throw pfc::exception_not_implemented(); }
 #endif
+#endif // FOOBAR2000_DESKTOP
 
 	//! Obsolete method, hidden DSPs now use a different entry class.
 	bool is_user_accessible() { return true; }
@@ -371,8 +398,14 @@ public:
 	service_ptr show_config_popup_v3_(fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback);
 #endif
 
+#ifdef FOOBAR2000_MOBILE
+	static void g_show_config_popup( fb2k::dspConfigContext_t parent, dsp_preset_edit_callback_v2::ptr callback);
+#endif
+
 	bool get_display_name_supported();
 	void get_display_name_(const dsp_preset& arg, pfc::string_base& out);
+	bool enumerate_default_presets_(dsp_chain_config& ret);
+	bool match_preset_subclass_(dsp_preset const& x, dsp_preset const& y);
 
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(dsp_entry);
 };
@@ -382,9 +415,6 @@ public:
 #ifdef _WIN32
 	//! Shows configuration popup. Main thread only!
 	virtual void show_config_popup_v2(const dsp_preset & p_data,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback) = 0;
-#endif
-
-#ifdef _WIN32
 	// Obsolete method, redirected to show_config_popup_v2() by default, no need to implement.
 	bool show_config_popup(dsp_preset& p_data, fb2k::hwnd_t p_parent) override;
 #endif
@@ -417,6 +447,19 @@ public:
     virtual dsp::ptr instantiate_v4( const dsp_preset & arg, unsigned flags ) = 0;
 };
 
+//! \since 2.2
+class NOVTABLE dsp_entry_v5 : public dsp_entry_v4 {
+	FB2K_MAKE_SERVICE_INTERFACE(dsp_entry_v5, dsp_entry_v4);
+public:
+	//! If your DSP implementation is meant to preset as multiple item in available DSP list, implement this method. \n
+	//! @returns True if preset list has been returned (your DSP will be hidden if blank), false if your DSP is meant to be shown as just one item.
+	virtual bool enumerate_default_presets(dsp_chain_config& ret) { return false; }
+	//! Can possibly reach state Y by editing state X, and vice versa? \n
+	//! If this DSP has no configuration UI, this should just test if the presets are identical.
+	//! Frontend will use this to pin running presets to one of available DSP list items.
+	virtual bool match_preset_subclass(dsp_preset const& x, dsp_preset const& y) { return true; }
+};
+
 class NOVTABLE dsp_entry_hidden : public service_base {
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(dsp_entry_hidden);
 public:
@@ -434,14 +477,14 @@ public:
 template<class T,class t_entry = dsp_entry>
 class dsp_entry_impl_nopreset_t : public t_entry {
 public:
-	void get_name(pfc::string_base & p_out) {T::g_get_name(p_out);}
-	bool get_default_preset(dsp_preset & p_out)
+	void get_name(pfc::string_base & p_out) override  {T::g_get_name(p_out);}
+	bool get_default_preset(dsp_preset & p_out) override
 	{
 		p_out.set_owner(T::g_get_guid());
 		p_out.set_data(0,0);
 		return true;
 	}
-	bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset)
+	bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) override
 	{
 		if (p_preset.get_owner() == T::g_get_guid() && p_preset.get_data_size() == 0)
 		{
@@ -450,10 +493,9 @@ public:
 		}
 		else return false;
 	}
-	GUID get_guid() {return T::g_get_guid();}
+	GUID get_guid() override  {return T::g_get_guid();}
 
-	bool have_config_popup() {return false;}
-	bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) {return false;}
+	bool have_config_popup() override {return false;}
 };
 
 template<typename T, typename interface_t>
@@ -470,18 +512,21 @@ public:
 	GUID get_guid() override { return T::g_get_guid(); }
 
 	bool have_config_popup() override { return T::g_have_config_popup(); }
+#ifdef FOOBAR2000_MOBILE
+    void show_config_popup( fb2k::dspConfigContext_t parent, dsp_preset_edit_callback_v2::ptr callback ) override { T::g_show_config_popup(parent, callback); }
+#endif
+#if defined(FOOBAR2000_DESKTOP) && !defined(_WIN32)
+    service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback ) override {
+        return T::g_show_config_popup(parent, callback);
+    }
+#endif
 };
 
 template<class T, class t_entry = dsp_entry>
 class dsp_entry_impl_t : public dsp_entry_common_t<T, t_entry> {
 public:
-
 #ifdef _WIN32
-	bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) override {return T::g_show_config_popup(p_data,p_parent);}
-#else
-    service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback ) override {
-        return T::g_show_config_popup(parent, callback);
-    }
+    bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) override {return T::g_show_config_popup(p_data,p_parent);}
 #endif
 };
 
@@ -490,10 +535,6 @@ class dsp_entry_v2_impl_t : public dsp_entry_common_t<T, t_entry> {
 public:
 #ifdef _WIN32
 	void show_config_popup_v2(const dsp_preset & p_data,fb2k::hwnd_t p_parent,dsp_preset_edit_callback & p_callback) override {T::g_show_config_popup(p_data,p_parent,p_callback);}
-#else
-    service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback ) override {
-        return T::g_show_config_popup(parent, callback);
-    }
 #endif
 };
 
@@ -520,32 +561,44 @@ public:
     }
 };
 
-template<typename T>
+template<class dsp_t, class entry_t = dsp_entry_v5>
+class dsp_entry_v5_impl_t : public dsp_entry_v4_impl_t< dsp_t, entry_t > {
+public:
+	bool enumerate_default_presets(dsp_chain_config& ret) { 
+		return dsp_t::g_enumerate_default_presets(ret);
+	}
+	bool match_preset_subclass(dsp_preset const& x, dsp_preset const& y) {
+		return dsp_t::g_match_preset_subclass(x, y);
+	}
+};
+
+template<typename dsp_t>
 class dsp_entry_hidden_t : public dsp_entry_hidden {
 public:
-	bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) {
-		if (p_preset.get_owner() == T::g_get_guid()) {
-			p_out = new service_impl_t<T>(p_preset);
+	bool instantiate(service_ptr_t<dsp> & p_out,const dsp_preset & p_preset) override {
+		if (p_preset.get_owner() == dsp_t::g_get_guid()) {
+			p_out = new service_impl_t<dsp_t>(p_preset);
 			return true;
 		} else return false;
 	}
-	GUID get_guid() {return T::g_get_guid();}
-#if 0
-	void get_name( pfc::string_base& out ) {out = ""; }
-	bool get_default_preset(dsp_preset & p_out) { return false; }
-	bool have_config_popup() { return false; }
-	bool show_config_popup(dsp_preset & p_data,HWND p_parent) { uBugCheck(); }
-	void show_config_popup_v2(const dsp_preset & p_data,HWND p_parent,dsp_preset_edit_callback & p_callback) { uBugCheck(); }
-
-	bool is_user_accessible() { return false; }
-#endif
+	GUID get_guid() override {return dsp_t::g_get_guid();}
 };
+
+template<typename dsp_t, typename interface_t>
+class implement_dsp_entry;
+
+template<typename dsp_t> class implement_dsp_entry<dsp_t, dsp_entry> : public dsp_entry_impl_t<dsp_t> {};
+template<typename dsp_t> class implement_dsp_entry<dsp_t, dsp_entry_v2> : public dsp_entry_v2_impl_t<dsp_t> {};
+template<typename dsp_t> class implement_dsp_entry<dsp_t, dsp_entry_v3> : public dsp_entry_v3_impl_t<dsp_t> {};
+template<typename dsp_t> class implement_dsp_entry<dsp_t, dsp_entry_v4> : public dsp_entry_v4_impl_t<dsp_t> {};
+template<typename dsp_t> class implement_dsp_entry<dsp_t, dsp_entry_v5> : public dsp_entry_v5_impl_t<dsp_t> {};
+template<typename dsp_t> class implement_dsp_entry<dsp_t, dsp_entry_hidden> : public dsp_entry_hidden_t<dsp_t> {};
 
 template<class T>
 class dsp_factory_nopreset_t : public service_factory_single_t<dsp_entry_impl_nopreset_t<T> > {};
 
-template<class T>
-class dsp_factory_t : public service_factory_single_t<dsp_entry_v2_impl_t<T> > {};
+template<typename dsp_t, typename interface_t = dsp_entry_v2>
+class dsp_factory_t : public service_factory_single_t<implement_dsp_entry<dsp_t, interface_t> > {};
 
 template<class T>
 class dsp_factory_hidden_t : public service_factory_single_t< dsp_entry_hidden_t<T> > {};
@@ -571,15 +624,23 @@ public:
 	fb2k::memBlock::ptr to_blob() const;
 	void from_blob(const void* p, size_t size);
 	void from_blob(fb2k::memBlock::ptr);
-
-	void instantiate(service_list_t<dsp> & p_out);
-
+   
 	pfc::string8 get_name_list() const;
 	void get_name_list(pfc::string_base & p_out) const;
 
 	static bool equals(dsp_chain_config const & v1, dsp_chain_config const & v2);
 	static bool equals_debug(dsp_chain_config const& v1, dsp_chain_config const& v2);
 
+    //! Helpers to enable/disable specific DSP in this chain. Return true if the chain has been altered, false otherwise.
+    bool enable_dsp( const GUID & dspID );
+    //! Helpers to enable/disable specific DSP in this chain. Return true if the chain has been altered, false otherwise.
+    bool disable_dsp( const GUID & dspID );
+    //! Helpers to enable/disable specific DSP in this chain. Return true if the chain has been altered, false otherwise.
+    bool enable_dsp( const dsp_preset & preset );
+
+    size_t find_first_of_type( const GUID & dspID ) const;
+    bool contains_dsp( const GUID & dspID ) const;
+	
 	pfc::string8 debug() const;
 
 	bool operator==(const dsp_chain_config & other) const {return equals(*this, other);}

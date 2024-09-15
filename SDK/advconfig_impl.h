@@ -31,6 +31,7 @@ private:
 
 namespace fb2k {
 	pfc::string8 advconfig_autoName(const GUID& id);
+	pfc::string8 advconfig_autoName(const GUID& id, const char * specified);
 }
 
 
@@ -104,9 +105,12 @@ public:
 };
 #endif
 
+struct advconfig_entry_string_desc { const char* name; const char* varName; GUID guid, parent; double priority = 0; const char* initial = ""; uint32_t prefsFlags = 0; uint32_t flags = 0; };
+
 //! Standard advconfig_entry_string implementation. Use advconfig_string_factory to register your own string entries in Advanced Preferences instead of using this class directly.
 class advconfig_entry_string_impl : public advconfig_entry_string_v2, private cfg_var_legacy::cfg_var_reader {
 public:
+	advconfig_entry_string_impl(advconfig_entry_string_desc const& arg) : cfg_var_reader(arg.guid), m_name(arg.name), m_varName(fb2k::advconfig_autoName(arg.guid, arg.varName)), m_guid(arg.guid), m_parent(arg.parent), m_priority(arg.priority), m_initialstate(arg.initial), m_prefFlags(arg.prefsFlags), m_flags(arg.flags) {}
 	advconfig_entry_string_impl(const char* p_name, const char * p_varName, const GUID& p_guid, const GUID& p_parent, double p_priority, const char* p_initialstate, t_uint32 p_prefFlags)
 		: cfg_var_reader(p_guid), m_name(p_name), m_varName(p_varName), m_guid(p_guid), m_parent(p_parent), m_initialstate(p_initialstate), m_priority(p_priority), m_prefFlags(p_prefFlags) {}
 	void get_name(pfc::string_base& p_out) override { p_out = m_name; }
@@ -116,7 +120,7 @@ public:
 	double get_sort_priority() override { return m_priority; }
 	void get_state(pfc::string_base& p_out) override;
 	void set_state(const char* p_string, t_size p_length = SIZE_MAX) override;
-	t_uint32 get_flags() override { return 0; }
+	t_uint32 get_flags() override { return m_flags; }
 	void get_default_state(pfc::string_base& out)  override{ out = m_initialstate; }
 	t_uint32 get_preferences_flags() override { return m_prefFlags; }
 private:
@@ -130,6 +134,7 @@ private:
 
 	const double m_priority;
 	const t_uint32 m_prefFlags;
+	const uint32_t m_flags = 0;
 };
 
 //! Service factory helper around standard advconfig_entry_string implementation. Use this class to register your own string entries in Advanced Preferences. \n
@@ -138,6 +143,7 @@ class advconfig_string_factory : public service_factory_single_t<advconfig_entry
 public:
 	advconfig_string_factory(const char* p_name, const char * varName, const GUID& p_guid, const GUID& p_parent, double p_priority, const char* p_initialstate, t_uint32 p_prefFlags = 0) : service_factory_single_t<advconfig_entry_string_impl>(p_name, varName, p_guid, p_parent, p_priority, p_initialstate, p_prefFlags) {}
 	advconfig_string_factory(const char* p_name, const GUID& p_guid, const GUID& p_parent, double p_priority, const char* p_initialstate, t_uint32 p_prefFlags = 0) : service_factory_single_t<advconfig_entry_string_impl>(p_name, fb2k::advconfig_autoName(p_guid), p_guid, p_parent, p_priority, p_initialstate, p_prefFlags) {}
+	advconfig_string_factory(advconfig_entry_string_desc const& arg) : service_factory_single_t<advconfig_entry_string_impl>(arg) {}
 
 	void get(pfc::string_base& out) { get_static_instance().get_state(out); }
 	pfc::string8 get() { pfc::string8 temp; get(temp); return temp; }

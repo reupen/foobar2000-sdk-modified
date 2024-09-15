@@ -1,15 +1,23 @@
 #include "StdAfx.h"
 #include "create_directory_helper.h"
 #include <pfc/pathUtils.h>
+#include <SDK/file_lock_manager.h>
 
 namespace create_directory_helper
 {
 	static void create_path_internal(const char * p_path,t_size p_base,abort_callback & p_abort) {
 		pfc::string8_fastalloc temp;
+		auto fs = filesystem::get(p_path);
+		auto api_lock = file_lock_manager::get();
 		for(t_size walk = p_base; p_path[walk]; walk++) {
 			if (p_path[walk] == '\\') {
 				temp.set_string(p_path,walk);
-				try {filesystem::g_create_directory(temp.get_ptr(),p_abort);} catch(exception_io_already_exists) {}
+				// 2024-03 Google Drive bug: 
+				// Creating the same folder concurrently from multiple threads causes erratic behavior
+				// Thread that got here first behaves OK, others get "already exists" and return, but creating files in the folder fail with "path not found"
+				// Block other threads trying to do the same until we've finished
+				const auto lock = api_lock->acquire_write(temp, p_abort);
+				fs->make_directory(temp, p_abort);
 			}
 		}
 	}
@@ -90,7 +98,7 @@ namespace create_directory_helper
 				{
 					if (!last_char_is_dir_sep)
 					{
-						if (really_create_dirs) try{filesystem::g_create_directory(out,p_abort);}catch(exception_io_already_exists){}
+						if (really_create_dirs) try{filesystem::g_create_directory(out,p_abort);}catch(exception_io_already_exists const &){}
 						out.add_char('\\');
 						last_char_is_dir_sep = true;
 					}

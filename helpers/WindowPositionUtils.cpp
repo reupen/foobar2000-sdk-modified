@@ -214,8 +214,15 @@ bool cfgWindowPosition::apply_to_window(HWND wnd, bool allowHidden) {
 	return data.applyTo( wnd, allowHidden );
 }
 
-void cfgWindowPosition::windowCreated(HWND wnd, bool allowHidden) {
-	if (!apply_to_window(wnd, allowHidden)) {
-		::ShowWindow( wnd, SW_SHOWDEFAULT );
+void cfgWindowPosition::windowCreated(HWND wnd, bool allowHidden, DWORD showHow) {
+	auto data = get();
+	switch (showHow) {
+	case SW_HIDE:
+	case SW_MINIMIZE:
+		data.m_wp.showCmd = showHow;
+		break;
+	}
+	if (!data.applyTo(wnd, allowHidden)) {
+		::ShowWindow( wnd, showHow);
 	}
 }

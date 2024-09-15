@@ -2,6 +2,7 @@
 #include <functional>
 #include "completion_notify.h"
 
+#if FOOBAR2020
 namespace fb2k {
 	//! \since 2.0
 	class NOVTABLE timerManager : public service_base {
@@ -13,3 +14,4 @@ namespace fb2k {
 	objRef registerTimer( double interval, std::function<void ()> func );
 	void callLater( double timeAfter, std::function< void () > func );
 }
+#endif // FOOBAR2020

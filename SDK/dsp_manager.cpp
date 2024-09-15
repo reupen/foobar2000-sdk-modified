@@ -22,7 +22,7 @@ bool dsp_manager::need_track_change_mark() const {
 	return false;
 }
 
-void dsp_manager::dsp_run(t_dsp_chain::const_iterator p_iter,dsp_chunk_list * p_list,const metadb_handle_ptr & cur_file,unsigned flags,double & latency,abort_callback & p_abort)
+void dsp_manager::dsp_run(t_dsp_chain::const_iterator p_iter,dsp_chunk_list * p_list,const dsp_track_t & cur_file,unsigned flags,double & latency,abort_callback & p_abort)
 {
 	p_list->remove_bad_chunks();
 
@@ -30,7 +30,7 @@ void dsp_manager::dsp_run(t_dsp_chain::const_iterator p_iter,dsp_chunk_list * p_
 	TRACK_CODE("dsp::get_latency",latency += p_iter->m_dsp->get_latency());
 }
 
-double dsp_manager::run(dsp_chunk_list * p_list,const metadb_handle_ptr & p_cur_file,unsigned p_flags,abort_callback & p_abort) {
+double dsp_manager::run(dsp_chunk_list * p_list,const dsp_track_t & p_cur_file,unsigned p_flags,abort_callback & p_abort) {
 	TRACK_CALL_TEXT("dsp_manager::run");
 
 	try {

@@ -99,7 +99,8 @@ public:
 	//! Resizes audio data buffer to specified size. Throws std::bad_alloc on failure.
 	virtual void set_data_size(t_size p_new_size) = 0;
 	//! Sanity helper, same as set_data_size.
-	void allocate(size_t size) { set_data_size( size ); }
+	//! @param bQuicker Avoid memory allocation, permit up to 2x memory used
+	void allocate(size_t size, bool bQuicker = false);
 	
 	//! Retrieves sample rate of contained audio data.
 	virtual unsigned get_srate() const = 0;
@@ -177,7 +178,7 @@ public:
 	
 	//! Helper, sets chunk data to contents of specified buffer, with specified number of channels / sample rate / channel map.
 	void set_data(const audio_sample * src,size_t samples,unsigned nch,unsigned srate,unsigned channel_config);
-	void set_data(const audio_sample* src, size_t samples, spec_t const& spec);
+	void set_data(const audio_sample* src, size_t samples, spec_t const& spec, bool bQucker = false);
 	void set_data(const audio_sample* src, t_size samples, unsigned nch, unsigned srate);
 
 	void set_data_int16(const int16_t * src,t_size samples,unsigned nch,unsigned srate,unsigned channel_config);
@@ -221,7 +222,7 @@ public:
 	void pad_with_silence_ex(t_size samples,unsigned hint_nch,unsigned hint_srate);
 	//! Appends silent samples at the end of the chunk. \n
 	//! The chunk must have valid sample rate & channel count prior to this call.
-	//! @param samples Number of silent samples to append.s
+	//! @param samples Number of silent samples to append.
 	void pad_with_silence(t_size samples);
 	//! Inserts silence at the beginning of the audio chunk.
 	//! @param samples Number of silent samples to insert.
@@ -269,8 +270,9 @@ public:
 	void scale(audio_sample p_value);
 
 	//! Helper; copies content of another audio chunk to this chunk.
-	void copy(const audio_chunk & p_source) {
-		set_data(p_source.get_data(),p_source.get_sample_count(),p_source.get_channels(),p_source.get_srate(),p_source.get_channel_config());
+	//! @param bQuicker Avoid memory allocation, permit up to 2x memory used
+	void copy(const audio_chunk & p_source, bool bQuicker = false) {
+		set_data(p_source.get_data(),p_source.get_sample_count(),p_source.get_spec(), bQuicker);
 	}
 
 	const audio_chunk & operator=(const audio_chunk & p_source) {

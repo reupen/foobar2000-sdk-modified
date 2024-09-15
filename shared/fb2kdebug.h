@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 class uDebugLog_ : public pfc::string_formatter {
 public:
     ~uDebugLog_() {*this << "\n"; uOutputDebugString(get_ptr());}
@@ -77,8 +79,8 @@ inline int uExceptFilterProc_inline(LPEXCEPTION_POINTERS param) {
 
 #define FB2K_DYNAMIC_ASSERT( X ) { if (!(X)) uBugCheck(); }
 
-#define __except_instacrash __except(uExceptFilterProc(GetExceptionInformation()))
 #if FB2K_SUPPORT_CRASH_LOGS
+#define __except_instacrash __except(uExceptFilterProc(GetExceptionInformation()))
 #define fb2k_instacrash_scope(X) __try { X; } __except_instacrash {}
 #else
 #define fb2k_instacrash_scope(X) {X;}
@@ -160,10 +162,17 @@ namespace fb2k {
 		uAddDebugEvent(msg);
 		uBugCheck();
 	}
+	inline void crashOnException(std::function<void()> const & f, const char* context = nullptr) {
+		fb2k_instacrash_scope(f());
+	}
 #else
     void crashWithMessage [[noreturn]] (const char*);
+	void crashOnException(std::function<void()>, const char* context = nullptr);
 #endif
+	
 }
+
+#define FB2K_CrashOnException( ... ) ::fb2k::crashWithMessage(__VA_ARGS__)
 
 
 // implement me

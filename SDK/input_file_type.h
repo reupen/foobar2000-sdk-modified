@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 
 //! Entrypoint interface for registering media file types that can be opened through "open file" dialogs or associated with foobar2000 application in Windows shell. \n
 //! Instead of implementing this directly, use DECLARE_FILE_TYPE() / DECLARE_FILE_TYPE_EX() macros.
@@ -8,6 +9,8 @@ public:
 	virtual bool get_name(unsigned idx,pfc::string_base & out)=0;//eg. "MPEG files"
 	virtual bool get_mask(unsigned idx,pfc::string_base & out)=0;//eg. "*.MP3;*.MP2"; separate with semicolons
 	virtual bool is_associatable(unsigned idx) = 0;
+	
+	static void for_each_media_ext( std::function<void (const char*)>, bool bDotExt = false);
 
 #if FOOBAR2000_TARGET_VERSION >= 76
 	static void build_openfile_mask(pfc::string_base & out,bool b_include_playlists=true, bool b_include_archives = false);

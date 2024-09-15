@@ -51,7 +51,7 @@ public:
 	//! Static helper, creates a packet_decoder instance and initializes it with specific decoder setup data.
 	static void g_open(service_ptr_t<packet_decoder> & p_out,bool p_decode,const GUID & p_owner,t_size p_param1,const void * p_param2,t_size p_param2size,abort_callback & p_abort);
 
-    static const GUID owner_MP4,owner_matroska,owner_MP3,owner_MP2,owner_MP1,owner_MP4_ALAC,owner_ADTS,owner_ADIF, owner_Ogg, owner_MP4_AMR, owner_MP4_AMR_WB, owner_MP4_AC3, owner_MP4_EAC3, owner_MP4_FLAC, owner_MP4_Opus;
+    static const GUID owner_MP4,owner_matroska,owner_MP3,owner_MP2,owner_MP1,owner_MP4_ALAC,owner_ADTS,owner_ADIF, owner_Ogg, owner_MP4_AMR, owner_MP4_AMR_WB, owner_MP4_AC3, owner_MP4_EAC3, owner_MP4_FLAC, owner_MP4_Opus, owner_MP4_MPEGH;
 
 	struct matroska_setup
 	{

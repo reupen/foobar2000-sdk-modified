@@ -499,6 +499,7 @@
     <ClInclude Include="threadsLite.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="titleformat.h" />
+    <ClInclude Include="titleformat_object.h" />
     <ClInclude Include="toolbarDropDown.h" />
     <ClInclude Include="tracks.h" />
     <ClInclude Include="track_property.h" />
@@ -547,7 +548,6 @@
     <ClCompile Include="filesystem_helper.cpp">
     </ClCompile>
     <ClCompile Include="foosort.cpp" />
-    <ClCompile Include="foosortstring.cpp" />
     <ClCompile Include="fsItem.cpp" />
     <ClCompile Include="guids.cpp">
     </ClCompile>

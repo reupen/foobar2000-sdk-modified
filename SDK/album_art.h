@@ -31,6 +31,8 @@ namespace album_art_ids {
 	// returns Capitalized name
 	const char * query_capitalized_name( size_t );
 	const char * capitalized_name_of( const GUID & );
+
+	GUID by_name(const char*);
 };
 
 PFC_DECLARE_EXCEPTION(exception_album_art_not_found,exception_io_not_found,"Attached picture not found");

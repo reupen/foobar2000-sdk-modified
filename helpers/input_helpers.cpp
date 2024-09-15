@@ -7,6 +7,10 @@
 #include <SDK/file_info_impl.h>
 #include "readers_lite.h"
 
+#define LOCAL_DEBUG_PRINT(...) // PFC_DEBUG_PRINT(__VA_ARGS__)
+
+#define FILE_DECODEDAUDIO_PRINT(...) LOCAL_DEBUG_PRINT("file_decodeaudio(", pfc::format_ptr(this), "): ", __VA_ARGS__)
+
 input_helper::ioFilter_t input_helper::ioFilter_full_buffer(t_filesize val) {
 	if (val == 0) return nullptr;
     return [val] ( file_ptr & f, const char * path, abort_callback & aborter) {
@@ -16,7 +20,7 @@ input_helper::ioFilter_t input_helper::ioFilter_full_buffer(t_filesize val) {
 				try {
 					f = createFileMemMirrorAsync(f, nullptr, aborter);
 					return true;
-				} catch (std::bad_alloc) {} // keep orig file object
+				} catch (std::bad_alloc const &) {} // keep orig file object
 			}
         }
         return false;
@@ -38,6 +42,15 @@ input_helper::ioFilter_t input_helper::ioFilter_block_buffer(size_t arg) {
 	};
 }
 
+static bool looksLikePlaylist(filesystem::ptr const& fs, const char* path) {
+	auto ext = fs->get_extension(path);
+	// match against common internet playlist extensions
+	// yes, this could query fb2k services instead, but uses a fixed list by design
+	for (auto walk : { "m3u", "pls", "m3u8", "asx" }) {
+		if (pfc::stringEqualsI_ascii(walk, ext)) return true;
+	}
+	return false;
+}
 static input_helper::ioFilter_t makeReadAhead(size_t arg, bool bRemote) {
 	if (arg == 0) return nullptr;
 
@@ -46,6 +59,7 @@ static input_helper::ioFilter_t makeReadAhead(size_t arg, bool bRemote) {
 			filesystem::ptr fs;
 			if (!filesystem::g_get_interface(fs, p_path)) return false;
 			if (bRemote != fs->is_remote(p_path)) return false;
+			if (looksLikePlaylist(fs, p_path)) return false;
 			fs->open(p_file, p_path, filesystem::open_mode_read, p_abort);
 		} else if (bRemote != p_file->is_remote()) return false;
 		if (p_file->is_in_memory()) return false;
@@ -62,9 +76,13 @@ input_helper::ioFilter_t input_helper::ioFilter_local_read_ahead(size_t arg) {
 	return makeReadAhead(arg, false);
 }
 
-void input_helper::open(service_ptr_t<file> p_filehint,metadb_handle_ptr p_location,unsigned p_flags,abort_callback & p_abort,bool p_from_redirect,bool p_skip_hints)
+void input_helper::open(trackRef location, abort_callback & abort, decodeOpen_t const & other) {
+    this->open( trackGetLocation(location), abort, other);
+}
+
+void input_helper::open(service_ptr_t<file> p_filehint,trackRef p_location,unsigned p_flags,abort_callback & p_abort,bool p_from_redirect,bool p_skip_hints)
 {
-	open(p_filehint,p_location->get_location(),p_flags,p_abort,p_from_redirect,p_skip_hints);
+	open(p_filehint,trackGetLocation( p_location ),p_flags,p_abort,p_from_redirect,p_skip_hints);
 }
 
 bool input_helper::test_if_lockless(abort_callback& a) {
@@ -78,7 +96,7 @@ bool input_helper::test_if_lockless(abort_callback& a) {
 			try {
 				fileOpenWriteExisting(m_path, a);
 				return true;
-			} catch (exception_io) {}
+			} catch (exception_io const &) {}
 		}
 	}
 #endif
@@ -119,12 +137,16 @@ bool input_helper::open_path(const char * path, abort_callback & abort, decodeOp
 		m_input ^= input_entry::g_open(input_decoder::class_guid, l_file, path, m_logger, abort, other.m_from_redirect );
 	);
 
-#ifdef FOOBAR2000_HAVE_METADB
 	if (!other.m_skip_hints) {
 		try {
+            if ( other.m_infoHook ) {
+                other.m_infoHook( m_input, path, abort );
+            }
+#ifdef FOOBAR2000_HAVE_METADB
 			metadb_io::get()->hint_reader(m_input.get_ptr(), path, abort);
+#endif
 		}
-		catch (exception_io_data) {
+		catch (exception_io_data const &) {
 			//Don't fail to decode when this barfs, might be barfing when reading info from another subsong than the one we're trying to decode etc.
 			m_input.release();
 			if (l_file.is_valid()) l_file->reopen(abort);
@@ -133,7 +155,6 @@ bool input_helper::open_path(const char * path, abort_callback & abort, decodeOp
 			);
 		}
 	}
-#endif
 
 	if (other.m_shim) m_input = other.m_shim(m_input, path, abort);
 
@@ -202,7 +223,7 @@ bool input_helper::run_raw_v2(audio_chunk& p_chunk, mem_block_container& p_raw, 
 		try {
 			return v2->run_raw(p_chunk, p_raw, p_abort);
 			// UGLY: it may STILL FAIL with exception_not_implemented due to some underlying code not being able to handle the request!!
-		} catch (pfc::exception_not_implemented) {}
+		} catch (pfc::exception_not_implemented const &) {}
 	}
 	if (!m_input->run(p_chunk, p_abort)) return false;
 
@@ -293,7 +314,7 @@ void input_helper::g_set_info(const playable_location & p_location,file_info & p
 	instance->commit(p_abort);
 }
 
-
+#ifdef FOOBAR2000_HAVE_METADB
 bool dead_item_filter::run(const pfc::list_base_const_t<metadb_handle_ptr> & p_list,bit_array_var & p_mask) {
 	file_list_helper::file_list_from_metadb_handle_list path_list;
 	path_list.init_from_list(p_list);
@@ -358,6 +379,8 @@ bool input_helper::g_mark_dead(const pfc::list_base_const_t<metadb_handle_ptr> &
 	return filter.run(p_list,p_mask);
 }
 
+#endif // #ifdef FOOBAR2000_HAVE_METADB
+
 void input_info_read_helper::open(const char * p_path,abort_callback & p_abort) {
 	if (m_input.is_empty() || playable_location::path_compare(m_path,p_path) != 0)
 	{
@@ -375,6 +398,7 @@ void input_info_read_helper::get_info(const playable_location & p_location,file_
 	TRACK_CODE("input_info_reader::get_info",m_input->get_info(p_location.get_subsong_index(),p_info,p_abort));
 }
 
+#ifdef FOOBAR2000_HAVE_METADB
 void input_info_read_helper::get_info_check(const playable_location & p_location,file_info & p_info,t_filestats & p_stats,bool & p_reloaded,abort_callback & p_abort) {
 	open(p_location.get_path(),p_abort);
 	t_filestats newstats;
@@ -387,18 +411,20 @@ void input_info_read_helper::get_info_check(const playable_location & p_location
 		p_reloaded = false;
 	}
 }
-
-
-
+#endif // #ifdef FOOBAR2000_HAVE_METADB
 
 // openAudioData code
+
+static constexpr openAudioDataFormat formatNative = (sizeof(audio_sample) == sizeof(double)) ? openAudioDataFormat::float64 : openAudioDataFormat::float32;
 
 namespace {
 
 	class file_decodedaudio : public file_readonly {
 	public:
-		void init(const playable_location & loc, input_helper::decodeOpen_t const & arg, abort_callback & aborter) {
+		void init(const playable_location & loc, input_helper::decodeOpen_t const & arg, openAudioDataFormat format, abort_callback & aborter) {
+			FILE_DECODEDAUDIO_PRINT("opening: ", loc );
 			m_length = -1; m_lengthKnown = false;
+			m_format = format;
 			m_subsong = loc.get_subsong();
 			m_decoder ^= input_entry::g_open( input_decoder::class_guid, arg.m_hint, loc.get_path(), arg.m_logger, aborter, arg.m_from_redirect);
 			m_seekable = ( arg.m_flags & input_flag_no_seeking ) == 0 && m_decoder->can_seek();
@@ -407,6 +433,7 @@ namespace {
 			readChunk(aborter, true);
 		}
 		void init(const playable_location & loc, bool bSeekable, file::ptr fileHint, abort_callback & aborter) {
+			FILE_DECODEDAUDIO_PRINT("opening: ", loc);
 			m_length = -1; m_lengthKnown = false;
 			m_subsong = loc.get_subsong();
 			input_entry::g_open_for_decoding(m_decoder, fileHint, loc.get_path(), aborter);
@@ -415,7 +442,7 @@ namespace {
 			readChunk(aborter, true);
 		}
 
-		void reopen(abort_callback & aborter) {
+		void reopen(abort_callback & aborter) override {
 
 			// Have valid chunk and it is the first chunk in the stream? Reset read pointers and bail, no need to reopen
 			if (m_chunk.get_sample_count() > 0 && m_chunkBytesPtr == m_currentPosition) {
@@ -429,22 +456,22 @@ namespace {
 			readChunk(aborter);
 		}
 
-		bool is_remote() {
+		bool is_remote() override {
 			return false;
 		}
-		t_filetimestamp get_timestamp(abort_callback & p_abort) {
+		t_filetimestamp get_timestamp(abort_callback & p_abort) override {
 			return m_decoder->get_file_stats(p_abort).m_timestamp;
 		}
-		void on_idle(abort_callback & p_abort) {
+		void on_idle(abort_callback & p_abort) override {
 			m_decoder->on_idle(p_abort);
 		}
-		bool get_content_type(pfc::string_base & p_out) {
+		bool get_content_type(pfc::string_base & p_out) override {
 			return false;
 		}
-		bool can_seek() {
+		bool can_seek() override {
 			return m_seekable;
 		}
-		void seek(t_filesize p_position, abort_callback & p_abort) {
+		void seek(t_filesize p_position, abort_callback & p_abort) override {
 			if (!m_seekable) throw exception_io_object_not_seekable();
 
 
@@ -464,8 +491,7 @@ namespace {
 				if (s != filesize_invalid) {
 					if (p_position > s) throw exception_io_seek_out_of_range();
 					if (p_position == s) {
-						m_chunk.reset();
-						m_chunkBytesPtr = 0;
+						m_chunk.reset(); m_curChunkBytes = 0; m_chunkBytesPtr = 0; 
 						m_currentPosition = p_position;
 						m_eof = true;
 						return;
@@ -475,7 +501,7 @@ namespace {
 
 
 			
-			const size_t row = m_spec.chanCount * sizeof(audio_sample);
+			const auto row = m_spec.chanCount * sampleBytes();
 			t_filesize samples = p_position / row;
 			const double seekTime = audio_math::samples_to_time(samples, m_spec.sampleRate);
 			m_decoder->seek(seekTime, p_abort);
@@ -494,15 +520,16 @@ namespace {
 			m_eof = false;
 		}
 
-		t_filesize get_size(abort_callback & aborter) {
+		t_filesize get_size(abort_callback & aborter) override {
 			const double l = length(aborter);
 			if (l <= 0) return filesize_invalid;
-			return audio_math::time_to_samples(l, m_spec.sampleRate) * m_spec.chanCount * sizeof(audio_sample);
+			return audio_math::time_to_samples(l, m_spec.sampleRate) * m_spec.chanCount * sampleBytes();
 		}
-		t_filesize get_position(abort_callback & p_abort) {
+		t_filesize get_position(abort_callback & p_abort) override {
 			return m_currentPosition;
 		}
-		t_size read(void * p_buffer, t_size p_bytes, abort_callback & p_abort) {
+		t_size read(void * p_buffer, t_size p_bytes, abort_callback & p_abort) override {
+			FILE_DECODEDAUDIO_PRINT("read(", p_bytes, ")");
 			size_t done = 0;
 			for (;;) {
 				p_abort.check();
@@ -510,7 +537,7 @@ namespace {
 					const size_t inChunk = curChunkBytes();
 					const size_t inChunkRemaining = inChunk - m_chunkBytesPtr;
 					const size_t delta = pfc::min_t<size_t>(inChunkRemaining, (p_bytes - done));
-					memcpy((uint8_t*)p_buffer + done, (const uint8_t*)m_chunk.get_data() + m_chunkBytesPtr, delta);
+					memcpy((uint8_t*)p_buffer + done, (const uint8_t*)m_curChunkPtr + m_chunkBytesPtr, delta);
 					m_chunkBytesPtr += delta;
 					done += delta;
 					m_currentPosition += delta;
@@ -519,6 +546,7 @@ namespace {
 				}
 				if (!readChunk(p_abort)) break;
 			}
+			FILE_DECODEDAUDIO_PRINT("read(", p_bytes, ") returning ", done);
 			return done;
 		}
 		audio_chunk::spec_t const & get_spec() const { return m_spec; }
@@ -532,22 +560,47 @@ namespace {
 			m_currentPosition = 0;
 		}
 		size_t curChunkBytes() const {
-			return m_chunk.get_used_size() * sizeof(audio_sample);
+			return m_curChunkBytes;
 		}
 		bool readChunk(abort_callback & aborter, bool initial = false) {
 			m_chunkBytesPtr = 0;
+			FILE_DECODEDAUDIO_PRINT("readChunk()");
 			for (;;) {
 				if (m_eof || !m_decoder->run(m_chunk, aborter)) {
 					if (initial) throw std::runtime_error("Decoder produced no data");
 					m_eof = true;
-					m_chunk.reset();
+					m_chunk.reset(); m_curChunkBytes = 0;
+					FILE_DECODEDAUDIO_PRINT("readChunk() EOF");
 					return false;
 				}
 				if (m_chunk.is_valid()) break;
 			}
+			PFC_ASSERT(m_chunk.get_peak() < 100);
 			audio_chunk::spec_t spec = m_chunk.get_spec();
 			if (initial) m_spec = spec;
 			else if (m_spec != spec) throw std::runtime_error("Sample format change in mid stream");
+
+			auto inPtr = m_chunk.get_data();
+			const size_t inCount = m_chunk.get_used_size();
+			m_curChunkBytes = inCount * sampleBytes();
+			FILE_DECODEDAUDIO_PRINT("readChunk(): ", m_chunk.get_sample_count(), " samples, ", m_curChunkBytes, " bytes");
+			if ( m_format == formatNative ) {
+				m_curChunkPtr = inPtr;
+			} else {
+				m_altFormatBuffer.grow_size(m_curChunkBytes);
+				m_curChunkPtr = m_altFormatBuffer.get_ptr();
+				switch (m_format) {
+				case openAudioDataFormat::float32:
+					{ auto out = reinterpret_cast<float*>(m_curChunkPtr); for (size_t walk = 0; walk < inCount; ++walk) out[walk] = (float)inPtr[walk]; }
+					break;
+				case openAudioDataFormat::float64:
+					{ auto out = reinterpret_cast<double*>(m_curChunkPtr); for (size_t walk = 0; walk < inCount; ++walk) out[walk] = (double)inPtr[walk]; }
+					break;
+				default:
+					PFC_ASSERT(!"???");
+				}
+			}
+
 			return true;
 		}
 		double length(abort_callback & aborter) {
@@ -558,6 +611,9 @@ namespace {
 				m_lengthKnown = true;
 			}
 			return m_length;
+		}
+		unsigned sampleBytes() const {
+			return m_format == openAudioDataFormat::float32 ? 4 : 8;
 		}
 		audio_chunk_fast_impl m_chunk;
 		size_t m_chunkBytesPtr;
@@ -570,18 +626,27 @@ namespace {
 		bool m_eof;
 		t_filesize m_currentPosition;
 		unsigned m_flags = 0;
+		openAudioDataFormat m_format = formatNative;
+
+		pfc::array_t<uint8_t> m_altFormatBuffer;
+		void* m_curChunkPtr = nullptr;
+		size_t m_curChunkBytes = 0;
 	};
 
 }
 
-openAudioData_t openAudioData2(playable_location const & loc, input_helper::decodeOpen_t const & openArg, abort_callback & aborter) {
+openAudioData_t openAudioData3(playable_location const& loc, input_helper::decodeOpen_t const& openArg, openAudioDataFormat format, abort_callback& aborter) {
 	service_ptr_t<file_decodedaudio> f; f = new service_impl_t < file_decodedaudio >;
-	f->init(loc, openArg, aborter);
+	f->init(loc, openArg, format, aborter);
 
 	openAudioData_t oad = {};
 	oad.audioData = f;
 	oad.audioSpec = f->get_spec();
 	return oad;
+}
+
+openAudioData_t openAudioData2(playable_location const & loc, input_helper::decodeOpen_t const & openArg, abort_callback & aborter) {
+	return openAudioData3(loc, openArg, formatNative, aborter);
 }
 
 openAudioData_t openAudioData(playable_location const & loc, bool bSeekable, file::ptr fileHint, abort_callback & aborter) {

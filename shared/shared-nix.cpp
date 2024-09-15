@@ -191,7 +191,7 @@ pfc::string8 uGetTempFileName() {
 
 
 void fb2k::crashWithMessage [[noreturn]] ( const char * msg_ ) {
-    // there used to be code throwing Objective-C exceptions, but those were of no use,
+    uAddDebugEvent( msg_ );
     pfc::crashWithMessageOnStack(msg_);
 }
 

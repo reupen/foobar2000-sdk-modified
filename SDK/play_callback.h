@@ -78,7 +78,7 @@ public:
 class play_callback_impl_base : public play_callback {
 public:
 	play_callback_impl_base(unsigned p_flags = 0xFFFFFFFF) {
-		play_callback_manager::get()->register_callback(this,p_flags,false);
+        if (p_flags != 0) play_callback_manager::get()->register_callback(this,p_flags,false);
 	}
 	~play_callback_impl_base() {
 		play_callback_manager::get()->unregister_callback(this);
@@ -86,7 +86,7 @@ public:
 	void play_callback_reregister(unsigned flags, bool refresh = false) {
 		auto api = play_callback_manager::get();
 		api->unregister_callback(this);
-		api->register_callback(this,flags,refresh);
+		if (flags != 0) api->register_callback(this,flags,refresh);
 	}
 	void on_playback_starting(play_control::t_track_command p_command,bool p_paused) {}
 	void on_playback_new_track(metadb_handle_ptr p_track) {}

@@ -18,6 +18,21 @@ void tag_processor_trailing::write_apev2_id3v1(const service_ptr_t<file> & p_fil
 }
 
 
+t_filesize tag_processor_trailing::read_v2_(const file::ptr & file, file_info& outInfo, abort_callback& abort) {
+	{
+		tag_processor_trailing_v2::ptr v2;
+		if (v2 &= this) return v2->read_v2(file, outInfo, abort);
+	}
+	// no new API, emulate with old
+	try {
+		t_filesize ret = filesize_invalid;
+		this->read_ex(file, outInfo, ret, abort);
+		PFC_ASSERT(ret != filesize_invalid);
+		return ret;
+	} catch (exception_io_data const&) {
+		return filesize_invalid;
+	}
+}
 
 
 enum {
@@ -125,29 +140,31 @@ void tag_processor::read_trailing_ex(const service_ptr_t<file> & p_file,file_inf
 	tag_processor_trailing::get()->read_ex(p_file,p_info,p_tagoffset,p_abort);
 }
 
+t_filesize tag_processor::read_trailing_nothrow(const service_ptr_t<file>& p_file, file_info& p_info, abort_callback& p_abort) {
+	return tag_processor_trailing::get()->read_v2_(p_file, p_info, p_abort);
+}
+
 void tag_processor::read_id3v2(const service_ptr_t<file> & p_file,file_info & p_info,abort_callback & p_abort) {
 	tag_processor_id3v2::get()->read(p_file,p_info,p_abort);
 }
 
-void tag_processor::read_id3v2_trailing(const service_ptr_t<file> & p_file,file_info & p_info,abort_callback & p_abort)
+void tag_processor::read_id3v2_trailing(const service_ptr_t<file>& p_file, file_info& p_info, abort_callback& p_abort) {
+	if (!read_id3v2_trailing_nothrow(p_file, p_info, p_abort)) throw exception_tag_not_found();
+}
+
+bool tag_processor::read_id3v2_trailing_nothrow(const service_ptr_t<file> & p_file,file_info & p_info,abort_callback & p_abort)
 {
 	file_info_impl id3v2, trailing;
-	bool have_id3v2 = true, have_trailing = true;
-	try {
-		read_id3v2(p_file,id3v2,p_abort);
-	} catch(exception_io_data const &) {
-		have_id3v2 = false;
-	}
 
+	const bool have_id3v2 = tag_processor_id3v2::get()->read_v2_(p_file, id3v2, p_abort);
     const bool have_id3v2_text = have_id3v2 && id3v2.meta_get_count() > 0;
     
-	if (!have_id3v2_text || !p_file->is_remote()) try {
-		read_trailing(p_file,trailing,p_abort);
-	} catch(exception_io_data const &) {
-		have_trailing = false;
+	bool have_trailing = false;
+	if (!have_id3v2_text || !p_file->is_remote()) {
+		have_trailing = tag_processor_trailing::get()->read_v2_(p_file, trailing, p_abort) != filesize_invalid;
 	}
 
-	if (!have_id3v2 && !have_trailing) throw exception_tag_not_found();
+	if (!have_id3v2 && !have_trailing) return false;
 
 	if (have_id3v2) {
 		p_info._set_tag(id3v2);
@@ -156,6 +173,8 @@ void tag_processor::read_id3v2_trailing(const service_ptr_t<file> & p_file,file_
 	} else {
 		p_info._set_tag(trailing);
 	}
+
+	return true;
 }
 
 void tag_processor::skip_id3v2(const service_ptr_t<file> & p_file,t_filesize & p_size_skipped,abort_callback & p_abort) {

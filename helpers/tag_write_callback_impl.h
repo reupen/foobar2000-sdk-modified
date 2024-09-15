@@ -23,7 +23,7 @@ public:
 		service_ptr_t<file> l_tempfile;
 		try {
 			openTempFile(l_tempfile, p_abort);
-		} catch(exception_io) {return false;}
+		} catch(exception_io const &) {return false;}
 		p_out = m_tempfile = l_tempfile;
 		return true;
 	}
@@ -38,7 +38,7 @@ public:
 			if (p_owner.is_valid()) {
 				try {
 					file::g_copy_creation_time(p_owner, m_tempfile, p_abort);
-				} catch (exception_io) {}
+				} catch (exception_io const &) {}
 			}
 
 			m_tempfile.release();

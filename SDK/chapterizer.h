@@ -21,7 +21,11 @@ public:
 	//! @param p_info New chapter description. Note that length part of file_info is used to calculate chapter marks.
 	virtual void set_info(t_size p_chapter,const file_info & p_info) = 0;
 
+    //! Gets first track pregap - offset into audio at which first track begins.
+    //! Not every chapterizer supports this, see chapterizer::supports_pregaps()
 	virtual double get_pregap() const = 0;
+    //! Sets first track pregap - offset into audio at which first track begins.
+    //! Not every chapterizer supports this, see chapterizer::supports_pregaps()
 	virtual void set_pregap(double val) = 0;
 
 	//! Copies contents of specified chapter_list object to this object.
@@ -38,10 +42,9 @@ protected:
 template<typename file_info_ = file_info_impl> 
 class chapter_list_impl_t : public chapter_list {
 public:
-	chapter_list_impl_t() : m_pregap() {}
+	chapter_list_impl_t() {}
 	typedef chapter_list_impl_t<file_info_> t_self;
 	chapter_list_impl_t(const chapter_list & p_source) : m_pregap() {copy(p_source);}
-
 	const t_self & operator=(const chapter_list & p_source) {copy(p_source); return *this;}
 
 	t_size get_chapter_count() const {return m_infos.get_size();}
@@ -55,7 +58,7 @@ public:
 	void set_pregap(double val) {PFC_ASSERT(val >= 0); m_pregap = val;}
 private:
 	pfc::array_t<file_info_> m_infos;
-	double m_pregap;
+	double m_pregap = 0;
 };
 
 typedef chapter_list_impl_t<> chapter_list_impl;
@@ -80,6 +83,7 @@ public:
 	//! @param p_abort abort_callback object signaling user aborting the operation.
 	virtual void get_chapters(const char * p_path,chapter_list & p_list,abort_callback & p_abort) = 0;
 
+    //! @returns Whether this chapterizer supports altering pregap before first track, see chapter_list::get_pregap() & set_pregap()
 	virtual bool supports_pregaps() = 0;
 
 	//! Static helper, tries to find chapterizer interface that supports specified file.

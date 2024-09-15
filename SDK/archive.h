@@ -23,6 +23,8 @@ namespace foobar2000_io {
 		//! Lists archive contents. \n
         //! May be called with any path, not only path accepted by is_our_archive. \n
 		//! It is strongly recommended to use the lambda_based archive_list() helper instead of calling this directly.
+		//! @param p_reader Optional reader to use, if the caller already has one. Implementation will open the file if no reader is supplied.
+		//! @param p_want_readers Flag to tell if the callback wants a reader object for each file in the archive, or just wants to list contents.
 		virtual void archive_list(const char * p_path,const service_ptr_t<file> & p_reader,archive_callback & p_callback,bool p_want_readers) = 0;
 		
 		//! Helper implemented on top of the other archive_list, uses lambda instead of callback, avoids having to implement archive_callback.

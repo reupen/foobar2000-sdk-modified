@@ -529,7 +529,7 @@ public:
 	FB2K_MAKE_SERVICE_COREAPI_EXTENSION(ui_element_common_methods_v3, ui_element_common_methods_v2);
 public:
 	//! Creates a "Replace UI Element" or "Add New UI Element" dialog.
-	//! @param parent Parent *element* window handle, the dialog will be a child of its parent popup window but centered on top of the specified window.
+	//! @param wndElem Parent *element* window handle, the dialog will be a child of its parent popup window but centered on top of the specified window.
 	//! @param elemReplacing GUID of element being replaced; specify null to show "Add UI Element" dialog.
 	//! @param notify Callback object receiving OK/Cancel notifications.
 	//! @returns Handle to the newly created dialog. You can just destroy this window if you need to abort the dialog programatically.

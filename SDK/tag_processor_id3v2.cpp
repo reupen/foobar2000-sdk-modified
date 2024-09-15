@@ -103,11 +103,25 @@ void tag_processor_id3v2::g_skip_at(const service_ptr_t<file> & p_file,t_filesiz
 
 	try {
 		p_file->seek ( p_base + ret, p_abort );
-	} catch(exception_io_seek_out_of_range) {
+	} catch(exception_io_seek_out_of_range const &) {
 		p_file->seek( p_base, p_abort );
 		p_size_skipped = 0;
 		return;
 	}
 
 	p_size_skipped = ret;
+}
+
+bool tag_processor_id3v2::read_v2_(file::ptr const& file, file_info& outInfo, abort_callback& abort) {
+	{
+		tag_processor_id3v2_v2::ptr v2;
+		if (v2 &= this) return v2->read_v2(file, outInfo, abort);
+	}
+	// emulate new behavior with old API
+	try {
+		this->read(file, outInfo, abort);
+		return true;
+	} catch (exception_io_data const&) {
+		return false;
+	}
 }

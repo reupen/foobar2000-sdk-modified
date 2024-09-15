@@ -90,10 +90,20 @@ public:
     
     bool is_aborting() const override;
     abort_callback_event get_abort_event() const override { return m_handle; }
-private:
+protected:
     const abort_callback_event m_handle;
 };
-    
+
+class abort_callback_clone : public abort_callback_usehandle {
+public:
+	abort_callback_clone(abort_callback_event handle) : abort_callback_usehandle(clone(handle)) {}
+	abort_callback_clone(abort_callback & arg) : abort_callback_usehandle(clone(arg.get_handle())) {}
+	~abort_callback_clone() { close(m_handle); }
+
+	static abort_callback_event clone(abort_callback_event);
+	static void close(abort_callback_event);
+};
+
 //! Dummy abort_callback that never gets aborted. \n
 //! Note that there's no need to create instances of it, use shared fb2k::noAbort object instead.
 class abort_callback_dummy : public abort_callback {

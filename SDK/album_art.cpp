@@ -17,7 +17,7 @@ GUID album_art_editor::get_guid() {
 }
 
 bool album_art_extractor_instance::query(const GUID & what, album_art_data::ptr & out, abort_callback & abort) {
-	try { out = query(what, abort); return true; } catch (exception_album_art_not_found) { return false; }
+	try { out = query(what, abort); return true; } catch (exception_album_art_not_found const &) { return false; }
 }
 
 service_ptr_t<fb2k::image> album_art_extractor_instance::query_image_(const GUID & what, abort_callback& a) {
@@ -26,7 +26,7 @@ service_ptr_t<fb2k::image> album_art_extractor_instance::query_image_(const GUID
 }
 
 bool album_art_extractor_instance::have_entry(const GUID & what, abort_callback & abort) {
-	try { query(what, abort); return true; } catch(exception_album_art_not_found) { return false; }
+	try { query(what, abort); return true; } catch(exception_album_art_not_found const &) { return false; }
 }
 
 void album_art_editor_instance::remove_all_() {
@@ -37,8 +37,8 @@ void album_art_editor_instance::remove_all_() {
 		for( size_t walk = 0; walk < album_art_ids::num_types(); ++ walk ) {
 			try {
 				this->remove( album_art_ids::query_type( walk ) );
-			} catch(exception_io_data) {}
-			catch(exception_album_art_not_found) {}
+			} catch(exception_io_data const &) {}
+			catch(exception_album_art_not_found const &) {}
 		}
 	}
 }
@@ -107,7 +107,7 @@ album_art_extractor_instance_ptr album_art_extractor::g_open(file_ptr p_filehint
 album_art_extractor_instance_ptr album_art_extractor::g_open_allowempty(file_ptr p_filehint,const char * p_path,abort_callback & p_abort) {
 	try {
 		return g_open(p_filehint, p_path, p_abort);
-	} catch(exception_album_art_not_found) {
+	} catch(exception_album_art_not_found const &) {
 		return new service_impl_t<album_art_extractor_instance_simple>();
 	}
 }
@@ -196,6 +196,13 @@ const char * album_art_ids::capitalized_name_of( const GUID & id) {
 		if ( query_type(w) == id ) return query_capitalized_name(w);
 	}
 	return nullptr;
+}
+
+GUID album_art_ids::by_name(const char* arg) {
+	for (size_t w = 0; w < num_types(); ++w) {
+		if (pfc::stringEqualsI_ascii(query_name(w), arg)) return query_type(w);
+	}
+	return pfc::guid_null;
 }
 
 bool album_art_path_list::equals(album_art_path_list const& v1, album_art_path_list const& v2) {

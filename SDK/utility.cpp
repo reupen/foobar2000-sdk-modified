@@ -126,6 +126,7 @@ namespace fb2k {
 }
 
 
+#if FOOBAR2020
 // timer.h functionality
 #include "timer.h"
 #include <memory>
@@ -135,9 +136,9 @@ namespace fb2k {
 		PFC_ASSERT( core_api::is_main_thread() );
 		auto releaseMe = std::make_shared<objRef>();
 		*releaseMe = registerTimer(timeAfter, [=] {
-			if (releaseMe->is_valid()) {
-				releaseMe->release();
+			if (releaseMe->is_valid()) { // ensure we get here once
 				func();
+				releaseMe->release(); // warning: this should destroy objects that called us, hence func() call must go first
 			}
 		});
 	}
@@ -146,6 +147,7 @@ namespace fb2k {
 		return static_api_ptr_t<timerManager>()->addTimer(interval, makeCompletionNotify([func](unsigned) { func(); }));
 	}
 }
+#endif // FOOBAR2020
 
 // autoplaylist.h functionality
 #include "autoplaylist.h"

@@ -1,12 +1,14 @@
 #pragma once
 
+#include "titleformat_object.h"
+
 namespace titleformat_inputtypes {
 	extern const GUID meta, unknown;
 };
 
 class NOVTABLE titleformat_text_out {
 public:
-	virtual void write(const GUID & p_inputtype,const char * p_data,t_size p_data_length = ~0) = 0;
+	virtual void write(const GUID & p_inputtype,const char * p_data,t_size p_data_length = SIZE_MAX) = 0;
 	void write_int(const GUID & p_inputtype,t_int64 val);
 	void write_int_padded(const GUID & p_inputtype,t_int64 val,t_int64 maxval);
 protected:
@@ -38,20 +40,6 @@ class NOVTABLE titleformat_hook
 public:
 	virtual bool process_field(titleformat_text_out * p_out,const char * p_name,t_size p_name_length,bool & p_found_flag) = 0;
 	virtual bool process_function(titleformat_text_out * p_out,const char * p_name,t_size p_name_length,titleformat_hook_function_params * p_params,bool & p_found_flag) = 0;
-};
-//! Represents precompiled executable title-formatting script. Use titleformat_compiler to instantiate; do not reimplement.
-class NOVTABLE titleformat_object : public service_base
-{
-public:
-	virtual void run(titleformat_hook * p_source,pfc::string_base & p_out,titleformat_text_filter * p_filter)=0;
-
-	void run_hook(const playable_location & p_location,const file_info * p_source,titleformat_hook * p_hook,pfc::string_base & p_out,titleformat_text_filter * p_filter);
-	void run_simple(const playable_location & p_location,const file_info * p_source,pfc::string_base & p_out);
-
-	//! Helper, see titleformat_object_v2::requires_metadb_info()
-	bool requires_metadb_info_();
-
-	FB2K_MAKE_SERVICE_INTERFACE(titleformat_object,service_base);
 };
 
 //! \since 2.0

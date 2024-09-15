@@ -143,6 +143,7 @@ public:
 	}
 	t_filesize get_position(abort_callback & p_abort) override {
 		p_abort.check();
+		PFC_ASSERT( m_position <= m_size );
 		return m_position;
 	}
 	void set_eof(abort_callback & p_abort) {

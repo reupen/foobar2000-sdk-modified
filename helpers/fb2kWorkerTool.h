@@ -48,7 +48,7 @@ namespace fb2k {
                                 pThis->workDone();
                             }
                         });
-                    } catch(exception_aborted) {}
+                    } catch(exception_aborted const &) {}
                 } );
             }
         }

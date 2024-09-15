@@ -161,12 +161,12 @@ private:
 			if (positionWas == filesize_invalid || positionWas > position) {
 				r->reopen(abort);
 				try { r->skip_object(position, abort); }
-				catch (exception_io_data) { throw exception_io_seek_out_of_range(); }
+				catch (exception_io_data const &) { throw exception_io_seek_out_of_range(); }
 			} else {
 				t_filesize skipMe = position - positionWas;
 				if (skipMe > 0) {
 					try { r->skip_object(skipMe, abort); }
-					catch (exception_io_data) { throw exception_io_seek_out_of_range(); }
+					catch (exception_io_data const &) { throw exception_io_seek_out_of_range(); }
 				}
 			}
 		}

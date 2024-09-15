@@ -51,13 +51,6 @@ static unsigned CALLBACK createFileThread(void* p) {
 }
 
 
-typedef BOOL (WINAPI * pCancelSynchronousIo_t)(HANDLE hThread);
-static BOOL myCancelSynchronousIo(HANDLE hThread) {
-	pCancelSynchronousIo_t pCancelSynchronousIo = (pCancelSynchronousIo_t) GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")), "CancelSynchronousIo");
-	if (pCancelSynchronousIo == NULL) {SetLastError(ERROR_CALL_NOT_IMPLEMENTED); return FALSE;}
-	return pCancelSynchronousIo(hThread);
-}
-
 HANDLE SHARED_EXPORT CreateFileAbortable(    __in     LPCWSTR lpFileName,
     __in     DWORD dwDesiredAccess,
     __in     DWORD dwShareMode,
@@ -113,11 +106,11 @@ HANDLE SHARED_EXPORT CreateFileAbortable(    __in     LPCWSTR lpFileName,
 		break;
 	case WAIT_OBJECT_0 + 1: // aborted
 		dwErrorCode = ERROR_OPERATION_ABORTED;
-		myCancelSynchronousIo(hThread);
+		CancelSynchronousIo(hThread);
 		break;
 	default: // unexpected, use last-error code from WFMO
 		dwErrorCode = GetLastError();
-		myCancelSynchronousIo(hThread);
+		CancelSynchronousIo(hThread);
 		break;
 	}
 	req->Release();

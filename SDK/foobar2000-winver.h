@@ -23,6 +23,7 @@
 
 #ifdef __APPLE__
 #define FOOBAR2000_SUPPORT_DLLS 1
+#define FOOBAR2000_MAC
 #endif
 
 #ifndef FOOBAR2000_SUPPORT_DLLS

@@ -34,7 +34,8 @@ class NOVTABLE playback_stream_capture_v2 : public playback_stream_capture {
 public:
 	//! @param requestInterval Interval, in seconds, in which the callback expects to be called. \n
 	//! Set to -1 to use defaults. \n
-	//! Note that if many callbacks are registered, they all get called at once; one callback requesting lower interval lowers the interval for all.
+	//! Note that if many callbacks are registered, they all get called at once; one callback requesting lower interval lowers the interval for all. \n
+    //! Non negative values are clamped to allowed range, that is, request of zero results in lowest possible update interval.
 	virtual void add_callback_v2(playback_stream_capture_callback* cb, double requestInterval = -1) = 0;
 };
 
@@ -42,6 +43,7 @@ class playback_stream_capture_callback_impl : public playback_stream_capture_cal
 public:
 	void on_chunk(const audio_chunk&) override {}
 
+    //! @param interval requested update interval, see playback_stream_capture_v2::add_callback_v2()
 	playback_stream_capture_callback_impl(double interval = -1) {
 		PFC_ASSERT(core_api::is_main_thread());
 #if FOOBAR2020

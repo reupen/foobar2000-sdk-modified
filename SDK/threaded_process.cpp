@@ -59,8 +59,9 @@ void threaded_process_status::set_items(pfc::list_base_const_t<const char*> cons
 	if (count == 1) { set_item_path(items[0]); }
 	pfc::string8 acc;
 
+    filesystem::ptr fs;
 	for (size_t w = 0; w < count; ++w) {
-		pfc::string8 name = pfc::string_filename_ext(items[w]);
+		pfc::string8 name = fb2k::filename_ext(items[w], fs);
 		if (w > 0 && acc.length() + name.length() > set_items_max_characters) {
 			acc << " and " << (count - w) << " more";
 			break;
@@ -78,8 +79,9 @@ void threaded_process_status::set_items(metadb_handle_list_cref items) {
 	if ( count == 1 ) { set_item_path(items[0]->get_path()); }
 	pfc::string8 acc;
 	
+    filesystem::ptr fs;
 	for( size_t w = 0; w < count; ++w ) {
-		pfc::string8 name = pfc::string_filename_ext(items[w]->get_path());
+		pfc::string8 name = fb2k::filename_ext(items[w]->get_path(), fs);
 		if ( w > 0 && acc.length() + name.length() > set_items_max_characters) {
 			acc << " and " << (count-w) << " more";
 			break;

@@ -128,7 +128,7 @@ namespace {
 							newsort(base2, count2, con2);
 							break;
 						}
-					} catch (exception_aborted) {}
+					} catch (exception_aborted const &) {}
 				}, 2);
 				m_abort.check();
 			} else {

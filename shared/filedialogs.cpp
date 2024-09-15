@@ -48,7 +48,7 @@ BOOL SHARED_EXPORT uGetOpenFileName(HWND parent,const char * p_ext_mask,unsigned
 	TRACK_CALL_TEXT("uGetOpenFileName");
 	try {
 		if (UseVistaDialogs()) return Vista_GetOpenFileName(parent, p_ext_mask, def_ext_mask, p_def_ext, p_title, p_directory, p_filename, b_save);
-	} catch(pfc::exception_not_implemented) {}
+	} catch(pfc::exception_not_implemented const &) {}
 
 	modal_dialog_scope scope;
 
@@ -100,7 +100,7 @@ puGetOpenFileNameMultiResult SHARED_EXPORT uGetOpenFileNameMulti(HWND parent,con
 			if (!Vista_GetOpenFileNameMulti(parent,p_ext_mask,def_ext_mask,p_def_ext,p_title,p_directory,result)) return NULL;
 			return result.detach();
 		}
-	} catch(pfc::exception_not_implemented) {}
+	} catch(pfc::exception_not_implemented const &) {}
 
 	modal_dialog_scope scope;
 
@@ -276,7 +276,7 @@ BOOL SHARED_EXPORT uBrowseForFolder(HWND parent,const char * p_title,pfc::string
 		if (UseVistaDialogs()) {
 			return Vista_BrowseForFolder(parent,p_title,out);
 		}
-	} catch(pfc::exception_not_implemented) {}
+	} catch(pfc::exception_not_implemented const &) {}
 
 	TCHAR temp[MAX_PATH];
 	pfc::stringToBuffer(temp,dTEXT(out));
@@ -306,7 +306,7 @@ puGetOpenFileNameMultiResult SHARED_EXPORT uBrowseForFolderEx(HWND parent,const 
 		if (UseVistaDialogs()) {
 			return Vista_BrowseForFolderEx(parent,title, initPath);
 		} 
-	} catch(pfc::exception_not_implemented) {}
+	} catch(pfc::exception_not_implemented const &) {}
 
 	pfc::string8 temp;
 	if (initPath) temp = initPath;
