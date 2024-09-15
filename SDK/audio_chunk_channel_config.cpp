@@ -74,7 +74,8 @@ unsigned audio_chunk::g_guess_channel_config(unsigned count)
 	unsigned ret = 0;
 	if (count < PFC_TABSIZE(g_audio_channel_config_table)) ret = g_audio_channel_config_table[count];
 	if (ret == 0) {
-		ret = (1 << count) - 1;
+		// Warning: 1u<<32u behaves stupidly
+		ret = (unsigned)( (1ull << count) - 1 );
 	}
 	PFC_ASSERT(g_count_channels(ret) == count);
 	return ret;	
@@ -86,6 +87,8 @@ unsigned audio_chunk::g_guess_channel_config_xiph(unsigned count) {
 		return audio_chunk::channel_front_left | audio_chunk::channel_front_center | audio_chunk::channel_front_right;
 	case 5:
 		return audio_chunk::channel_front_left | audio_chunk::channel_front_center | audio_chunk::channel_front_right | audio_chunk::channel_back_left | audio_chunk::channel_back_right;
+	case 7:
+		return audio_chunk::channel_config_5point1 | audio_chunk::channel_back_center;
 	default:
 		return g_guess_channel_config(count);
 	}	

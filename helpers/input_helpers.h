@@ -3,12 +3,14 @@
 #include <functional>
 #include <list>
 #include <SDK/input.h>
+#include <SDK/tracks.h>
 
 class input_helper {
 public:
 	input_helper();
 
 	typedef std::function<input_decoder::ptr (input_decoder::ptr, const char*, abort_callback&) > shim_t;
+    typedef std::function<void (input_decoder::ptr, const char*, abort_callback&) > infoHook_t;
 
     typedef std::function< bool ( file::ptr &, const char *, abort_callback & ) > ioFilter_t;
 	typedef std::list<ioFilter_t> ioFilters_t;
@@ -28,15 +30,17 @@ public:
 
 		ioFilters_t m_ioFilters;
 		event_logger::ptr m_logger;
+        infoHook_t m_infoHook;
 		shim_t m_shim;
 	};
 
-	void open(service_ptr_t<file> p_filehint,metadb_handle_ptr p_location,unsigned p_flags,abort_callback & p_abort,bool p_from_redirect = false,bool p_skip_hints = false);
 	void open(service_ptr_t<file> p_filehint,const playable_location & p_location,unsigned p_flags,abort_callback & p_abort,bool p_from_redirect = false,bool p_skip_hints = false);
 	void attach(input_decoder::ptr dec, const char * path);
 
 	void open(const playable_location & location, abort_callback & abort, decodeOpen_t const & other);
-	void open(metadb_handle_ptr location, abort_callback & abort, decodeOpen_t const & other) {this->open(location->get_location(), abort, other);}
+
+    void open(service_ptr_t<file> p_filehint,trackRef p_location,unsigned p_flags,abort_callback & p_abort,bool p_from_redirect = false,bool p_skip_hints = false);
+    void open(trackRef location, abort_callback & abort, decodeOpen_t const & other);
 
 
 	//! Multilevel open helpers.
@@ -92,8 +96,10 @@ public:
 	static void g_set_info(const playable_location & p_location,file_info & p_info,abort_callback & p_abort,bool p_from_redirect = false);
 
 
+#ifdef FOOBAR2000_HAVE_METADB
 	static bool g_mark_dead(const pfc::list_base_const_t<metadb_handle_ptr> & p_list,bit_array_var & p_mask,abort_callback & p_abort);
-
+#endif
+    
 	static void fileOpenTools(service_ptr_t<file>& p_file, const char* p_path, ioFilters_t const& filters, abort_callback& p_abort);
 
 	bool test_if_lockless(abort_callback&);
@@ -107,26 +113,28 @@ private:
 	event_logger::ptr m_logger;
 };
 
+#ifdef FOOBAR2000_HAVE_METADB
 class NOVTABLE dead_item_filter : public abort_callback {
 public:
 	virtual void on_progress(t_size p_position,t_size p_total) = 0;
 
 	bool run(const pfc::list_base_const_t<metadb_handle_ptr> & p_list,bit_array_var & p_mask);
 };
+#endif
 
 class input_info_read_helper {
 public:
 	input_info_read_helper() {}
 	void get_info(const playable_location & p_location,file_info & p_info,t_filestats & p_stats,abort_callback & p_abort);
+#ifdef FOOBAR2000_HAVE_METADB
 	void get_info_check(const playable_location & p_location,file_info & p_info,t_filestats & p_stats,bool & p_reloaded,abort_callback & p_abort);
+#endif
 private:
 	void open(const char * p_path,abort_callback & p_abort);
 
 	pfc::string8 m_path;
 	service_ptr_t<input_info_reader> m_input;
 };
-
-
 
 
 //! openAudioData return value, see openAudioData()
@@ -144,3 +152,11 @@ struct openAudioData_t {
 //! However, if you want 100% functionality regardless of file format being worked with, mirror the content to a temp file and let go of the file object returned by openAudioData().
 openAudioData_t openAudioData(playable_location const & loc, bool bSeekable, file::ptr fileHint, abort_callback & aborter);
 openAudioData_t openAudioData2(playable_location const & loc, input_helper::decodeOpen_t const & openArg, abort_callback & aborter);
+
+
+//! openAudioData3 allows explicit format: float32 or float64, for use cases that need such.
+enum class openAudioDataFormat {
+	float32,
+	float64
+};
+openAudioData_t openAudioData3(playable_location const& loc, input_helper::decodeOpen_t const& openArg, openAudioDataFormat format, abort_callback& aborter);

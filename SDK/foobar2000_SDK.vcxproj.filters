@@ -407,6 +407,9 @@
     <ClInclude Include="advconfig_impl_legacy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="titleformat_object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="abort_callback.cpp">
@@ -593,9 +596,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fsItem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="foosortstring.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="file_info_const_impl.cpp">

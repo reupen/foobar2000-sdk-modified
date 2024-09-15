@@ -7,21 +7,20 @@
 
 namespace ThreadUtils {
 	bool CRethrow::exec( std::function<void () > f ) throw() {
-		m_rethrow = nullptr;
+		m_exception = nullptr;
 		bool rv = false;
 		try {
 			f();
 			rv = true;
 		} catch( ... ) {
-			auto e = std::current_exception();
-			m_rethrow = [e] { std::rethrow_exception(e); };
+			m_exception = std::current_exception();
 		}  
 
 		return rv;
 	}
 
 	void CRethrow::rethrow() const {
-		if ( m_rethrow ) m_rethrow();
+		if (m_exception) std::rethrow_exception(m_exception);
 	}
 }
 #ifdef _WIN32

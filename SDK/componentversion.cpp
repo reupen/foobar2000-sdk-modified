@@ -10,6 +10,7 @@ bool component_installation_validator::test_my_name(const char * fn) {
 	path += pfc::scan_filename(path);
 	bool retVal = ( strcmp(path, fn) == 0 );
 	PFC_ASSERT( retVal );
+	if (!retVal) uAddDebugEvent(pfc::format("Component rename detected: ", fn, " >> ", path));
 	return retVal;
 }
 bool component_installation_validator::have_other_file(const char * fn) {
@@ -26,11 +27,11 @@ bool component_installation_validator::have_other_file(const char * fn) {
 				FB2K_console_formatter() << "Component integrity check error: " << e << " (on: " << fn << ")";
 				throw;
 			}
-		} catch(exception_io_denied) {
+		} catch(exception_io_denied const &) {
 			
-		} catch(exception_io_sharing_violation) {
+		} catch(exception_io_sharing_violation const &) {
 			
-		} catch(exception_io_file_corrupted) { // happens
+		} catch(exception_io_file_corrupted const &) { // happens
 			return false; 
 		} catch(...) {
 			uBugCheck();

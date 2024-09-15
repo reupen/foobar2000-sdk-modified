@@ -72,9 +72,8 @@ fsItemPtr fsItemBase::copyTo(fsItemFolderPtr folder, const char* desiredName, un
 }
 
 fsItemPtr fsItemBase::copyTo(fsItemFolderPtr folder, unsigned createMode, abort_callback& aborter) {
-	auto temp = pfc::string_filename_ext(this->canonicalPath()->c_str());
-	if (temp.length() == 0) throw pfc::exception_invalid_params();
-	return this->copyTo(folder, temp.c_str(), createMode, aborter);
+    auto temp = this->nameWithExt();
+	return this->copyTo(folder, temp->c_str(), createMode, aborter);
 }
 
 fsItemPtr fsItemBase::moveTo(fsItemFolderPtr folder, const char* desiredName, unsigned createMode, abort_callback& aborter) {
@@ -106,11 +105,11 @@ fb2k::memBlockRef fsItemFile::readWhole(size_t sizeSanity, abort_callback& abort
 namespace {
 	static void uniqueFn(pfc::string8& fn, unsigned add) {
 		if (add > 0) {
-			auto fnOnly = pfc::string_filename(fn);
-			auto ext = pfc::string_extension(fn);
-			fn.reset();
-			fn << fnOnly << " (" << add << ")";
-			if (ext.length() > 0) fn << "." << ext.get_ptr();
+			pfc::string8 fnOnly = pfc::remove_ext_v2(fn);
+			pfc::string8 ext = pfc::extract_ext_v2(fn);
+			fn = std::move(fnOnly);
+			fn << " (" << add << ")";
+            if (ext.length() > 0) fn << "." << ext;
 		}
 	}
 
@@ -166,7 +165,7 @@ namespace {
 				try {
 					if (createMode == createMode::allowExisting) m_fs->move_overwrite(m_path->c_str(), dst, aborter);
 					else m_fs->move(m_path->c_str(), dst, aborter);
-				} catch (exception_io_already_exists) {
+				} catch (exception_io_already_exists const &) {
 					bDidExist = true;
 				}
 
@@ -277,7 +276,7 @@ namespace {
 				try {
 					stats = m_fs->get_stats2_( sub->c_str(), stats2_all, aborter );
 					bDidExist = stats.is_file();
-				} catch(exception_io_not_found) {}
+				} catch(exception_io_not_found const &) {}
 				switch (createMode) {
 				case createMode::allowExisting:
 					break; // OK
@@ -310,7 +309,7 @@ namespace {
 				bool bDidExist = false;
 				try {
 					m_fs->create_directory(sub->c_str(), aborter);
-				} catch (exception_io_already_exists) {
+				} catch (exception_io_already_exists const &) {
 					bDidExist = true;
 				}
 				switch (createMode) {
@@ -342,7 +341,7 @@ namespace {
 				try {
 					if (createMode == createMode::allowExisting) m_fs->move_overwrite(m_path->c_str(), dst, aborter);
 					else m_fs->move(m_path->c_str(), dst, aborter);
-				} catch (exception_io_already_exists) {
+				} catch (exception_io_already_exists const &) {
 					bDidExist = true;
 				}
 

@@ -133,7 +133,7 @@ FB2K_STREAM_READER_OVERLOAD(cfgDialogPositionData) {
 	stream >> value.m_width >> value.m_height;
 	try {
 		stream >> value.m_posX >> value.m_posY >> value.m_dpiX >> value.m_dpiY;
-	} catch (exception_io_data) {
+	} catch (exception_io_data const &) {
 		value.m_posX = value.m_posY = cfgDialogPositionData::posInvalid;
 		value.m_dpiX = value.m_dpiY = cfgDialogPositionData::dpiInvalid;
 	}
@@ -165,7 +165,7 @@ public:
 	//! Apply saved size data to HWND.
 	bool apply_to_window(HWND, bool allowHidden = false);
 	//! New window created, show it with saved metrics.
-	void windowCreated(HWND, bool allowHidden = false);
+	void windowCreated(HWND, bool allowHidden = false, DWORD showHow = SW_SHOW);
 };
 
 class cfgDialogPositionTracker {

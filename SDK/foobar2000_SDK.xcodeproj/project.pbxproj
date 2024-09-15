@@ -89,7 +89,6 @@
 		0F75F4E32A6B1CA800A45078 /* track_property.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F75F4172A6B1CA200A45078 /* track_property.h */; };
 		0F75F4E42A6B1CA800A45078 /* cfg_var.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0F75F4182A6B1CA200A45078 /* cfg_var.cpp */; };
 		0F75F4E52A6B1CA800A45078 /* shortcut_actions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F75F4192A6B1CA200A45078 /* shortcut_actions.h */; };
-		0F75F4E62A6B1CA800A45078 /* foosortstring.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0F75F41A2A6B1CA200A45078 /* foosortstring.cpp */; };
 		0F75F4E72A6B1CA800A45078 /* exceptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F75F41B2A6B1CA200A45078 /* exceptions.h */; };
 		0F75F4E82A6B1CA800A45078 /* component_client.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F75F41C2A6B1CA200A45078 /* component_client.h */; };
 		0F75F4E92A6B1CA800A45078 /* playable_location.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0F75F41D2A6B1CA200A45078 /* playable_location.cpp */; };
@@ -297,7 +296,6 @@
 		0F75F4172A6B1CA200A45078 /* track_property.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = track_property.h; sourceTree = "<group>"; };
 		0F75F4182A6B1CA200A45078 /* cfg_var.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cfg_var.cpp; sourceTree = "<group>"; };
 		0F75F4192A6B1CA200A45078 /* shortcut_actions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shortcut_actions.h; sourceTree = "<group>"; };
-		0F75F41A2A6B1CA200A45078 /* foosortstring.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = foosortstring.cpp; sourceTree = "<group>"; };
 		0F75F41B2A6B1CA200A45078 /* exceptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = exceptions.h; sourceTree = "<group>"; };
 		0F75F41C2A6B1CA200A45078 /* component_client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = component_client.h; sourceTree = "<group>"; };
 		0F75F41D2A6B1CA200A45078 /* playable_location.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = playable_location.cpp; sourceTree = "<group>"; };
@@ -560,7 +558,6 @@
 				0F75F48E2A6B1CA700A45078 /* foobar2000.h */,
 				0F75F3C82A6B1CA000A45078 /* foosort.cpp */,
 				0F75F40B2A6B1CA200A45078 /* foosort.h */,
-				0F75F41A2A6B1CA200A45078 /* foosortstring.cpp */,
 				0F75F4502A6B1CA400A45078 /* foosortstring.h */,
 				0F75F3EB2A6B1CA100A45078 /* forward_types.h */,
 				0F75F4532A6B1CA400A45078 /* fsItem.cpp */,
@@ -941,7 +938,6 @@
 				0F75F5502A6B1CA800A45078 /* hasher_md5.cpp in Sources */,
 				0F75F55C2A6B1CA800A45078 /* metadb_handle.cpp in Sources */,
 				0F75F5582A6B1CA800A45078 /* dsp_manager.cpp in Sources */,
-				0F75F4E62A6B1CA800A45078 /* foosortstring.cpp in Sources */,
 				0F75F4C42A6B1CA800A45078 /* filesystem_helper.cpp in Sources */,
 				0F75F4F92A6B1CA800A45078 /* commandline.cpp in Sources */,
 				0F75F4972A6B1CA800A45078 /* titleformat.cpp in Sources */,
@@ -1006,7 +1002,7 @@
 					../..,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -1064,7 +1060,7 @@
 					../..,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 			};

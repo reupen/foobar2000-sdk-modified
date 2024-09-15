@@ -278,3 +278,21 @@ pfc::string8 file_path_display(const char* src) {
 	filesystem::g_get_display_path(src, ret);
 	return ret;
 }
+
+pfc::string8 fb2k::filename_ext( const char * path, filesystem::ptr & fs) {
+    if ( fs.is_empty() || ! fs->is_our_path( path ) ) {
+        fs = filesystem::tryGet( path );
+    }
+    if ( fs.is_valid() ) return fs->extract_filename_ext( path );
+    // UGLY FALLBACK
+    return pfc::string_filename_ext( path );
+
+}
+pfc::string8 fb2k::filename_ext( const char * path ) {
+    filesystem::ptr no_reuse;
+    return filename_ext( path, no_reuse );
+}
+
+pfc::string8 fb2k::filename( const char * path ) {
+    return pfc::remove_ext_v2( filename_ext( path ) );
+}

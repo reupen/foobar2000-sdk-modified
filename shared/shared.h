@@ -231,7 +231,7 @@ int SHARED_EXPORT uTabCtrl_SetItem(HWND wnd,t_size idx,const uTCITEM * item);
 
 int SHARED_EXPORT uGetKeyNameText(LONG lparam,pfc::string_base & out);
 
-void SHARED_EXPORT uFixAmpersandChars(const char * src,pfc::string_base & out);//for notification area icon
+void SHARED_EXPORT uFixAmpersandChars(const char * src,pfc::string_base & out);//for system tray icon
 void SHARED_EXPORT uFixAmpersandChars_v2(const char * src,pfc::string_base & out);//for other controls
 
 #if FB2K_SUPPORT_CRASH_LOGS

@@ -418,5 +418,8 @@
     <ClInclude Include="file_streamstub.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CModelessDialogMessages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

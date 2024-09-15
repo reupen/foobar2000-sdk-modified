@@ -16,7 +16,7 @@ void packet_decoder::g_open(service_ptr_t<packet_decoder> & p_out,bool p_decode,
 					try {
 						ptr->open(p_out, p_decode, p_owner, p_param1, p_param2, p_param2size, p_abort);
 						return;
-					} catch (exception_io_data) {
+					} catch (exception_io_data const &) {
 						rethrow = std::current_exception();
 					}
 				}

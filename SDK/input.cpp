@@ -199,11 +199,11 @@ service_ptr input_entry::g_open_from_list(input_entry_list_t const & p_list, con
 				auto ret = p_list[n]->open(whatFor, p_filehint, p_path, logger, p_abort);
 				if (outGUID != nullptr) * outGUID = input_get_guid(p_list[n]);
 				return ret;
-			} catch (exception_io_no_handler_for_path) {
+			} catch (exception_io_no_handler_for_path const &) {
 				//do nothing, skip over
-			} catch(exception_io_unsupported_format) {
+			} catch(exception_io_unsupported_format const &) {
 				if (!errUnsupported) errUnsupported = std::current_exception();
-			} catch (exception_io_data) {
+			} catch (exception_io_data const &) {
 				if (!errData) errData = std::current_exception();
 			}
 		}
@@ -267,7 +267,7 @@ service_ptr input_entry::g_open(const GUID & whatFor, file::ptr p_filehint, cons
 			if (g_find_inputs_by_content_type(list, content_type, p_from_redirect)) {
 				try {
 					return g_open_from_list(list, whatFor, l_file, p_path, logger, p_abort);
-				} catch (exception_io_unsupported_format) {
+				} catch (exception_io_unsupported_format const &) {
 #if PFC_DEBUG
 					FB2K_DebugLog() << "Failed to open by content type, using fallback";
 #endif
@@ -312,7 +312,7 @@ void input_entry::g_open_for_info_write_timeout(service_ptr_t<input_info_writer>
 		try {
 			g_open_for_info_write(p_instance,p_filehint,p_path,p_abort,p_from_redirect);
 			break;
-		} catch(exception_io_sharing_violation) {
+		} catch(exception_io_sharing_violation const &) {
 			if (timer.query() > p_timeout) throw;
 			p_abort.sleep(0.01);
 		}
@@ -429,7 +429,7 @@ t_filestats2 input_info_reader::get_stats2_(const char* fallbackPath, uint32_t f
 		try {
 			auto fs = filesystem::tryGet(fallbackPath);
 			if (fs.is_valid()) ret = fs->get_stats2_(fallbackPath, f, a);
-		} catch (exception_io) {}
+		} catch (exception_io const &) {}
 	}
 	return ret;
 }

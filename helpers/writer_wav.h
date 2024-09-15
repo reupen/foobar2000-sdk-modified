@@ -10,6 +10,7 @@ struct wavWriterSetup_t
 {
 	unsigned m_bps,m_bpsValid,m_samplerate,m_channels,m_channel_mask;
 	bool m_float,m_dither, m_wave64;
+	bool m_rf64_implicit, m_rf64_explicit;
 
     
 	void initialize(const audio_chunk & p_chunk,unsigned p_bps,bool p_float,bool p_dither, bool p_wave64 = false);
@@ -41,13 +42,13 @@ private:
 	void writeSize(t_uint64 size, abort_callback & abort);
 	bool is64() const {return m_setup.m_wave64;}
 	t_uint32 chunkOverhead() const {return is64() ? 24 : 8;}
-	t_uint32 idOverhead() const {return is64() ? 16 : 4;}
 	void writeID(const GUID & id, abort_callback & abort);
 	service_ptr_t<file> m_file;
 	service_ptr_t<audio_postprocessor> m_postprocessor;
 	wavWriterSetup_t m_setup;
-	bool m_wfxe;
-	t_uint64 m_offset_fix1,m_offset_fix2,m_offset_fix1_delta,m_bytes_written;
+	bool m_wfxe = false;
+	t_uint64 m_offset_fix1 = 0,m_offset_fix2 = 0,m_offset_fix1_delta = 0,m_bytes_written = 0;
+	uint64_t m_ds64_at = 0;
 	mem_block_container_aligned_incremental_impl<16> m_postprocessor_output;
 };
 

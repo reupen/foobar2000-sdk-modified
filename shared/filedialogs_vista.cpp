@@ -94,7 +94,7 @@ namespace {
 		pfc::refcounted_object_ptr_t<PDNArg_t> ptr; ptr.attach( reinterpret_cast<PDNArg_t*>( arg ) );
 		CoInitialize(0);
 
-		SFGAOF dummy;
+		SFGAOF dummy = {};
 		ptr->m_result = SHParseDisplayName(dTEXT(ptr->m_path),NULL,&ptr->m_idList.m_ptr,0,&dummy);
 
 		CoUninitialize();
@@ -398,7 +398,7 @@ puGetOpenFileNameMultiResult Vista_BrowseForFolderEx(HWND parent,const char * p_
 		}
 		if (result->GetCount() == 0) return NULL;
 		return result.detach();
-	} catch(exception_com) {
+	} catch(exception_com const &) {
 		return NULL;
 	}
 }
@@ -445,7 +445,7 @@ puGetOpenFileNameMultiResult SHARED_EXPORT uEvalKnownFolder(REFKNOWNFOLDERID id)
 		}
 		if (result->get_count() == 0) return NULL;
 		return result.detach();
-	} catch(exception_com) {
+	} catch(exception_com const &) {
 		//failed
 	}
 
@@ -459,7 +459,7 @@ puGetOpenFileNameMultiResult SHARED_EXPORT uEvalKnownFolder(REFKNOWNFOLDERID id)
 		pfc::ptrholder_t<uGetOpenFileNameMultiResult_impl> result = new uGetOpenFileNameMultiResult_impl;
 		result->AddItem(pfc::stringcvt::string_utf8_from_os(path.m_ptr));
 		return result.detach();
-	} catch (exception_com) {
+	} catch (exception_com const &) {
 
 	}
 
@@ -477,7 +477,7 @@ puGetOpenFileNameMultiResult SHARED_EXPORT uEvalKnownFolder(REFKNOWNFOLDERID id)
 				pfc::ptrholder_t<uGetOpenFileNameMultiResult_impl> result = new uGetOpenFileNameMultiResult_impl;
 				result->AddItem(pfc::stringcvt::string_utf8_from_os_ex( path ) );
 				return result.detach();
-			} catch(exception_com) {
+			} catch(exception_com const &) {
 				//failed;
 			}
 		}
@@ -489,7 +489,7 @@ puGetOpenFileNameMultiResult SHARED_EXPORT uEvalKnownFolder(REFKNOWNFOLDERID id)
 		EH << SHGetKnownFolderPath(id, 0, NULL, nameBuf.Receive());
 		result->AddItem(pfc::stringcvt::string_utf8_from_os_ex( nameBuf.m_ptr ) );
 		return result.detach();
-	} catch(exception_com) {
+	} catch(exception_com const &) {
 		//failed
 	}
 #endif

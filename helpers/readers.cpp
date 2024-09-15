@@ -6,6 +6,7 @@
 #include <SDK/file_info_impl.h>
 #include <list>
 #include <memory>
+#include <pfc/event_std.h>
 
 t_size reader_membuffer_base::read(void * p_buffer, t_size p_bytes, abort_callback & p_abort) {
 	p_abort.check_e();
@@ -45,7 +46,7 @@ file::ptr fullFileBuffer::open(const char * path, abort_callback & abort, file::
 		r->init(f, abort);
 		f = r;
 	}
-	catch (std::bad_alloc) {}
+	catch (std::bad_alloc const &) {}
 	return f;
 }
 
@@ -59,7 +60,7 @@ file::ptr fullFileBuffer::open(const char * path, abort_callback & abort, file::
 
 
 #include <memory>
-#include "rethrow.h"
+#include <exception>
 #include <pfc/synchro.h>
 #include <pfc/threads.h>
 
@@ -74,9 +75,10 @@ namespace {
 
 		pfc::array_t<uint8_t> m_buffer;
 		size_t m_bufferBegin, m_bufferEnd;
-		pfc::event m_canRead, m_canWrite;
+		pfc::event m_canRead;
+		pfc::event_std m_canWrite;
 		pfc::mutex m_guard;
-		ThreadUtils::CRethrow m_error;
+		std::exception_ptr m_error;
 		t_filesize m_seekto;
 		abort_callback_impl m_abort;
 		bool m_remote;
@@ -86,7 +88,7 @@ namespace {
 		std::list<dynInfoEntry_t> m_dynamicInfo;
 	};
 	typedef std::shared_ptr<readAheadInstance_t> readAheadInstanceRef;
-	static const t_filesize seek_reopen = (filesize_invalid-1);
+	static constexpr t_filesize seek_reopen = (filesize_invalid-1);
 	class fileReadAhead : public file_readonly_t< service_multi_inherit< service_multi_inherit<file_v2, file_dynamicinfo_v2 >, stream_receive > > {
 		service_ptr m_metadata;
 	public:
@@ -153,7 +155,7 @@ namespace {
 				pfc::mutexScope guard ( i.m_guard );
 				size_t got = i.m_bufferEnd - i.m_bufferBegin;
 				if (got == 0) {
-					i.m_error.rethrow();
+					if (i.m_error) std::rethrow_exception(i.m_error);
                     if ( initial && ! i.m_atEOF ) {
                         initial = false; continue; // proceed to wait for more data
                     }
@@ -171,7 +173,7 @@ namespace {
 				got -= delta;
 				m_position += delta;
 
-				if (!i.m_error.didFail() && !i.m_atEOF) {
+				if (!i.m_error && !i.m_atEOF) {
 					if ( got == 0 ) i.m_canRead.set_state( false );
                     const bool wakeUpNow = got < i.m_wakeUpThreschold;
                     // Only set the event when *crossing* the boundary
@@ -269,7 +271,7 @@ namespace {
 		void seekInternal( t_filesize p_position ) {
 			auto & i = * m_instance;
 			insync( i.m_guard );
-			i.m_error.rethrow();
+			if (i.m_error) std::rethrow_exception(i.m_error);
 			i.m_bufferBegin = i.m_bufferEnd = 0;
 			i.m_canWrite.set_state(true);
 			i.m_seekto = p_position;
@@ -279,11 +281,10 @@ namespace {
 			m_position = ( p_position == seek_reopen ) ? 0 : p_position;
 		}
 		static void worker( readAheadInstance_t & i ) {
-			ThreadUtils::CRethrow err;
-			err.exec( [&i] {
+			try {
                 bool atEOF = false;
 				uint8_t* bufptr = i.m_buffer.get_ptr();
-				const size_t readAtOnceLimit = i.m_remote ? 256 : 4*1024;
+				const size_t readAtOnceLimit = i.m_remote ? 64*1024 : 256 * 1024;
 				for ( ;; ) {
 					i.m_canWrite.wait_for(-1);
 					size_t readHowMuch = 0, readOffset = 0;
@@ -361,11 +362,9 @@ namespace {
 
 					}
 				}
-			} );
-
-			if ( err.didFail( ) ) {
-				pfc::mutexScope guard( i.m_guard );
-				i.m_error = err;
+			} catch (...) {
+				pfc::mutexScope guard(i.m_guard);
+				i.m_error = std::current_exception();
 				i.m_canRead.set_state(true);
 			}
 		}
@@ -490,7 +489,7 @@ namespace {
 		bool m_is_remote = false;
 		pfc::string8 m_contentType;
 		service_ptr m_metadata;
-		t_filesize m_position = 0;
+		size_t m_position = 0;
 		fb2k::thread m_thread;
 	public:
 		~file_memMirrorAsync() {
@@ -535,7 +534,7 @@ namespace {
 		
 		void seek(t_filesize p_position, abort_callback& p_abort) override {
 			if (p_position > get_size(p_abort)) throw exception_io_seek_out_of_range();
-			m_position = p_position;
+			m_position = (size_t)p_position;
 		}
 
 		bool can_seek() override { return true; }
@@ -582,7 +581,7 @@ namespace {
 			PFC_ASSERT(total >= m_position );
 			auto left = total - m_position;
 			if (p_bytes > left) p_bytes = left;
-			m_position += p_bytes;
+			m_position += (size_t)p_bytes;
 			return p_bytes;
 		}
 	};

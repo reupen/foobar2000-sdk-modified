@@ -9,6 +9,10 @@ namespace fb2k {
 	pfc::string8 advconfig_autoName(const GUID& id) {
 		return pfc::format("advconfig.unnamed.", pfc::print_guid(id));
 	}
+	pfc::string8 advconfig_autoName(const GUID& id, const char* specified) {
+		if (specified) return specified;
+		return advconfig_autoName(id);
+	}
 }
 namespace cfg_var_modern {
 

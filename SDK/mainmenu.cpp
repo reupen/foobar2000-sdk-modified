@@ -7,12 +7,18 @@ bool mainmenu_commands::g_execute_dynamic(const GUID & p_guid, const GUID & p_su
 	mainmenu_commands_v2::ptr v2;
 	if (!ptr->service_query_t(v2)) return false;
 	if (!v2->is_command_dynamic(index)) return false;
-	return v2->dynamic_execute(index, p_subGuid, p_callback);
+    bool rv = false;
+    fb2k::crashOnException([&] {
+        rv = v2->dynamic_execute(index, p_subGuid, p_callback);;
+    }, "mainmenu_commands::dynamic_execute");
+    return rv;
 }
 bool mainmenu_commands::g_execute(const GUID & p_guid,service_ptr_t<service_base> p_callback) {
 	mainmenu_commands::ptr ptr; t_uint32 index;
 	if (!menu_item_resolver::g_resolve_main_command(p_guid, ptr, index)) return false;
-	ptr->execute(index, p_callback);
+    fb2k::crashOnException( [&] {
+        ptr->execute(index, p_callback);
+    }, "mainmenu_commands::execute");
 	return true;
 }
 

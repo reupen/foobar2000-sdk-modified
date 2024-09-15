@@ -43,6 +43,15 @@ namespace foobar2000_io {
 pfc::string8 file_path_canonical(const char* src);
 pfc::string8 file_path_display(const char* src);
 
+namespace fb2k {
+    //! Sane replacement for pfc::string_filename_ext(), which isn't safe to use in cross-platform code.
+    //! @returns Filename with extension extracted from path.
+    pfc::string8 filename_ext( const char * path );
+    pfc::string8 filename_ext( const char * path, filesystem::ptr & fs_reuse);
+    //! Sane replacement for pfc::string_filename(), which isn't safe to use in cross-platform code
+    //! @returns Filename without extension extracted from path.
+    pfc::string8 filename( const char * path );
+}
 
 class stream_reader_memblock_ref : public stream_reader
 {
@@ -549,7 +558,7 @@ private:
 		pfc::lores_timer timer; timer.start();	\
 		for(;;) {	\
 			try { {OP;} break;	}	\
-			catch(EXCEPTION) { if (timer.query() > TIMEOUT) throw;}	\
+			catch(const EXCEPTION &) { if (timer.query() > TIMEOUT) throw;}	\
 			ABORT.sleep(0.05);	\
 		}	\
 	}
@@ -559,8 +568,8 @@ private:
 		pfc::lores_timer timer; timer.start();	\
 		for(;;) {	\
 			try { {OP;} break;	}	\
-			catch(EXCEPTION1) { if (timer.query() > TIMEOUT) throw;}	\
-			catch(EXCEPTION2) { if (timer.query() > TIMEOUT) throw;}	\
+			catch(const EXCEPTION1 &) { if (timer.query() > TIMEOUT) throw;}	\
+			catch(const EXCEPTION2 &) { if (timer.query() > TIMEOUT) throw;}	\
 			ABORT.sleep(0.05);	\
 		}	\
 	}
@@ -570,9 +579,9 @@ private:
 		pfc::lores_timer timer; timer.start();	\
 		for(;;) {	\
 			try { {OP;} break;	}	\
-			catch(EXCEPTION1) { if (timer.query() > TIMEOUT) throw;}	\
-			catch(EXCEPTION2) { if (timer.query() > TIMEOUT) throw;}	\
-			catch(EXCEPTION3) { if (timer.query() > TIMEOUT) throw;}	\
+			catch(const EXCEPTION1 &) { if (timer.query() > TIMEOUT) throw;}	\
+			catch(const EXCEPTION2 &) { if (timer.query() > TIMEOUT) throw;}	\
+			catch(const EXCEPTION3 &) { if (timer.query() > TIMEOUT) throw;}	\
 			ABORT.sleep(0.05);	\
 		}	\
 	}

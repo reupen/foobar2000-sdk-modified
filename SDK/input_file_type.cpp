@@ -25,6 +25,26 @@ static void formatMaskList(pfc::string_base & out, t_fnList const & in, const ch
 	}
 }
 
+void input_file_type::for_each_media_ext( std::function<void (const char*)> fn, bool bDotExt) {
+    for( auto p : input_file_type::enumerate()) {
+        const unsigned cnt = p->get_count();
+        for (unsigned w = 0; w < cnt; ++w) {
+            pfc::string8 maskCombined;
+            p->get_mask(w, maskCombined);
+
+            pfc::chain_list_v2_t<pfc::string8> masks;
+            pfc::splitStringByChar(masks, maskCombined, ';');
+            for( auto i : masks ) {
+                const char * m = i.get_ptr();
+                if (pfc::strcmp_partial(m, "*.") == 0) {
+                    const char * ext = m + 1; // .ext
+                    if (!bDotExt) ++ext;
+                    fn(ext);
+                }
+            }
+        }
+    }
+}
 void input_file_type::make_filetype_support_fingerprint(pfc::string_base & str) {
 	pfc::string_formatter out;
 	pfc::avltree_t<pfc::string8, pfc::string::comparatorCaseInsensitive> names;

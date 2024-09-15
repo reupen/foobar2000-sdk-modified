@@ -29,7 +29,7 @@ void unpacker::g_open(service_ptr_t<file> & p_out,const service_ptr_t<file> & p,
 }
 
 void file::seek_probe(t_filesize p_position, abort_callback & p_abort) {
-	try { seek(p_position, p_abort); } catch(exception_io_seek_out_of_range) {throw exception_io_data();}
+	try { seek(p_position, p_abort); } catch(exception_io_seek_out_of_range const &) {throw exception_io_data();}
 }
 
 void file::seek_ex(t_sfilesize p_position, file::t_seek_mode p_mode, abort_callback &p_abort) {
@@ -53,7 +53,7 @@ static void makeBuffer(pfc::array_t<uint8_t> & buffer, size_t size) {
 		try {
 			buffer.set_size_discard( size );
 			return;
-		} catch(std::bad_alloc) {
+		} catch(std::bad_alloc const &) {
 			if (size < 256) throw;
 			size >>= 1;
 		}
@@ -127,9 +127,9 @@ void filesystem::g_get_display_path(const char * path,pfc::string_base & out)
 	}
 }
 
-pfc::string8 filesystem::g_get_native_path( const char * path ) {
+pfc::string8 filesystem::g_get_native_path( const char * path, abort_callback & a ) {
     pfc::string8 ret;
-    g_get_native_path( path, ret );
+    g_get_native_path( path, ret, a);
     return ret;
 }
 
@@ -155,6 +155,10 @@ bool filesystem::g_get_native_path( const char * path, pfc::string_base & out, a
     return strstr( path, "://" ) == NULL;
 }
 
+filesystem::ptr filesystem::getLocalFS() {
+	return get("file://dummy");
+}
+
 filesystem::ptr filesystem::tryGet(const char* path) {
 	filesystem::ptr rv;
 	g_get_interface(rv, path);
@@ -167,10 +171,80 @@ filesystem::ptr filesystem::g_get_interface(const char * path) {
 	return rv;
 
 }
+
+#define USE_FSCACHE 1
+#if USE_FSCACHE
+#include <unordered_map>
+
+static pfc::readWriteLock fsCacheGuard;
+
+typedef size_t protoHash_t;
+static protoHash_t protoHash(const char * URL) {
+	const char* delim = strstr(URL, "://");
+	if (delim == nullptr) return 0;
+
+	union {
+		protoHash_t hash;
+		char chars[sizeof(protoHash_t)];
+	} u;
+	u.hash = 0;
+	unsigned i = 0;
+	for (const char* walk = URL; walk != delim; ++walk) {
+		u.chars[i] ^= pfc::ascii_tolower_lookup(*walk);
+		i = (i + 1) % std::size(u.chars);
+	}
+	return u.hash;
+}
+
+// Do not use service_ptr in static objects, do not try to release them in static object destructor
+static std::unordered_multimap< protoHash_t, filesystem* > fsCache;
+
+static bool read_fs_cache(protoHash_t key, const char * path, filesystem::ptr& ret) {
+	auto range = fsCache.equal_range(key);
+	for (auto walk = range.first; walk != range.second; ++walk) {
+		if (walk->second->is_our_path(path)) {
+			ret = walk->second;
+			return true;
+		}
+	}
+	return false;
+}
+
 bool filesystem::g_get_interface(service_ptr_t<filesystem> & p_out,const char * path)
 {
 	PFC_ASSERT( path != nullptr );
 	PFC_ASSERT( path[0] != 0 );
+
+	const auto key = protoHash(path);
+
+	{
+		PFC_INSYNC_READ(fsCacheGuard);
+		if (read_fs_cache(key, path, p_out)) return true;
+	}
+
+	for (auto ptr : enumerate()) {
+		if (ptr->is_our_path(path)) {
+			{
+				PFC_INSYNC_WRITE(fsCacheGuard);
+				filesystem::ptr dummy; // make sure it didn't just get added
+				if (!read_fs_cache(key, path, dummy)) {
+					auto addref = ptr;
+					fsCache.insert({ key, addref.detach()});
+				}
+			}
+			p_out = std::move(ptr);
+			return true;
+		}
+	}
+	return false;
+}
+
+
+#else
+bool filesystem::g_get_interface(service_ptr_t<filesystem>& p_out, const char* path)
+{
+	PFC_ASSERT(path != nullptr);
+	PFC_ASSERT(path[0] != 0);
 
 	for (auto ptr : enumerate()) {
 		if (ptr->is_our_path(path)) {
@@ -181,6 +255,7 @@ bool filesystem::g_get_interface(service_ptr_t<filesystem> & p_out,const char * 
 	return false;
 }
 
+#endif
 
 void filesystem::g_open(service_ptr_t<file> & p_out,const char * path,t_open_mode mode,abort_callback & p_abort)
 {
@@ -199,7 +274,7 @@ bool filesystem::g_exists(const char * p_path,abort_callback & p_abort)
 	bool dummy;
 	try {
 		g_get_stats(p_path,stats,dummy,p_abort);
-	} catch(exception_io_not_found) {return false;}
+	} catch(exception_io_not_found const &) {return false;}
 	return true;
 }
 
@@ -209,7 +284,7 @@ bool filesystem::g_exists_writeable(const char * p_path,abort_callback & p_abort
 	bool writeable;
 	try {
 		g_get_stats(p_path,stats,writeable,p_abort);
-	} catch(exception_io_not_found) {return false;}
+	} catch(exception_io_not_found const &) {return false;}
 	return writeable;
 }
 
@@ -439,15 +514,15 @@ void archive_impl::open(service_ptr_t<file> & p_out,const char * path,t_open_mod
 
 
 void archive_impl::remove(const char * path,abort_callback & p_abort) {
-	throw exception_io_denied();
+    pfc::throw_exception_with_message< exception_io_denied> ("Cannot delete files within archives");
 }
 
 void archive_impl::move(const char * src,const char * dst,abort_callback & p_abort) {
-	throw exception_io_denied();
+    pfc::throw_exception_with_message< exception_io_denied> ("Cannot move files within archives");
 }
 
 void archive_impl::move_overwrite(const char* src, const char* dst, abort_callback& abort) {
-	throw exception_io_denied();
+    pfc::throw_exception_with_message< exception_io_denied> ("Cannot move files within archives");
 }
 
 bool archive_impl::is_remote(const char * src) {
@@ -543,7 +618,7 @@ fb2k::arrayRef archive_impl::archive_list_v4( fsItemFilePtr item, file::ptr read
             archive * blah = this; // multi inheritance fix, more than one path to filesystem which has makeItemFileStd()
             ret->add(blah->makeItemFileStd(URL, stats2));
         }, false, a);
-    } catch( exception_io_data ) {
+    } catch( exception_io_data const & ) {
         if ( ret->count() == 0 ) throw;
     }
     return ret->makeConst();
@@ -619,7 +694,7 @@ namespace {
 			if (is_subdirectory) {
 				try {
 					m_fs->create_directory(m_target,p_abort);
-				} catch(exception_io_already_exists) {}
+				} catch(exception_io_already_exists const &) {}
 				m_target.end_with_slash();
 				owner->list_directory(url,*this,p_abort);
 			} else {
@@ -687,7 +762,7 @@ void filesystem::copy_directory_contents(const char* p_src, const char* p_dst, a
 void filesystem::copy_directory(const char * src, const char * dst, abort_callback & p_abort) {
 	try {
 		this->create_directory( dst, p_abort );
-	} catch(exception_io_already_exists) {}
+	} catch(exception_io_already_exists const &) {}
 	this->copy_directory_contents(src, dst, p_abort);
 }
 
@@ -695,7 +770,7 @@ void filesystem::g_copy_directory(const char * src,const char * dst,abort_callba
 	filesystem::ptr dstFS = filesystem::g_get_interface(dst);
 	try {
 		dstFS->create_directory( dst, p_abort );
-	} catch(exception_io_already_exists) {}
+	} catch(exception_io_already_exists const &) {}
 	directory_callback_impl_copy cb(dst, dstFS);
 	g_list_directory(src,cb,p_abort);
 }
@@ -720,7 +795,7 @@ void filesystem::g_copy(const char * src,const char * dst,abort_callback & p_abo
 
 	try {
 		file::g_copy_timestamps(r_src, r_dst, p_abort);
-	} catch (exception_io) {}
+	} catch (exception_io const &) {}
 }
 
 void stream_reader::read_object(void * p_buffer,t_size p_bytes,abort_callback & p_abort) {
@@ -1058,7 +1133,8 @@ PFC_NORETURN void foobar2000_io::exception_io_from_nix(int code) {
             throw exception_io_object_not_seekable();
         case ENOTDIR:
             throw exception_io_not_directory();
-            
+        case ENAMETOOLONG:
+            pfc::throw_exception_with_message<exception_io>("Name too long");
         default:
             pfc::throw_exception_with_message< exception_io>( PFC_string_formatter() << "Unknown I/O error (#" << code << ")");
     }
@@ -1267,7 +1343,7 @@ void filesystem::remove_directory_content(const char * path, abort_callback & ab
 			if (p_is_subdirectory) p_owner->list_directory(p_url, *this, p_abort);
 			try {
 				p_owner->remove(p_url, p_abort);
-			} catch(exception_io_not_found) {}
+			} catch(exception_io_not_found const &) {}
 			return true;
 		}
 	};
@@ -1289,7 +1365,7 @@ void filesystem::remove_object_recur(const char * path, abort_callback & abort) 
 	// the classic way
 	try {
 		remove_directory_content(path, abort);
-	} catch(exception_io_not_found) {}
+	} catch(exception_io_not_found const &) {}
 	remove(path, abort);
 
 }
@@ -1311,7 +1387,7 @@ void foobar2000_io::purgeOldFiles(const char * directory, t_filetimestamp period
 			if (!p_is_subdirectory && p_stats.m_timestamp < m_base) {
 				try {
 					filesystem::g_remove_timeout(p_url, 1, p_abort);
-				} catch(exception_io_not_found) {}
+				} catch(exception_io_not_found const &) {}
 			}
 			return true;
 		}
@@ -1478,7 +1554,7 @@ void filesystem::move_overwrite(const char * src, const char * dst, abort_callba
 	}
 	try {
 		this->remove(dst, abort);
-	} catch (exception_io_not_found) {}
+	} catch (exception_io_not_found const &) {}
 	this->move(src, dst, abort);
 }
 
@@ -1500,7 +1576,7 @@ void filesystem::make_directory(const char * path, abort_callback & abort, bool 
 	try {
 		create_directory( path, abort );
 		rv = true;
-	} catch(exception_io_already_exists) {
+	} catch(exception_io_already_exists const &) {
 	}
 	if (didCreate != nullptr) * didCreate = rv;
 }
@@ -1520,7 +1596,7 @@ bool filesystem::directory_exists(const char * path, abort_callback & abort) {
 		directory_callback_dummy cb;
 		list_directory(path, cb, abort);
 		return true;
-	} catch (exception_io) { return false; }
+	} catch (exception_io const &) { return false; }
 }
 
 bool filesystem::exists(const char* path, abort_callback& a) {
@@ -1530,7 +1606,7 @@ bool filesystem::exists(const char* path, abort_callback& a) {
 		try {
 			v3->get_stats2(path, stats2_fileOrFolder, a);
 			return true;
-		} catch (exception_io_not_found) { return false; }
+		} catch (exception_io_not_found const &) { return false; }
 	}
 	filesystem_v2::ptr v2;
 	if (v2 &= this) {
@@ -1541,12 +1617,12 @@ bool filesystem::exists(const char* path, abort_callback& a) {
 		t_filestats stats; bool writable;
 		get_stats(path, stats, writable, a);
 		return true;
-	} catch (exception_io) { }
+	} catch (exception_io const &) { }
 	try {
 		directory_callback_dummy cb;
 		list_directory(path, cb, a);
 		return true;
-	} catch (exception_io) { }
+	} catch (exception_io const &) { }
 	return false;
 }
 
@@ -1559,7 +1635,7 @@ bool filesystem::file_exists(const char * path, abort_callback & abort) {
 		t_filestats stats; bool writable;
 		get_stats(path, stats, writable, abort );
 		return true;
-	} catch(exception_io) { return false; }
+	} catch(exception_io const &) { return false; }
 }
 
 char filesystem::pathSeparator() {
@@ -1720,7 +1796,7 @@ void filesystem::rewrite_directory(const char * path, abort_callback & abort, do
 			// folder.new folder already existed? clear contents
 			try {
 				retryFileDelete(opTimeout, abort, [&] { this->remove_directory_content(fnNew, abort); });
-			} catch(exception_io_not_found) {}
+			} catch(exception_io_not_found const &) {}
 		}
 
 		// write to folder.new
@@ -1732,12 +1808,12 @@ void filesystem::rewrite_directory(const char * path, abort_callback & abort, do
 			if (this->directory_exists(fnOld, abort)) {
 				try {
 					retryFileDelete(opTimeout, abort, [&] { this->remove_object_recur(fnOld, abort); });
-				} catch (exception_io_not_found) {}
+				} catch(exception_io_not_found const &) {}
 			}
 			try {
 				retryFileMove(opTimeout, abort, [&] { this->move( path, fnOld, abort ); } ) ;
 				haveOld = true;
-			} catch(exception_io_not_found) {}
+			} catch(exception_io_not_found const &) {}
 		}
 
 		// move folder.new to folder
@@ -1749,7 +1825,7 @@ void filesystem::rewrite_directory(const char * path, abort_callback & abort, do
 			// delete folder.old if we made one
 			try {
 				retryFileDelete( opTimeout, abort, [&] { this->remove_object_recur( fnOld, abort); } );
-			} catch (exception_io_not_found) {}
+			} catch (exception_io_not_found const &) {}
 		}
 	}
 }
@@ -2037,13 +2113,13 @@ void filesystem_v3::list_directory_ex(const char* p_path, directory_callback& p_
 bool filesystem_v3::directory_exists(const char* path, abort_callback& abort) {
 	try {
 		return get_stats2(path, stats2_fileOrFolder, abort).is_folder();
-	} catch (exception_io_not_found) { return false; }
+	} catch (exception_io_not_found const &) { return false; }
 }
 
 bool filesystem_v3::file_exists(const char* path, abort_callback& abort) {
 	try {
 		return get_stats2(path, stats2_fileOrFolder, abort).is_file();
-	} catch (exception_io_not_found) { return false; }
+	} catch (exception_io_not_found const &) { return false; }
 }
 
 
@@ -2208,9 +2284,9 @@ static void readStatsMultiStd(fb2k::arrayRef items, uint32_t s2flags, t_filestat
 		try {
 			fsItemPtr f; f ^= items->itemAt(w);
 			out = f->getStats2(s2flags, abort);
-		} catch (exception_aborted) {
+		} catch (exception_aborted const &) {
 			throw;
-		} catch (exception_io) {
+		} catch (exception_io const &) {
 			out = filestats2_invalid;
 		}
 	}
@@ -2419,4 +2495,17 @@ drivespace_t filesystem::getDriveSpace_(const char* pathAt, abort_callback& abor
     filesystem_v3::ptr v3;
     if (v3 &= this) return v3->getDriveSpace(pathAt, abort);
     throw pfc::exception_not_implemented();
+}
+
+size_t stream_receive::read_using_receive(void* ptr_, size_t bytes, abort_callback& a) {
+    size_t walk = 0;
+    auto ptr = reinterpret_cast<uint8_t*>(ptr_);
+    while(walk < bytes) {
+        size_t want = bytes-walk;
+        size_t delta = this->receive(ptr+walk, want, a);
+        PFC_ASSERT( delta <= want );
+        if ( delta == 0 ) break;
+        walk += delta;
+    }
+    return walk;
 }

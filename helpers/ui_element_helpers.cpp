@@ -44,7 +44,7 @@ namespace ui_element_helpers {
 		if (!find(ptr,cfg->get_guid())) return NULL;
 		try {
 			return ptr->enumerate_children(cfg);
-		} catch(exception_io_data) {
+		} catch(exception_io_data const &) {
 			return NULL;
 		}
 	}
@@ -120,7 +120,7 @@ void ui_element_helpers::ui_element_edit_tools::standard_edit_context_menu(LPARA
 	}
 	
 	CMenu menu;
-	WIN32_OP( menu.CreatePopupMenu() );
+	WIN32_OP_D( menu.CreatePopupMenu() );
 
 	const GUID sourceItemGuid = p_item->get_guid();
 	const bool sourceItemEmpty = !!(sourceItemGuid == pfc::guid_null);
@@ -304,7 +304,7 @@ bool ui_element_helpers::recurse_for_elem_config(ui_element_config::ptr root, ui
 	ui_element_children_enumerator::ptr children;
 	try {
 		children = elem->enumerate_children(root);
-	} catch(exception_io_data) {return false;}
+	} catch(exception_io_data const &) {return false;}
 	if (children.is_empty()) return false;
 	const t_size childrenTotal = children->get_count();
 	for(t_size walk = 0; walk < childrenTotal; ++walk) {
@@ -367,7 +367,7 @@ void ui_element_instance_standard_context_menu(service_ptr_t<ui_element_instance
 	if (p_elem->edit_mode_context_menu_test(pt, fromKeyboard)) {
 		const unsigned idBase = 1;
 		CMenu menu;
-		WIN32_OP(menu.CreatePopupMenu());
+		WIN32_OP_D(menu.CreatePopupMenu());
 		p_elem->edit_mode_context_menu_build(pt, fromKeyboard, menu, idBase);
 
 		int cmd;

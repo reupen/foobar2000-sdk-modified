@@ -505,5 +505,7 @@ namespace foobar2000_io
 		//! Alternate version of read() intended for network resources.\n
 		//! Returns as soon as any data is available (usually less than requested), or EOF has been reached (0 returned).
 		virtual size_t receive(void*, size_t, abort_callback&) = 0;
+
+        size_t read_using_receive(void*, size_t, abort_callback&);
 	};
 }

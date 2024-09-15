@@ -43,6 +43,10 @@ app_close_blocking_task_impl::app_close_blocking_task_impl(const char * name) : 
 	PFC_ASSERT( core_api::is_main_thread() );
 	app_close_blocking_task_manager::get()->register_task(this);
 }
+app_close_blocking_task_impl::app_close_blocking_task_impl(pfc::string8&& name) : m_name(std::move(name)) {
+	PFC_ASSERT(core_api::is_main_thread());
+	app_close_blocking_task_manager::get()->register_task(this);
+}
 
 app_close_blocking_task_impl::~app_close_blocking_task_impl() { 
 	PFC_ASSERT( core_api::is_main_thread() );

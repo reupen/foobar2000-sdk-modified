@@ -15,7 +15,7 @@ namespace ProfileCache {
 		try {
 			fLocal = fsLocal->openWriteExisting(path, abort, timeoutVal );
 			fetch = fLocal->get_timestamp(abort) < filetimestamp_from_system_timer() - acceptableAge;
-		} catch(exception_io_not_found) {
+		} catch(exception_io_not_found const &) {
 			fLocal = fsLocal->openWriteNew(path, abort, timeoutVal);
 			fetch = true;
 		}
@@ -25,7 +25,7 @@ namespace ProfileCache {
 				file::ptr fRemote;
 				filesystem::g_open(fRemote, webURL, filesystem::open_mode_read, abort);
 				file::g_transfer_file(fRemote, fLocal, abort );
-			} catch(exception_io) {
+			} catch(exception_io const &) {
 				fLocal.release();
 				try { 
 					retryOnSharingViolation(timeoutVal, abort, [&] {fsLocal->remove(path, abort);} );

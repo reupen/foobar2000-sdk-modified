@@ -58,10 +58,12 @@ class NOVTABLE output : public service_base {
 public:
 	//! Retrieves amount of audio data queued for playback, in seconds.
 	virtual double get_latency() = 0;
-	//! Sends new samples to the device. Allowed to be called only when update() indicates that the device is ready.
-	//! update() should be called AGAIN after each process_samples() to know if the device is ready for more.
+	//! Sends new samples to the device. Allowed to be called only when update() indicates that the device is ready. \n
+	//! update() should be called AGAIN after each process_samples() to know if the device is ready for more. \n
+    //! This method SHOULD NOT block, only copy passed chunk and return immediately.
 	virtual void process_samples(const audio_chunk & p_chunk) = 0;
-	//! Updates playback; queries whether the device is ready to receive new data.
+	//! Updates playback; queries whether the device is ready to receive new data. \n
+    //! This method SHOULD NOT block, only update internal state and return immediately.
 	//! @param p_ready On success, receives value indicating whether the device is ready for next process_samples() call.
 	virtual void update(bool & p_ready) = 0;
 	//! Pauses/unpauses playback.
@@ -81,6 +83,8 @@ public:
     size_t update_v2_();
     //! Helper, see output_v4::get_trigger_event()
     pfc::eventHandle_t get_trigger_event_();
+	//! Helper, see output_v6::process_samples_v2()
+	size_t process_samples_v2_(const audio_chunk&);
 
     //! Helper for output_entry implementation.
     static uint32_t g_extra_flags() { return 0; }
@@ -125,11 +129,12 @@ public:
 	//! Returns whether the audio stream is currently being played or not. \n
 	//! Typically, for a short period of time, initially sent data is not played until a sufficient amount is queued to initiate playback without glitches. \n
     //! For old outputs that do not implement this, the value can be assumed to be true.
-    virtual bool is_progressing() {return true;}
+	virtual bool is_progressing() = 0;
     
     //! Improved version of update(); returns 0 if the output isn't ready to receive any new data, otherwise an advisory number of samples - at the current stream format - that the output expects to take now. \n
     //! If the caller changes the stream format, the value is irrelevant. \n
-    //! The output may return SIZE_MAX to indicate that it can take data but does not currently have any hints to tell how much.
+    //! The output may return SIZE_MAX to indicate that it can take data but does not currently have any hints to tell how much. \n
+    //! This method SHOULD NOT block, only update output state and return immediately.
     virtual size_t update_v2();
 };
 
@@ -138,6 +143,15 @@ class output_v5 : public output_v4 {
 	FB2K_MAKE_SERVICE_INTERFACE(output_v5, output_v4);
 public:
 	virtual unsigned get_forced_channel_mask() { return 0; }
+};
+
+//! \since 2.2
+class output_v6 : public output_v5 {
+	FB2K_MAKE_SERVICE_INTERFACE(output_v6, output_v5);
+public:
+	//! Extended process_samples(), allowed to read only part of the chunk if out of buffer space to take whole.
+	//! @returns Number of samples actually taken.
+	virtual size_t process_samples_v2(const audio_chunk&) = 0;
 };
 
 class NOVTABLE output_entry : public service_base {
@@ -220,25 +234,42 @@ public:
 template<class T>
 class output_factory_t : public service_factory_single_t<output_entry_impl_t<T> > {};
 
-class output_impl : public output_v5 {
+//! Helper base class for output implementations. \n
+//! This is the preferred way of implementing output. \n
+//! This is NOT a public interface and its layout changes between foobar2000 SDK versions, do not assume other outputs to implement it.
+class output_impl : public output_v6 {
 protected:
 	output_impl() {}
+    
+    //! Called periodically. You can update your state in this method. Can do nothing if not needed.
 	virtual void on_update() = 0;
-	//! Will never get more input than as returned by can_write_samples().
+    //! Writes an audio chunk to your output. \n
+    //! Will never get more than last can_write_samples() asked for. \n
+    //! Format being send will match last open().
 	virtual void write(const audio_chunk & p_data) = 0;
+    //! @returns How many samples write() can take at this moment. \n
+	//! It's called immediately after on_update() and can reuse value calculated in last on_update().
 	virtual t_size can_write_samples() = 0;
+    //! @returns Current latency, delay between last written sample and currently heard audio.
 	virtual t_size get_latency_samples() = 0;
+    //! Flush output, after seek etc.
 	virtual void on_flush() = 0;
+    //! Flush output due to manual track change in progress. \n
+    //! Same as on_flush() by default.
 	virtual void on_flush_changing_track() {on_flush();}
+    //! Called before first chunk and on stream format change. \n
+    //! Following write() calls will deliver chunks in the same format as specified here.
 	virtual void open(audio_chunk::spec_t const & p_spec) = 0;
 	
-    // base class virtual methods
-	// virtual void pause(bool p_state) = 0;
-	// virtual void volume_set(double p_val) = 0;
 
 	//! Override this, not force_play(). \n
 	//! output_impl will defer call to on_force_play() until out of data in its buffer.
 	virtual void on_force_play() = 0;
+    
+    // base class virtual methods which derived class must also implement
+    // virtual void pause(bool p_state) = 0;
+    // virtual void volume_set(double p_val) = 0;
+	// virtual bool is_progressing() = 0;
 protected:
 	void on_need_reopen() {m_active_spec.clear(); }
 private:
@@ -248,6 +279,7 @@ private:
     size_t update_v2() override final;
 	double get_latency() override final;
 	void process_samples(const audio_chunk & p_chunk) override final;
+	size_t process_samples_v2(const audio_chunk&) override final;
 	void force_play() override final;
 	void on_flush_internal();
 	void send_force_play();
@@ -255,7 +287,7 @@ private:
 	bool queue_empty() const { return m_incoming_ptr == m_incoming.get_size(); }
 
 	pfc::array_t<audio_sample,pfc::alloc_fast_aggressive> m_incoming;
-	t_size m_incoming_ptr = 0;
+	size_t m_incoming_ptr = 0, m_can_write = 0;
 	audio_chunk::spec_t m_incoming_spec,m_active_spec;
 	bool m_eos = false; // EOS issued by caller / no more data expected until a flush
 	bool m_sent_force_play = false; // set if sent on_force_play()

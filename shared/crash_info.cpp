@@ -585,6 +585,7 @@ void SHARED_EXPORT uPrintCrashInfo_OnEvent(const char * message, t_size length) 
 
 	pfc::string8 msg = pfc::format("[", queryDebugTimer(), "ms] ");
 	msg.add_string( message, length );
+	uOutputDebugString(msg + "\n");
 
 	insync(g_lastEventsSync);
 	logEvent(msg);

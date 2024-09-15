@@ -35,22 +35,6 @@ public:
     virtual void setConfigInt( const char * name, int64_t val ) = 0;
     virtual void deleteConfigInt(const char * name) = 0;
 
-    //! Helper around getConfigInt.
-    bool getConfigBool( const char * name, bool defVal = false );
-    //! Helper around setConfigInt.
-    void setConfigBool( const char * name, bool val );
-    //! Helper around setConfigInt.
-    bool toggleConfigBool (const char * name, bool defVal = false );
-    //! Helper around deleteConfigInt.
-    void deleteConfigBool( const char * name );
-    
-    //! Helper around getConfigString.
-    GUID getConfigGUID(const char* name, const GUID& defVal = pfc::guid_null);
-    //! Helper around setConfigString.
-    void setConfigGUID(const char* name, const GUID& val);
-    //! Helper around deleteConfigString.
-    void deleteConfigGUID(const char* name);
-
     virtual fb2k::stringRef getConfigString( const char * name, fb2k::stringRef defaVal = fb2k::string::stringWithString("")) = 0;
     virtual void setConfigString( const char * name, const char * value ) = 0;
     virtual void deleteConfigString(const char * name) = 0;
@@ -73,6 +57,22 @@ public:
 
 	objRef addNotify( const char * name, std::function<void () > f );
 	void addPermanentNotify( const char * name, std::function<void () > f );
+    
+    //! Helper around getConfigInt.
+    bool getConfigBool( const char * name, bool defVal = false );
+    //! Helper around setConfigInt.
+    void setConfigBool( const char * name, bool val );
+    //! Helper around setConfigInt.
+    bool toggleConfigBool (const char * name, bool defVal = false );
+    //! Helper around deleteConfigInt.
+    void deleteConfigBool( const char * name );
+    
+    //! Helper around getConfigString.
+    GUID getConfigGUID(const char* name, const GUID& defVal = pfc::guid_null);
+    //! Helper around setConfigString.
+    void setConfigGUID(const char* name, const GUID& val);
+    //! Helper around deleteConfigString.
+    void deleteConfigGUID(const char* name);
     
 	//! For internal core use, notifies everyone interested about off-process change to configuration data.
 	virtual void callNotify(const char * name) = 0;
@@ -129,4 +129,48 @@ stringRef val = api->getConfigString( "myComponent.foo", "defaultVal" );
     // use api->commitBlocking()
  }
 */
+
+
+//! \since 2.2
+class configStore2 : public configStore {
+    FB2K_MAKE_SERVICE_COREAPI_EXTENSION(configStore2, configStore);
+public:
+    // Use flagSuppressCache to prevent value from being cached. Prevents memory usage creep if querying lots of uniquely named variables.
+    static constexpr uint32_t flagSuppressCache = 1;
+    
+    virtual int64_t getConfigInt2( const char * name, int64_t defVal = 0, uint32_t flags = 0 ) = 0;
+    virtual void setConfigInt2( const char * name, int64_t val, uint32_t flags = 0 ) = 0;
+    virtual void deleteConfigInt2(const char * name, uint32_t flags = 0) = 0;
+
+    virtual fb2k::stringRef getConfigString2( const char * name, fb2k::stringRef defaVal = fb2k::string::stringWithString(""), uint32_t flags = 0) = 0;
+    virtual void setConfigString2( const char * name, const char * value, uint32_t flags = 0 ) = 0;
+    virtual void deleteConfigString2(const char * name, uint32_t flags = 0) = 0;
+    
+    virtual fb2k::memBlockRef getConfigBlob2( const char * name, fb2k::memBlockRef defVal = fb2k::memBlock::empty(), uint32_t flags = 0) = 0;
+    virtual void setConfigBlob2(const char* name, const void* ptr, size_t bytes, uint32_t flags = 0) = 0;
+    virtual void setConfigBlob2(const char* name, fb2k::memBlockRef val, uint32_t flags = 0) = 0;
+    virtual void deleteConfigBlob2(const char * name, uint32_t flags = 0) = 0;
+    
+    virtual double getConfigFloat2( const char * name, double defVal = 0, uint32_t flags = 0) = 0;
+    virtual void setConfigFloat2( const char * name, double val, uint32_t flags = 0) = 0;
+    virtual void deleteConfigFloat2( const char * name, uint32_t flags = 0) = 0;
+    
+    
+    int64_t getConfigInt( const char * name, int64_t defVal ) override final { return getConfigInt2(name, defVal); }
+    void setConfigInt( const char * name, int64_t val ) override final { setConfigInt2(name, val); }
+    void deleteConfigInt(const char * name) override final { deleteConfigInt2(name); }
+
+    fb2k::stringRef getConfigString( const char * name, fb2k::stringRef defaVal) override final { return getConfigString2(name, defaVal); }
+    void setConfigString( const char * name, const char * value ) override final { setConfigString2(name, value); }
+    void deleteConfigString(const char * name) override final { deleteConfigString2(name); }
+    
+    fb2k::memBlockRef getConfigBlob( const char * name, fb2k::memBlockRef defVal ) override final { return getConfigBlob2(name, defVal); }
+    void setConfigBlob(const char* name, const void* ptr, size_t bytes) override final { setConfigBlob2(name, ptr, bytes); }
+    void setConfigBlob(const char* name, fb2k::memBlockRef val) override final { setConfigBlob2(name, val); }
+    void deleteConfigBlob(const char * name) override final { deleteConfigBlob2(name); }
+    
+    double getConfigFloat( const char * name, double defVal ) override final { return getConfigFloat2(name, defVal); }
+    void setConfigFloat( const char * name, double val ) override final { setConfigFloat2(name, val); }
+    void deleteConfigFloat( const char * name ) override final { deleteConfigFloat2(name); }
+};
 } // namespace fb2k

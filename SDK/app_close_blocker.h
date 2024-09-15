@@ -48,6 +48,7 @@ public:
 class app_close_blocking_task_impl : public app_close_blocking_task {
 public:
 	app_close_blocking_task_impl(const char * name = "<unnamed task>");
+	app_close_blocking_task_impl(pfc::string8&& name);
 	~app_close_blocking_task_impl();
 
 	//! Override me, or provide name to constructor
@@ -56,7 +57,7 @@ public:
 	app_close_blocking_task_impl( const app_close_blocking_task_impl & ) = delete;
 	void operator=(const app_close_blocking_task_impl & ) = delete;
 private:
-	const char * const m_name;
+	const pfc::string8 m_name;
 };
 
 class app_close_blocking_task_impl_dynamic : public app_close_blocking_task {
@@ -70,7 +71,7 @@ public:
 	void toggle_blocking(bool state);
 private:
 	bool m_taskActive = false;
-	const char * const m_name;
+	const pfc::string8 m_name;
 };
 
 

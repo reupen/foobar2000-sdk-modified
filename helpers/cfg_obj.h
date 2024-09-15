@@ -36,7 +36,7 @@ namespace cfg_var_modern {
 			try {
 				stream_reader_formatter<> fmt(*p_stream, p_abort);
 				fmt >> o;
-			} catch (exception_io_data) { return; }
+			} catch (exception_io_data const &) { return; }
 			set(std::move(o));
 		}
 #endif
@@ -54,7 +54,7 @@ namespace cfg_var_modern {
 					try {
 						stream_reader_formatter_simple<> source(blob->data(), blob->size());
 						source >> v;
-					} catch (exception_io_data) {
+					} catch (exception_io_data const &) {
 						v = m_initVal; // revert
 					}
 				}

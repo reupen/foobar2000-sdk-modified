@@ -20,9 +20,11 @@ namespace fb2k {
 		//! See flag_* constants.
 		virtual unsigned columnFlags(size_t col) = 0;
 
-		static constexpr unsigned flag_alignLeft = 0;
-		static constexpr unsigned flag_alignRight = 1 << 0;
-        static constexpr unsigned flag_alignCenter = 1 << 1;
+		static constexpr unsigned
+            flag_alignLeft = 0, flag_alignRight = 1 << 0, flag_alignCenter = 1 << 1, // alignment
+            flag_numeric = 1 << 2, // prefer fixed width font, not all renderers support this
+            flag_positionDependant = 1 << 3, // value changes with position in playlist, mainly used by list index etc
+            flag_glyphs = 1 << 4; // internal/reserved
 		static constexpr unsigned flag_alignMask = (flag_alignLeft|flag_alignRight|flag_alignCenter);
 	};
 }

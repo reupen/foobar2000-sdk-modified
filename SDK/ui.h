@@ -10,16 +10,14 @@ public:
 	//!HookProc usage: \n
 	//! in your windowproc, call HookProc first, and if it returns true, return LRESULT value it passed to you
 	typedef BOOL (WINAPI * HookProc_t)(HWND wnd,UINT msg,WPARAM wp,LPARAM lp,LRESULT * ret);
+#else
+	typedef void* HookProc_t; // RESERVED
 #endif
 	//! Retrieves name (UTF-8 null-terminated string) of the UI module.
 	virtual const char * get_name()=0;
     //! Initializes the UI module - creates the main app window, etc. Failure should be signaled by appropriate exception (std::exception or a derivative). \n
     //! Mac OS: return NSWindow cast to hwnd_t
-#ifdef _WIN32
-    virtual HWND init(HookProc_t hook)=0;
-#else
-    virtual fb2k::hwnd_t init() = 0;
-#endif
+    virtual fb2k::hwnd_t init(HookProc_t hook) = 0;
 	//! Deinitializes the UI module - destroys the main app window, etc.
 	virtual void shutdown()=0;
 	//! Activates main app window.
@@ -36,7 +34,7 @@ public:
 	//! Disables statusbar text override.
 	virtual void revert_statusbar_text() = 0;
 
-    //! Shows now-playing item somehow (e.g. system notification area popup).
+    //! Shows now-playing item somehow (e.g. system tray popup).
 	virtual void show_now_playing() = 0;
 
 	static bool g_find(service_ptr_t<user_interface> & p_out,const GUID & p_guid);
@@ -65,15 +63,22 @@ public:
 #endif
 };
 
-#ifdef _WIN32
 class ui_config_manager;
+
 //! \since 2.0
 class NOVTABLE user_interface_v3 : public user_interface_v2 {
 	FB2K_MAKE_SERVICE_INTERFACE(user_interface_v3, user_interface_v2);
 public:
 	virtual service_ptr_t< ui_config_manager > get_config_manager() = 0;
 };
-#endif
+
+//! \since 2.1
+class NOVTABLE user_interface_v4 : public user_interface_v3 {
+	FB2K_MAKE_SERVICE_INTERFACE(user_interface_v4, user_interface_v3);
+public:
+	static constexpr uint32_t flagHide = 1;
+	virtual fb2k::hwnd_t init_v4(HookProc_t hook, uint32_t flags) = 0;
+};
 
 //! Interface class allowing you to override UI statusbar text. There may be multiple callers trying to override statusbar text; backend decides which one succeeds so you will not always get what you want. Statusbar text override is automatically cancelled when the object is released.\n
 //! Use ui_control::override_status_text_create() to instantiate.
@@ -246,7 +251,7 @@ protected:
 	}
 
 	//avoid pure virtual function calls in rare cases - provide a dummy implementation
-	void on_selection_changed(metadb_handle_list_cref p_selection) {}
+	void on_selection_changed(metadb_handle_list_cref p_selection) override {}
 
 	PFC_CLASS_NOT_COPYABLE_EX(ui_selection_callback_impl_base);
 private:
@@ -274,7 +279,7 @@ protected:
 	}
 
 	//avoid pure virtual function calls in rare cases - provide a dummy implementation
-	void on_selection_changed(metadb_handle_list_cref p_selection) {}
+	void on_selection_changed(metadb_handle_list_cref p_selection) override {}
 
 	PFC_CLASS_NOT_COPYABLE(ui_selection_callback_impl_base_ex, ui_selection_callback_impl_base_ex<flags>);
 private:

@@ -36,7 +36,7 @@ namespace cfg_var_legacy {
 				stream_reader_limited_ref wrapper(p_stream, size);
 				try {
 					iter->m_value->set_data_raw(&wrapper, size, p_abort);
-				} catch (exception_io_data) {}
+				} catch (exception_io_data const&) {}
 				wrapper.flush_remaining(p_abort);
 			} else {
 				p_stream->skip_object(size, p_abort);

@@ -2,23 +2,14 @@
 #include "cue_creator.h"
 #include "../SDK/chapterizer.h"
 
-namespace {
-
-	class format_meta
-	{
-	public:
-		format_meta(const file_info & p_source,const char * p_name,bool p_allow_space = true)
-		{
-			p_source.meta_format(p_name,m_buffer);
-			m_buffer.replace_byte('\"','\'');
-			uReplaceString(m_buffer,pfc::string8(m_buffer),pfc_infinite,"\x0d\x0a",2,"\\",1,false);
-			if (!p_allow_space) m_buffer.replace_byte(' ','_');
-			m_buffer.replace_nontext_chars();
-		}
-		inline operator const char*() const {return m_buffer;}
-	private:
-		pfc::string8_fastalloc m_buffer;
-	};
+static pfc::string8 format_meta(const file_info& p_source, const char* p_name, bool p_allow_space = true) {
+	pfc::string8 temp, ret;
+	p_source.meta_format(p_name, temp);
+	temp.replace_byte('\"', '\'');
+	uReplaceString(ret, temp, pfc_infinite, "\x0d\x0a", 2, "\\", 1, false);
+	if (!p_allow_space) ret.replace_byte(' ', '_');
+	ret.replace_nontext_chars();
+	return ret;
 }
 
 static bool is_meta_same_everywhere(const cue_creator::t_entry_list & p_list,const char * p_meta)
@@ -26,14 +17,14 @@ static bool is_meta_same_everywhere(const cue_creator::t_entry_list & p_list,con
 	pfc::string8_fastalloc reference,temp;
 
 	bool first = true;
-	for(auto iter = p_list.first(); iter.is_valid(); ++ iter ) {
-		if ( ! iter->isTrackAudio() ) continue;
+	for(auto & iter : p_list) {
+		if ( ! iter.isTrackAudio() ) continue;
 
 		if ( first ) {
 			first = false;
-			if (!iter->m_infos.meta_format(p_meta,reference)) return false;
+			if (!iter.m_infos.meta_format(p_meta,reference)) return false;
 		} else {
-			if (!iter->m_infos.meta_format(p_meta,temp)) return false;
+			if (!iter.m_infos.meta_format(p_meta,temp)) return false;
 			if (strcmp(temp,reference)!=0) return false;
 		}
 	}
@@ -76,6 +67,12 @@ namespace cue_creator
 				}
 				if (comment_global) {
 					p_out << "REM COMMENT " << format_meta(firstTrack->m_infos,"comment") << g_eol;
+				}
+				if (is_meta_same_everywhere(p_data, "discnumber")) {
+					p_out << "REM DISCNUMBER " << format_meta(firstTrack->m_infos, "discnumber") << g_eol;
+				}
+				if (is_meta_same_everywhere(p_data, "totaldiscs")) {
+					p_out << "REM TOTALDISCS " << format_meta(firstTrack->m_infos, "totaldiscs") << g_eol;
 				}
 				if (catalog_global) {
 					p_out << "CATALOG " << format_meta(firstTrack->m_infos,"catalog") << g_eol;

@@ -13,7 +13,7 @@ public:
 	void set_config( const dsp_chain_config & p_data );
 	//! Runs DSP on the specified chunk list.
 	//! @returns Current DSP latency in seconds.
-	double run(dsp_chunk_list * p_list,const metadb_handle_ptr & p_cur_file,unsigned p_flags,abort_callback & p_abort);
+	double run(dsp_chunk_list * p_list,dsp_track_t const & p_cur_file,unsigned p_flags,abort_callback & p_abort);
 	//! Flushes the DSP (e.g. when seeking).
 	void flush();
 
@@ -37,7 +37,7 @@ private:
 	dsp_chain_config_impl m_config;
 	bool m_config_changed = false;
 	
-	void dsp_run(t_dsp_chain::const_iterator p_iter,dsp_chunk_list * list,const metadb_handle_ptr & cur_file,unsigned flags,double & latency,abort_callback&);
+	void dsp_run(t_dsp_chain::const_iterator p_iter,dsp_chunk_list * list,const dsp_track_t & cur_file,unsigned flags,double & latency,abort_callback&);
 
 	dsp_manager(const dsp_manager &) = delete;
 	const dsp_manager & operator=(const dsp_manager&) = delete;

@@ -7,12 +7,23 @@
 PFC_DECLARE_EXCEPTION(exception_tagging_unsupported, exception_io_data, "Tagging of this file format is not supported")
 
 enum {
+	// Seek commands won't be issued, can skip initializing seektables etc that sequential decode doesn't need.
 	input_flag_no_seeking					= 1 << 0,
+	// Do not loop, also ignore user looping settings.
 	input_flag_no_looping					= 1 << 1,
+	// Opening for actual playback, not for conversion/scan/test.
 	input_flag_playback						= 1 << 2,
+	// Testing integrity, perform additional checks and report errors. Not mutually exlusive with input_flag_playback!
 	input_flag_testing_integrity			= 1 << 3,
+	// OK to perform cheap but inaccurate seeking.
+	// Note that seeking should be ALWAYS sample accurate. This setting is a hint for decoding formats that are expensive to seek properly, indicating that no obvious harm will come from taking shortcuts.
 	input_flag_allow_inaccurate_seeking		= 1 << 4,
+	// Suppress decode_postprocessor use. Handled by decode_postprocessor framework.
 	input_flag_no_postproc					= 1 << 5,
+	// DSD decoders only: Send DSD as DoP. If not set, DSD should be decimated to PCM.
+	input_flag_dop							= 1 << 6,
+	// Auotmated test suite running, disregard user options if possible
+	input_flag_canonical_decode				= 1 << 7,
 
 	input_flag_simpledecode = input_flag_no_seeking|input_flag_no_looping,
 };

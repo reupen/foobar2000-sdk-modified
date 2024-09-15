@@ -27,20 +27,15 @@ static bool is_linebreak(char c)
 }
 
 static void validate_file_type(const char * p_type,t_size p_type_length) {
-	if (
-		//standard types
-		stricmp_utf8_ex(p_type,p_type_length,"WAVE",pfc_infinite) != 0 && 
-		stricmp_utf8_ex(p_type,p_type_length,"MP3",pfc_infinite) != 0 && 
-		stricmp_utf8_ex(p_type,p_type_length,"AIFF",pfc_infinite) != 0 && 
-		//common user-entered types
-		stricmp_utf8_ex(p_type,p_type_length,"APE",pfc_infinite) != 0 && 
-		stricmp_utf8_ex(p_type,p_type_length,"FLAC",pfc_infinite) != 0 &&
-		stricmp_utf8_ex(p_type,p_type_length,"WV",pfc_infinite) != 0 &&
-		stricmp_utf8_ex(p_type,p_type_length,"WAVPACK",pfc_infinite) != 0 &&
-		// BINARY
-		stricmp_utf8_ex(p_type,p_type_length,"BINARY",pfc_infinite) != 0
-		)
-		pfc::throw_exception_with_message< exception_cue >(PFC_string_formatter() << "expected WAVE, MP3 or AIFF, got : \"" << pfc::string_part(p_type,p_type_length) << "\"");
+	const char* const allowedTypes[] = {
+		"WAVE", "MP3", "AIFF", // standard typers
+		"APE", "FLAC", "WV", "WAVPACK", "MP4", // common user-entered types
+		"BINARY" // BINARY
+	};
+	for (auto walk : allowedTypes) {
+		if (pfc::stringEqualsI_ascii_ex(p_type, p_type_length, walk, SIZE_MAX)) return;
+	}
+	pfc::throw_exception_with_message< exception_cue >(PFC_string_formatter() << "expected WAVE, MP3 or AIFF, got : \"" << pfc::string_part(p_type,p_type_length) << "\"");
 }
 
 namespace {
@@ -72,9 +67,9 @@ namespace {
 	protected:
 		static bool is_known_meta(const char * p_name,t_size p_length)
 		{
-			static const char * metas[] = {"genre","date","discid","comment","replaygain_track_gain","replaygain_track_peak","replaygain_album_gain","replaygain_album_peak"};
+			static const char * metas[] = {"genre","date","discid","comment","replaygain_track_gain","replaygain_track_peak","replaygain_album_gain","replaygain_album_peak", "discnumber", "totaldiscs"};
 			for (const char* m : metas) {
-				if (!stricmp_utf8_ex(p_name, p_length, m, pfc_infinite)) return true;
+				if (!stricmp_utf8_ex(p_name, p_length, m, SIZE_MAX)) return true;
 			}
 			return false;
 		}

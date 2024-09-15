@@ -2,14 +2,16 @@
 
 #include <functional>
 
+#include <exception>
+
 namespace ThreadUtils {
 	class CRethrow {
 	private:
-		std::function<void () > m_rethrow;
+		std::exception_ptr m_exception;
 	public:
 		bool exec( std::function<void () > f ) throw();
 		void rethrow() const;
-		bool didFail() const { return !! m_rethrow; }
-		void clear() { m_rethrow = nullptr; }
+		bool didFail() const { return !!m_exception; }
+		void clear() { m_exception = nullptr; }
 	};
 }

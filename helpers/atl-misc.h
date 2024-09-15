@@ -249,7 +249,7 @@ namespace fb2k {
 
 static void AppendMenuPopup(HMENU menu, UINT flags, CMenu & popup, const TCHAR * label) {
 	PFC_ASSERT( flags & MF_POPUP );
-	WIN32_OP( CMenuHandle(menu).AppendMenu(flags, popup, label) );
+	WIN32_OP_D( CMenuHandle(menu).AppendMenu(flags, popup, label) );
 	popup.Detach();
 }
 

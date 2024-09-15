@@ -2,9 +2,19 @@
 #include "mem_block_container.h"
 #include "audio_chunk.h"
 
-void audio_chunk::set_data(const audio_sample* src, size_t samples, spec_t const & spec) {
+void audio_chunk::allocate(size_t size, bool bQuicker) {
+	if (bQuicker) {
+		const size_t before = this->get_data_size();
+		const size_t allow_waste = pfc::max_t<size_t>(size, 4096);
+		const size_t upper = (size + allow_waste > size) ? size + allow_waste : SIZE_MAX;
+		if (before >= size && before <= upper) return;
+	}
+	this->set_data_size(size);
+}
+
+void audio_chunk::set_data(const audio_sample* src, size_t samples, spec_t const & spec, bool bQuicker) {
 	t_size size = samples * spec.chanCount;
-	set_data_size(size);
+	allocate(size, bQuicker);
 	if (src)
 		pfc::memcpy_t(get_data(), src, size);
 	else

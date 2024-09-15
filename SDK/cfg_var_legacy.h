@@ -122,6 +122,7 @@ namespace cfg_var_legacy {
 		inline operator t_inttype() const { return m_val; }
 
 		inline t_inttype get_value() const { return m_val; }
+		inline t_inttype get() const { return m_val; }
 	};
 
 	typedef cfg_int_t<t_int32> cfg_int;
