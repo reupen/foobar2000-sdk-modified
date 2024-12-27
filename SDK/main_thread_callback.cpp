@@ -15,14 +15,13 @@ void main_thread_callback_add(main_thread_callback::ptr ptr) {
 
 namespace {
     typedef std::function<void ()> func_t;
-    class mtcallback_func : public main_thread_callback {
-    public:
-        mtcallback_func(func_t const & f) : m_f(f) {}
-        
-        void callback_run() {
-            m_f();
-        }
-        
+	class mtcallback_func : public main_thread_callback {
+	public:
+		mtcallback_func(func_t const& f) : m_f(f) {}
+
+		void callback_run() noexcept override {
+			m_f();
+		}
     private:
         func_t m_f;
     };

@@ -79,6 +79,7 @@ namespace cfg_var_legacy {
 	}
 
 	void cfg_string::set_data_raw(stream_reader* p_stream, t_size p_sizehint, abort_callback& p_abort) {
+		(void)p_sizehint;
 		pfc::string8_fastalloc temp;
 		p_stream->read_string_raw(temp, p_abort);
 		set_string(temp);

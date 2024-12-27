@@ -355,11 +355,11 @@ public:
 	//! Shows configuration popup. Call from main thread only! \n
 	//! Blocks until done. Returns true if preset has been altered, false otherwise.
 	//! Legacy method, replaced in dsp_entry_v2 and newer.
-    virtual bool show_config_popup(dsp_preset & p_data,fb2k::hwnd_t p_parent) { return false; }
+	virtual bool show_config_popup(dsp_preset& p_data, fb2k::hwnd_t p_parent) { (void)p_data; (void)p_parent; return false; }
 #else // non-Windows desktop
 	//! Shows configuration popup. Main thread only! \n
     //! Mac: returns NSObjectWrapper holding NSViewController
-    virtual service_ptr show_config_popup( fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback ) { throw pfc::exception_not_implemented(); }
+	virtual service_ptr show_config_popup(fb2k::hwnd_t parent, dsp_preset_edit_callback_v2::ptr callback) { (void)parent; (void)callback; throw pfc::exception_not_implemented(); }
 #endif
 #endif // FOOBAR2000_DESKTOP
 
@@ -453,11 +453,11 @@ class NOVTABLE dsp_entry_v5 : public dsp_entry_v4 {
 public:
 	//! If your DSP implementation is meant to preset as multiple item in available DSP list, implement this method. \n
 	//! @returns True if preset list has been returned (your DSP will be hidden if blank), false if your DSP is meant to be shown as just one item.
-	virtual bool enumerate_default_presets(dsp_chain_config& ret) { return false; }
+	virtual bool enumerate_default_presets(dsp_chain_config& ret) { (void)ret; return false; }
 	//! Can possibly reach state Y by editing state X, and vice versa? \n
 	//! If this DSP has no configuration UI, this should just test if the presets are identical.
 	//! Frontend will use this to pin running presets to one of available DSP list items.
-	virtual bool match_preset_subclass(dsp_preset const& x, dsp_preset const& y) { return true; }
+	virtual bool match_preset_subclass(dsp_preset const& x, dsp_preset const& y) { (void)x; (void)y; return true; }
 };
 
 class NOVTABLE dsp_entry_hidden : public service_base {
@@ -616,6 +616,7 @@ public:
 	void remove_all();
 	void add_item(const dsp_preset & p_data);
 	void copy(const dsp_chain_config & p_source);
+    void add_items(const dsp_chain_config & p_source);
 
 	const dsp_chain_config & operator=(const dsp_chain_config & p_source) {copy(p_source); return *this;}
 

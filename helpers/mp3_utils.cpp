@@ -239,13 +239,13 @@ static t_uint16 grabFrameCRC(const t_uint8 * frameData, t_size sideInfoLen) {
 }
 
 t_uint16 mp3_utils::ExtractFrameCRC(const t_uint8 * frameData, t_size frameSize, TMPEGFrameInfo const & info) {
-	PFC_ASSERT( frameSize >= info.m_bytes && info.m_crc );
+	PFC_ASSERT(frameSize >= info.m_bytes && info.m_crc); (void)info; (void)frameSize;
 
 	return ((t_uint16)frameData[4] << 8) | (t_uint16)frameData[5];
 
 }
 t_uint16 mp3_utils::CalculateFrameCRC(const t_uint8 * frameData, t_size frameSize, TMPEGFrameInfo const & info) {
-	PFC_ASSERT( frameSize >= info.m_bytes && info.m_crc );
+	PFC_ASSERT(frameSize >= info.m_bytes && info.m_crc); (void)frameSize;
 
 	t_size sideInfoLen = 0;
 	if (info.m_mpegversion == MPEG_1)

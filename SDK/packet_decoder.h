@@ -7,17 +7,17 @@ class NOVTABLE packet_decoder : public service_base {
 protected:
 	//! Prototype of function that must be implemented by packet_decoder implementation but is not accessible through packet_decoder interface itself.
 	//! Determines whether specific packet_decoder implementation supports specified decoder setup data.
-	static bool g_is_our_setup(const GUID & p_owner,t_size p_param1,const void * p_param2,t_size p_param2size) {return false;}
+	static bool g_is_our_setup(const GUID& p_owner, t_size p_param1, const void* p_param2, t_size p_param2size) { (void)p_owner; (void)p_param1; (void)p_param2; (void)p_param2size; return false; }
 
 	//! Prototype of function that must be implemented by packet_decoder implementation but is not accessible through packet_decoder interface itself.
 	//! Initializes packet decoder instance with specified decoder setup data. This is called only once, before any other methods.
 	//! @param p_decode If set to true, decode() and reset_after_seek() calls can be expected later. If set to false, those methods will not be called on this packet_decoder instance - for an example when caller is only retrieving information about the file rather than preparing to decode it.
-	void open(const GUID & p_owner,bool p_decode,t_size p_param1,const void * p_param2,t_size p_param2size,abort_callback & p_abort) {throw exception_io_data();}
+	void open(const GUID& p_owner, bool p_decode, t_size p_param1, const void* p_param2, t_size p_param2size, abort_callback& p_abort) { (void)p_owner; (void)p_decode; (void)p_param1; (void)p_param2; (void)p_param2size; (void)p_abort; throw exception_io_data(); }
 public:
 
 	//! Prototype of function that must be implemented by packet_decoder implementation but is not accessible through packet_decoder interface itself.
 	//! Returns true if this is not the preferred decoder for this format, another one should be used if found.
-	static bool g_is_supported_partially(const GUID& p_owner, t_size p_param1, const void* p_param2, t_size p_param2size) { return false; }
+	static bool g_is_supported_partially(const GUID& p_owner, t_size p_param1, const void* p_param2, t_size p_param2size) { (void)p_owner; (void)p_param1; (void)p_param2; (void)p_param2size; return false; }
 
 
 	//! Forwards additional information about stream being decoded. \n

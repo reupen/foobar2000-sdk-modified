@@ -1,8 +1,8 @@
 #include "StdAfx.h"
 #include "VolumeMap.h"
 
-static const double powval = 2.0;
-static const double silence = -100.0;
+static constexpr double powval = 2.0;
+static constexpr double silence = -100.0;
 
 double VolumeMap::SliderToDB2(double slider) {
 	double v = SliderToDB(slider);

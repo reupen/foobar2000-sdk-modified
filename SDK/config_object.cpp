@@ -104,6 +104,7 @@ namespace {
 	class stream_writer_string : public stream_writer {
 	public:
 		void write(const void * p_buffer,t_size p_bytes,abort_callback & p_abort) {
+			p_abort.check();
 			m_out.add_string((const char*)p_buffer,p_bytes);
 		}
 		stream_writer_string(pfc::string_base & p_out) : m_out(p_out) {m_out.reset();}
@@ -114,6 +115,7 @@ namespace {
 	class stream_writer_fixedbuffer : public stream_writer {
 	public:
 		void write(const void * p_buffer,t_size p_bytes,abort_callback & p_abort) {
+			p_abort.check();
 			if (p_bytes > 0) {
 				if (p_bytes > m_bytes - m_bytes_read) throw pfc::exception_overflow();
 				memcpy((t_uint8*)m_out,p_buffer,p_bytes);
@@ -131,7 +133,8 @@ namespace {
 
 	class stream_writer_get_length : public stream_writer {
 	public:
-		void write(const void * p_buffer,t_size p_bytes,abort_callback & p_abort) {
+		void write(const void * ,t_size p_bytes,abort_callback & p_abort) override {
+			p_abort.check();
 			m_length += p_bytes;
 		}
 		stream_writer_get_length(t_size & p_length) : m_length(p_length) {m_length = 0;}

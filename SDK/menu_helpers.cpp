@@ -94,7 +94,7 @@ bool menu_helpers::guid_from_name(const char * p_name,unsigned p_name_len,GUID &
 		for(n=0;n<m;n++)
 		{
 			ptr->get_item_name(n,nametemp);
-			if (!strcmp_ex(nametemp,~0,p_name,p_name_len))
+			if (!strcmp_ex(nametemp,SIZE_MAX,p_name,p_name_len))
 			{
 				p_out = ptr->get_item_guid(n);
 				return true;
@@ -136,7 +136,7 @@ const char * menu_helpers::guid_to_name_table::search(const GUID & p_guid)
 				assert(dataptr < m_data.get_size());
 
 				ptr->get_item_name(n,nametemp);
-				m_data[dataptr].m_name = strdup(nametemp);
+				m_data[dataptr].m_name = pfc::strDup(nametemp);
 				m_data[dataptr].m_guid = ptr->get_item_guid(n);
 				dataptr++;
 			}
@@ -178,7 +178,7 @@ menu_helpers::guid_to_name_table::~guid_to_name_table()
 
 int menu_helpers::name_to_guid_table::entry_compare_search(const entry & entry1,const search_entry & entry2)
 {
-	return stricmp_utf8_ex(entry1.m_name,~0,entry2.m_name,entry2.m_name_len);
+	return stricmp_utf8_ex(entry1.m_name,SIZE_MAX,entry2.m_name,entry2.m_name_len);
 }
 
 int menu_helpers::name_to_guid_table::entry_compare(const entry & entry1,const entry & entry2)
@@ -202,7 +202,7 @@ bool menu_helpers::name_to_guid_table::search(const char * p_name,unsigned p_nam
 				assert(dataptr < m_data.get_size());
 
 				ptr->get_item_name(n,nametemp);
-				m_data[dataptr].m_name = strdup(nametemp);
+				m_data[dataptr].m_name = pfc::strDup(nametemp);
 				m_data[dataptr].m_guid = ptr->get_item_guid(n);
 				dataptr++;
 			}
@@ -284,4 +284,54 @@ bool menu_item_resolver::g_resolve_context_command(const GUID & id, contextmenu_
 }
 bool menu_item_resolver::g_resolve_main_command(const GUID & id, mainmenu_commands::ptr & out, t_uint32 & out_index) {
 	return menu_item_resolver::get()->resolve_main_command(id, out, out_index);
+}
+
+static bool char_is_separator(char x)
+{
+    for( auto s : {' ', ',', '/', '-'}) {
+        if (x==s) return true;
+    }
+    return false;
+}
+
+static bool capitalize_exception( const char * ptr, size_t len ) {
+    for( auto e : {"for", "to", "from", "with", "by", "in", "at", "and", "or", "on", "a", "of", "as" }) {
+        if ( len == strlen(e) && memcmp(ptr, e, len) == 0 ) return true;
+    }
+    return false;
+}
+#if FB2K_MENU_CAPS == FB2K_MENU_CAPS_TITLE
+static pfc::string8 capitalizeThis( const char * arg ) {
+    pfc::string8 work; work.prealloc( 256 );
+    auto base = arg;
+    while(*base) {
+        auto ptr = base;
+        while(*ptr && ! char_is_separator(*ptr) ) ++ptr;
+        if ( ptr > base ) {
+            if ( !capitalize_exception( base, ptr-base ) ) {
+                unsigned c = 0;
+                auto d = pfc::utf8_decode_char(base, c, ptr-base);
+                if ( d > 0 ) {
+                    c = uCharUpper( c );
+                    work.add_char( c );
+                    base += d;
+                }
+            }
+            work.add_string_nc(base, ptr - base);
+        }
+        while(*ptr && char_is_separator(*ptr)) {
+            work.add_byte(*ptr++);
+        }
+        base = ptr;
+    }
+    return work;
+}
+#endif // #if FB2K_MENU_CAPS == FB2K_MENU_CAPS_TITLE
+
+void fb2k::capitalizeMenuLabel( pfc::string_base & inOut ) {
+#if FB2K_MENU_CAPS == FB2K_MENU_CAPS_TITLE
+    inOut = capitalizeThis( inOut );
+#else
+    (void) inOut;
+#endif
 }

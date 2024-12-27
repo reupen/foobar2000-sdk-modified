@@ -369,16 +369,19 @@ static void process_path_internal(const char * p_path,const service_ptr_t<file> 
 namespace {
 	class plcallback_simple : public playlist_loader_callback {
 	public:
-		void on_progress(const char* p_path) override {}
+		void on_progress(const char* p_path) override { (void)p_path; }
 
 		void on_entry(const metadb_handle_ptr& p_item, t_entry_type p_type, const t_filestats& p_stats, bool p_fresh) override {
+			(void)p_type; (void)p_stats; (void)p_fresh;
 			m_items += p_item;
 		}
 		bool want_info(const metadb_handle_ptr& p_item, t_entry_type p_type, const t_filestats& p_stats, bool p_fresh) override {
+			(void)p_type; (void)p_stats; (void)p_fresh;
 			return p_item->should_reload(p_stats, p_fresh);
 		}
 
 		void on_entry_info(const metadb_handle_ptr& p_item, t_entry_type p_type, const t_filestats& p_stats, const file_info& p_info, bool p_fresh) override {
+			(void)p_type;
 			m_items += p_item;
 			m_hints->add_hint(p_item, p_info, p_stats, p_fresh);
 		}
@@ -387,12 +390,17 @@ namespace {
 			m_metadb->handle_create(p_out, p_location);
 		}
 
-		bool is_path_wanted(const char* path, t_entry_type type) override { return true; }
+		bool is_path_wanted(const char* path, t_entry_type type) override { 
+			(void)path; (void)type;
+			return true; 
+		}
 
 		bool want_browse_info(const metadb_handle_ptr& p_item, t_entry_type p_type, t_filetimestamp ts) override {
+			(void)p_item; (void)p_type; (void)ts;
 			return true;
 		}
 		void on_browse_info(const metadb_handle_ptr& p_item, t_entry_type p_type, const file_info& info, t_filetimestamp ts) override {
+			(void)p_type;
 			metadb_hint_list_v2::ptr v2;
 			if (v2 &= m_hints) v2->add_hint_browse(p_item, info, ts);
 		}

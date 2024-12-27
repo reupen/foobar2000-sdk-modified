@@ -208,6 +208,7 @@ namespace metadb_handle_list_helper {
 	t_size bsearch_by_pointer(const pfc::list_base_const_t<metadb_handle_ptr> & p_list,const metadb_handle_ptr & val);
 
 	double calc_total_duration(metadb_handle_list_cref p_list);
+    pfc::string8 format_total_size(metadb_handle_list_cref p_list);
 
 	//! New method to deal with slower metadb in foobar2000 v2
 	double calc_total_duration_v2(metadb_handle_list_cref p_list, unsigned maxThreads, abort_callback & aborter);
@@ -271,6 +272,7 @@ public:
 	inline t_size bsearch_by_pointer(const metadb_handle_ptr & val) const {return metadb_handle_list_helper::bsearch_by_pointer(*this,val);}
 
 	inline double calc_total_duration() const {return metadb_handle_list_helper::calc_total_duration(*this);}
+    pfc::string8 format_total_size() const { return metadb_handle_list_helper::format_total_size(*this); }
 
 	inline void sort_by_path() {metadb_handle_list_helper::sort_by_path(*this);}
 

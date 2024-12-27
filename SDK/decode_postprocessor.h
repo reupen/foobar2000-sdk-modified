@@ -20,8 +20,12 @@ public:
 	};
 	//! @returns True if the chunk list has been altered by the call, false if not - to tell possible other running instances whether the stream has already been altered or not.
 	virtual bool run(dsp_chunk_list & p_chunk_list,t_uint32 p_flags,abort_callback & p_abort) = 0;
+	//! Manipulate live info (bit depth, bitrate, whatever) that might be altered by us.
 	virtual bool get_dynamic_info(file_info & p_out) = 0;
+	//! Called after seek.
 	virtual void flush() = 0;
+	//! Return >0 to signal that, after each flush(), you require <amount> of audio before your output becomes valid. \n
+	//! This causes decoder to seek to position-<amount> instead of <position> then discard first <amount> of your output.
 	virtual double get_buffer_ahead() = 0;
 };
 

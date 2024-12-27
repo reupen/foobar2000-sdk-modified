@@ -249,5 +249,5 @@ void file_info_impl_utils::info_storage::copy_from(const file_info & p_info)
 	t_size n, count;
 	count = p_info.info_get_count();
 	m_info.set_count(count);
-	for(n=0;n<count;n++) m_info[n].init(p_info.info_enum_name(n),~0,p_info.info_enum_value(n),~0);	
+	for(n=0;n<count;n++) m_info[n].init(p_info.info_enum_name(n),SIZE_MAX,p_info.info_enum_value(n),SIZE_MAX);	
 }

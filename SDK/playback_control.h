@@ -194,3 +194,12 @@ public:
 
 //for compatibility with old code
 typedef playback_control play_control;
+
+namespace fb2k {
+	metadb_handle_ptr nowPlaying(bool bAudible = false);
+	metadb_handle_ptr nowPlayingAudible();
+	bool isNowPlaying(metadb_handle_ptr const&, bool bAudible = false);
+	bool isNowPlayingAudible(metadb_handle_ptr const&);
+	bool isNowPlaying(const playable_location&, bool bAudible = false);
+	bool isNowPlayingAudible(const playable_location&);
+}

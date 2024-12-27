@@ -26,17 +26,17 @@ public:
 
 class NOVTABLE mainmenu_commands : public service_base {
 public:
-	enum {
-		flag_disabled = 1<<0,
-		flag_checked =	1<<1,
-		flag_radiochecked = 1<<2,
+	static constexpr uint32_t
+		flag_disabled = 1 << 0,
+		flag_checked = 1 << 1,
+		flag_radiochecked = 1 << 2,
 		//! \since 1.0
 		//! Replaces the old return-false-from-get_display() behavior - use this to make your command hidden by default but accessible when holding shift.
-		flag_defaulthidden = 1<<3,
+		flag_defaulthidden = 1 << 3,
 		sort_priority_base = 0x10000,
 		sort_priority_dontcare = 0x80000000u,
-		sort_priority_last = ~0,
-	};
+		sort_priority_last = UINT32_MAX;
+	
 
 	//! Retrieves number of implemented commands. Index parameter of other methods must be in 0....command_count-1 range.
 	virtual t_uint32 get_command_count() = 0;
@@ -186,25 +186,25 @@ public:
 	//! Valid only if type is type_command.
 	virtual GUID get_guid() = 0;
 	//! Valid only if type is type_command.
-	virtual bool get_description(pfc::string_base & out) {return false;}
+	virtual bool get_description(pfc::string_base& out) { (void)out; return false; }
 
 };
 
 class mainmenu_node_separator : public mainmenu_node {
 public:
-	t_uint32 get_type() {return type_separator;}
-	void get_display(pfc::string_base & text, t_uint32 & flags) {text = ""; flags = 0;}
-	t_size get_children_count() {return 0;}
-	ptr get_child(t_size index) {throw pfc::exception_invalid_params();}
-	void execute(service_ptr_t<service_base>) {}
-	GUID get_guid() {return pfc::guid_null;}
+	t_uint32 get_type() override {return type_separator;}
+	void get_display(pfc::string_base & text, t_uint32 & flags) override {text = ""; flags = 0;}
+	t_size get_children_count() override {return 0;}
+	ptr get_child(t_size index) override { (void)index; throw pfc::exception_invalid_params(); }
+	void execute(service_ptr_t<service_base>) override {}
+	GUID get_guid() override {return pfc::guid_null;}
 };
 
 class mainmenu_node_command : public mainmenu_node {
 public:
-	t_uint32 get_type() {return type_command;}
-	t_size get_children_count() {return 0;}
-	ptr get_child(t_size index) {throw pfc::exception_invalid_params();}
+	t_uint32 get_type() override {return type_command;}
+	t_size get_children_count() override {return 0;}
+	ptr get_child(t_size index) override { (void)index; throw pfc::exception_invalid_params(); }
 /*
 	void get_display(pfc::string_base & text, t_uint32 & flags);
 	void execute(service_ptr_t<service_base> callback);
@@ -215,9 +215,9 @@ public:
 
 class mainmenu_node_group : public mainmenu_node {
 public:
-	t_uint32 get_type() {return type_group;}
-	void execute(service_ptr_t<service_base> callback) {}
-	GUID get_guid() {return pfc::guid_null;}
+	t_uint32 get_type() override {return type_group;}
+	void execute(service_ptr_t<service_base> callback) override { (void)callback; }
+	GUID get_guid() override {return pfc::guid_null;}
 /*
 	void get_display(pfc::string_base & text, t_uint32 & flags);
 	t_size get_children_count();
@@ -246,7 +246,7 @@ public:
 	public:
 		//! @param main Command ID
 		//! @param sub Reserved for future use.
-		virtual void menu_state_changed(const GUID& main, const GUID & sub) {}
+		virtual void menu_state_changed(const GUID& main, const GUID& sub) { (void)main; (void)sub; }
 		state_callback() {}
 		state_callback(state_callback const&) = delete;
 		void operator=(state_callback const&) = delete;

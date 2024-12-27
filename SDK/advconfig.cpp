@@ -69,6 +69,7 @@ bool advconfig_entry_checkbox_impl::get_state_() const {
 
 #ifdef FOOBAR2000_HAVE_CFG_VAR_LEGACY
 void advconfig_entry_checkbox_impl::set_data_raw(stream_reader* p_stream, t_size p_sizehint, abort_callback& p_abort) {
+	(void)p_sizehint;
 	uint8_t v;
 	if (p_stream->read(&v, 1, p_abort) == 1) {
 		set_state(v != 0);
@@ -93,6 +94,7 @@ void advconfig_entry_string_impl::set_state(const char* p_string, t_size p_lengt
 
 #ifdef FOOBAR2000_HAVE_CFG_VAR_LEGACY
 void advconfig_entry_string_impl::set_data_raw(stream_reader* p_stream, t_size p_sizehint, abort_callback& p_abort) {
+	(void)p_sizehint;
 	pfc::string8_fastalloc temp;
 	p_stream->read_string_raw(temp, p_abort);
 	this->set_state(temp);

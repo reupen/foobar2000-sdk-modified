@@ -26,7 +26,7 @@ public:
 //! metadb_io_callback_dynamic implementation helper.
 class metadb_io_callback_dynamic_impl_base : public metadb_io_callback_dynamic {
 public:
-	void on_changed_sorted(metadb_handle_list_cref p_items_sorted, bool p_fromhook) override {}
+	void on_changed_sorted(metadb_handle_list_cref p_items_sorted, bool p_fromhook) override { (void)p_items_sorted; (void)p_fromhook; }
 
 	metadb_io_callback_dynamic_impl_base();
 	~metadb_io_callback_dynamic_impl_base();
@@ -96,7 +96,7 @@ public:
 
 class metadb_io_callback_v2_dynamic_impl_base : public metadb_io_callback_v2_dynamic {
 public:
-	void on_changed_sorted_v2(metadb_handle_list_cref itemsSorted, metadb_io_callback_v2_data & data, bool bFromHook) override {}
+	void on_changed_sorted_v2(metadb_handle_list_cref itemsSorted, metadb_io_callback_v2_data& data, bool bFromHook) override { (void)itemsSorted; (void)data; (void)bFromHook; }
 
 	metadb_io_callback_v2_dynamic_impl_base();
 	~metadb_io_callback_v2_dynamic_impl_base();

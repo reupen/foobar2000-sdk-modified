@@ -46,7 +46,7 @@ public:
 	message_filter_impl_base(t_uint32 lowest, t_uint32 highest);
 	~message_filter_impl_base();
 
-	bool pretranslate_message(MSG * p_msg) override {return false;}
+	bool pretranslate_message(MSG * ) override {return false;}
 	
 	PFC_CLASS_NOT_COPYABLE(message_filter_impl_base,message_filter_impl_base);
 };

@@ -99,7 +99,7 @@ public:
 	//! Obsolete, do not use.
 	virtual void on_track_mark() {}
 	//! Obsolete, do not use.
-	virtual void enable_fading(bool state) {}
+	virtual void enable_fading(bool) { }
 	//! Called when flushing due to manual track change rather than seek-within-track
 	virtual void flush_changing_track() {flush();}
 };
@@ -154,6 +154,16 @@ public:
 	virtual size_t process_samples_v2(const audio_chunk&) = 0;
 };
 
+//! \since 2.25
+//! foobar2000 v2.25 functionality draft, use only for testing live info delivery in v2.25 beta.
+class output_v7 : public output_v6 {
+	FB2K_MAKE_SERVICE_INTERFACE(output_v7, output_v6);
+public:
+	//! Optional, gets notified about current playback metadata.
+	//! @param audioSource can be any type (metadb_handle, metadb_info_container, possibly other), use operator &= to determine type.
+	virtual void hint_source(fb2k::objRef audioSource) { (void)audioSource; }
+};
+
 class NOVTABLE output_entry : public service_base {
 	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(output_entry);
 public:
@@ -168,7 +178,7 @@ public:
 
 #ifdef _WIN32
 	//! Obsolete, do not use.
-	virtual void advanced_settings_popup(HWND p_parent,POINT p_menupoint) {}
+	virtual void advanced_settings_popup(HWND,POINT) {}
 #endif
 
 	enum {
@@ -237,7 +247,7 @@ class output_factory_t : public service_factory_single_t<output_entry_impl_t<T> 
 //! Helper base class for output implementations. \n
 //! This is the preferred way of implementing output. \n
 //! This is NOT a public interface and its layout changes between foobar2000 SDK versions, do not assume other outputs to implement it.
-class output_impl : public output_v6 {
+class output_impl : public output_v7 {
 protected:
 	output_impl() {}
     

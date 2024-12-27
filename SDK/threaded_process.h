@@ -7,15 +7,15 @@ public:
 	enum {progress_min = 0, progress_max = 5000};
 	
 	//! Sets the primary progress bar state; scale from progress_min to progress_max.
-	virtual void set_progress(t_size p_state) {}
+	virtual void set_progress(t_size p_state) { (void)p_state; }
 	//! Sets the secondary progress bar state; scale from progress_min to progress_max.
-	virtual void set_progress_secondary(t_size p_state) {}
+	virtual void set_progress_secondary(t_size p_state) { (void)p_state; }
 	//! Sets the currently progressed item label. When working with files, you should use set_file_path() instead.
-	virtual void set_item(const char * p_item,t_size p_item_len = SIZE_MAX) {}
+	virtual void set_item(const char* p_item, t_size p_item_len = SIZE_MAX) { (void)p_item; (void)p_item_len; }
 	//! Sets the currently progressed item label; treats the label as a file path.
-	virtual void set_item_path(const char * p_item,t_size p_item_len = SIZE_MAX) {}
+	virtual void set_item_path(const char* p_item, t_size p_item_len = SIZE_MAX) { (void)p_item; (void)p_item_len; }
 	//! Sets the title of the dialog. You normally don't need this function unless you want to override the title you set when initializing the threaded_process.
-	virtual void set_title(const char * p_title,t_size p_title_len = SIZE_MAX) {}
+	virtual void set_title(const char* p_title, t_size p_title_len = SIZE_MAX) { (void)p_title; (void)p_title_len; }
 	//! Should not be used.
 	virtual void force_update() {}
 	//! Returns whether the process is paused.
@@ -54,11 +54,11 @@ public:
 
 	//! Called from the main thread before spawning the worker thread. \n
 	//! Note that you should not access the window handle passed to on_init() in the worker thread later on.
-	virtual void on_init(ctx_t p_wnd) {}
+	virtual void on_init(ctx_t p_wnd) { (void)p_wnd; }
 	//! Called from the worker thread. Do all the hard work here.
 	virtual void run(threaded_process_status & p_status,abort_callback & p_abort) = 0;
 	//! Called after the worker thread has finished executing.
-	virtual void on_done(ctx_t p_wnd,bool p_was_aborted) {}
+	virtual void on_done(ctx_t p_wnd, bool p_was_aborted) { (void)p_wnd; (void)p_was_aborted; }
 	
 	//! Safely prevent destruction from worker threads.
 	static bool serviceRequiresMainThreadDestructor() { return true; }

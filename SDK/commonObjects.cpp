@@ -436,7 +436,7 @@ namespace fb2k {
             auto obj = this->itemAt( n );
             if ( obj == item ) return n;
         }
-        return pfc_infinite;
+        return SIZE_MAX;
     }
     
     array::ptr array::subset( pfc::bit_array const & mask ) const {

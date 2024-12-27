@@ -320,6 +320,7 @@ void filesystem::g_move(const char * src,const char * dst,abort_callback & p_abo
 }
 
 void filesystem::g_link(const char * p_src,const char * p_dst,abort_callback & p_abort) {
+	p_abort.check();
     pfc::string8 srcN, dstN;
     if (!extract_native_path(p_src, srcN) || !extract_native_path(p_dst, dstN)) throw exception_io_no_handler_for_path();
 #ifdef _WIN32
@@ -423,7 +424,7 @@ namespace {
 		abort_callback_event get_abort_event() const override { return m_abort.get_abort_event(); }
 
 		archive_callback_lambda(abort_callback& a) : m_abort(a) {}
-		bool on_entry(archive* owner, const char* url, const t_filestats& p_stats, const service_ptr_t<file>& p_reader) override {
+		bool on_entry(archive*, const char* url, const t_filestats& p_stats, const service_ptr_t<file>& p_reader) override {
 			f(url, p_stats, p_reader);
 			return true;
 		}
@@ -514,14 +515,17 @@ void archive_impl::open(service_ptr_t<file> & p_out,const char * path,t_open_mod
 
 
 void archive_impl::remove(const char * path,abort_callback & p_abort) {
+	(void)p_abort; (void)path;
     pfc::throw_exception_with_message< exception_io_denied> ("Cannot delete files within archives");
 }
 
 void archive_impl::move(const char * src,const char * dst,abort_callback & p_abort) {
+	(void)p_abort; (void)src; (void)dst;
     pfc::throw_exception_with_message< exception_io_denied> ("Cannot move files within archives");
 }
 
 void archive_impl::move_overwrite(const char* src, const char* dst, abort_callback& abort) {
+	(void)abort; (void)src; (void)dst;
     pfc::throw_exception_with_message< exception_io_denied> ("Cannot move files within archives");
 }
 
@@ -632,7 +636,7 @@ namespace {
 		bool m_isempty;
 	public:
 		directory_callback_isempty() : m_isempty(true) {}
-		bool on_entry(filesystem * owner,abort_callback & p_abort,const char * url,bool is_subdirectory,const t_filestats & p_stats)
+		bool on_entry(filesystem *,abort_callback &,const char *,bool,const t_filestats &) override
 		{
 			m_isempty = false;
 			return false;
@@ -643,7 +647,7 @@ namespace {
 	class directory_callback_dummy : public directory_callback
 	{
 	public:
-		bool on_entry(filesystem * owner,abort_callback & p_abort,const char * url,bool is_subdirectory,const t_filestats & p_stats) {return false;}
+		bool on_entry(filesystem *,abort_callback &,const char *,bool,const t_filestats &) override {return false;}
 	};
 
 }
@@ -687,7 +691,8 @@ namespace {
 			m_target.fix_dir_separator();
 		}
 
-		bool on_entry(filesystem * owner,abort_callback & p_abort,const char * url,bool is_subdirectory,const t_filestats & p_stats) {
+		bool on_entry(filesystem * owner,abort_callback & p_abort,const char * url,bool is_subdirectory,const t_filestats & p_stats) override {
+			(void)p_stats;
 			const char * fn = url + pfc::scan_filename(url);
 			t_size truncat = m_target.length();
 			m_target += fn;
@@ -840,7 +845,7 @@ void file::g_transfer_file(const service_ptr_t<file> & p_from,const service_ptr_
 	p_to->seek(0,p_abort);
 	p_to->set_eof(p_abort);
 	if (length == filesize_invalid) {
-		g_transfer(p_from, p_to, ~0, p_abort);
+		g_transfer(p_from, p_to, filesize_invalid, p_abort);
 	} else if (length > 0) {
 		g_transfer_object(p_from,p_to,length,p_abort);
 	}
@@ -859,22 +864,25 @@ file::ptr filesystem::g_open_tempmem() {
 }
 
 void archive_impl::list_directory(const char * p_path,directory_callback & p_out,abort_callback & p_abort) {
+	(void)p_path; (void)p_out; (void)p_abort;
 	throw exception_io_not_found();
 }
 
 void archive_impl::list_directory_ex(const char* p_path, directory_callback& p_out, unsigned listMode, abort_callback& p_abort) {
+	(void)p_path; (void)p_out; (void)listMode; (void)p_abort;
 	throw exception_io_not_found();
 }
 
 void archive_impl::list_directory_v3(const char* path, directory_callback_v3& callback, unsigned listMode, abort_callback& p_abort) {
+	(void)path; (void)callback; (void)listMode; (void)p_abort;
 	throw exception_io_not_found();
 }
 
-void archive_impl::create_directory(const char * path,abort_callback &) {
+void archive_impl::create_directory(const char *,abort_callback &) {
 	throw exception_io_denied();
 }
 
-void archive_impl::make_directory(const char* path, abort_callback& abort, bool* didCreate) {
+void archive_impl::make_directory(const char*, abort_callback&, bool*) {
 	throw exception_io_denied();
 }
 
@@ -963,7 +971,7 @@ void stream_writer::write_string(const char * p_string,t_size p_len,abort_callba
 }
 
 void stream_writer::write_string(const char * p_string,abort_callback & p_abort) {
-	write_string(p_string,~0,p_abort);
+	write_string(p_string,SIZE_MAX,p_abort);
 }
 
 void stream_writer::write_string_raw(const char * p_string,abort_callback & p_abort) {
@@ -1330,8 +1338,7 @@ pfc::string stream_reader::read_string(abort_callback & p_abort) {
 }
 pfc::string stream_reader::read_string_ex(t_size p_len,abort_callback & p_abort) {
 	pfc::string temp;
-	read_object(temp.lock_buffer(p_len),p_len,p_abort);
-	temp.unlock_buffer();
+	this->read_string_ex(temp, p_len, p_abort);
 	return temp;
 }
 
@@ -1339,7 +1346,7 @@ pfc::string stream_reader::read_string_ex(t_size p_len,abort_callback & p_abort)
 void filesystem::remove_directory_content(const char * path, abort_callback & abort) {
 	class myCallback : public directory_callback {
 	public:
-		bool on_entry(filesystem * p_owner,abort_callback & p_abort,const char * p_url,bool p_is_subdirectory,const t_filestats & p_stats) {
+		bool on_entry(filesystem * p_owner,abort_callback & p_abort,const char * p_url,bool p_is_subdirectory,const t_filestats &) {
 			if (p_is_subdirectory) p_owner->list_directory(p_url, *this, p_abort);
 			try {
 				p_owner->remove(p_url, p_abort);
@@ -1383,7 +1390,7 @@ void foobar2000_io::purgeOldFiles(const char * directory, t_filetimestamp period
 	class myCallback : public directory_callback {
 	public:
 		myCallback(t_filetimestamp period) : m_base(filetimestamp_from_system_timer() - period) {}
-		bool on_entry(filesystem * p_owner,abort_callback & p_abort,const char * p_url,bool p_is_subdirectory,const t_filestats & p_stats) {
+		bool on_entry(filesystem *,abort_callback & p_abort,const char * p_url,bool p_is_subdirectory,const t_filestats & p_stats) {
 			if (!p_is_subdirectory && p_stats.m_timestamp < m_base) {
 				try {
 					filesystem::g_remove_timeout(p_url, 1, p_abort);
@@ -1439,7 +1446,7 @@ bool foobar2000_io::matchContentType(const char * fullString, const char * ourTy
     if (lim != ~0) {
         while(lim > 0 && fullString[lim-1] == ' ') --lim;
     }
-    return pfc::stricmp_ascii_ex(fullString,lim, ourType, ~0) == 0;
+    return pfc::stricmp_ascii_ex(fullString,lim, ourType, SIZE_MAX) == 0;
 }
 
 const char * foobar2000_io::contentTypeFromExtension( const char * ext ) {
@@ -1871,6 +1878,7 @@ filesystem_transacted::ptr filesystem_transacted::create( const char * pathFor )
 #endif
 
 bool filesystem::commit_if_transacted(abort_callback &abort) {
+	(void)abort;
 	bool rv = false;
 #if FB2K_SUPPORT_TRANSACTED_FILESYSTEM
 	filesystem_transacted::ptr t;
@@ -1949,7 +1957,7 @@ service_ptr file::get_metadata_(abort_callback& a) {
 	return ret;
 }
 
-drivespace_t filesystem_v3::getDriveSpace(const char* pathAt, abort_callback& abort) {
+drivespace_t filesystem_v3::getDriveSpace(const char*, abort_callback&) {
 	throw pfc::exception_not_implemented();
 }
 
@@ -2062,10 +2070,10 @@ t_filetimestamp file::get_time_created(abort_callback& a) {
 
 bool filesystem::get_display_name_short_(const char* path, pfc::string_base& out) {
 
-	{
+	try {
 		filesystem_v3::ptr v3;
 		if (v3 &= this) return v3->get_display_name_short(path, out);
-	}
+    } catch(...) {return false;} // handle nonsense path etc
 
 	pfc::string8 temp;
 	extract_filename_ext(path, temp);
@@ -2127,7 +2135,7 @@ namespace {
 	class directory_callback_v3_to_lambda : public directory_callback_v3 {
 	public:
 		filesystem::list_callback_t f;
-		bool on_entry(filesystem* owner, const char* URL, t_filestats2 const& stats, abort_callback& abort) override {
+		bool on_entry(filesystem*, const char* URL, t_filestats2 const& stats, abort_callback&) override {
 			f(URL, stats);
 			return true;
 		}
@@ -2140,7 +2148,7 @@ namespace {
 		unsigned m_listMode = 0;
 
 		bool on_entry(filesystem* p_owner, abort_callback& p_abort, const char* p_url, bool p_is_subdirectory, const t_filestats& p_stats) override {
-
+			(void)p_owner; p_abort.check();
 			if (m_enforceListMode) {
 				if (p_is_subdirectory) {
 					if ( (m_listMode & listMode::folders) == 0 ) return true;
@@ -2357,8 +2365,8 @@ t_filestats2 foobar2000_io::nixMakeFileStats2(const struct stat &st) {
 	ret.m_timestampCreate = pfc::fileTimeUtoW(st.st_ctim);
 #endif
     ret.set_readonly(nixQueryReadonly(st));
-    if ( nixQueryDirectory( st ) ) ret.set_folder();
-    else ret.set_file();
+    if ( st.st_mode & S_IFDIR ) ret.set_folder();
+    else if (st.st_mode & S_IFREG ) ret.set_file();
 	ret.set_remote(false);
     return ret;
 }
@@ -2429,7 +2437,7 @@ bool filesystem::g_compare_paths(const char* p1, const char* p2, int& result) {
 			return false;
 		}
 		size_t prefix = s1 - p1;
-		if (prefix != s2 - p2) return false; // protocol mismatch
+		if (prefix != (size_t)(s2 - p2)) return false; // protocol mismatch
 		if (memcmp(p1, p2, prefix) != 0) return false; // protocol mismatch
 	}
 

@@ -229,7 +229,7 @@ size_t dsp_chain_config::find_first_of_type( const GUID & dspID ) const {
     for(size_t w = 0; w < count; ++w) {
         if (this->get_item(w).get_owner() == dspID) return w;
     }
-    return pfc_infinite;
+    return SIZE_MAX;
 }
 
 bool dsp_chain_config::contains_dsp( const GUID & dspID ) const {
@@ -434,11 +434,15 @@ void dsp_preset_impl::set_data_from_stream(stream_reader * p_stream,t_size p_byt
 	if (p_bytes > 0) p_stream->read_object(m_data.ptr(),p_bytes,p_abort);
 }
 
+void dsp_chain_config::add_items(const dsp_chain_config & p_source) {
+    t_size n, m = p_source.get_count();
+    for(n=0;n<m;n++)
+        add_item(p_source.get_item(n));
+}
+
 void dsp_chain_config::copy(const dsp_chain_config & p_source) {
 	remove_all();
-	t_size n, m = p_source.get_count();
-	for(n=0;n<m;n++)
-		add_item(p_source.get_item(n));
+    add_items( p_source );
 }
 
 bool dsp_entry::g_have_config_popup(const GUID & p_guid)
