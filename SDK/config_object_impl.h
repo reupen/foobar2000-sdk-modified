@@ -39,7 +39,7 @@ public:
 	config_object_impl(const GUID & p_guid,const void * p_data,t_size p_bytes);
 private:
 #ifdef FOOBAR2000_HAVE_CFG_VAR_LEGACY
-	void set_data_raw(stream_reader * p_stream,t_size p_sizehint,abort_callback & p_abort) override {set_data(p_stream,p_abort,false);}
+	void set_data_raw(stream_reader * p_stream,t_size,abort_callback & p_abort) override {set_data(p_stream,p_abort,false);}
 #endif
 
 	pfc::string8 formatName() const;
@@ -82,9 +82,9 @@ public:
 class config_object_notify_impl_simple : public config_object_notify
 {
 public:
-	t_size get_watched_object_count() {return 1;}
-	GUID get_watched_object(t_size p_index) {return m_guid;}
-	void on_watched_object_changed(const service_ptr_t<config_object> & p_object) {m_func(p_object);}
+	t_size get_watched_object_count() override {return 1;}
+	GUID get_watched_object(t_size) override {return m_guid;}
+	void on_watched_object_changed(const service_ptr_t<config_object> & p_object) override {m_func(p_object);}
 	
 	typedef void (*t_func)(const service_ptr_t<config_object> &);
 

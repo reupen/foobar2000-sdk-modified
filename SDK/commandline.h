@@ -11,7 +11,7 @@ public:
 		RESULT_PROCESSED_EXPECT_FILES,//command processed, we want to takeover file urls after this command
 	};
 	virtual result on_token(const char * token)=0;
-	virtual void on_file(const char * url) {};//optional
+	virtual void on_file(const char* url) { (void)url; };//optional
 	virtual void on_files_done() {};//optional
 	virtual bool want_directories() {return false;}
 

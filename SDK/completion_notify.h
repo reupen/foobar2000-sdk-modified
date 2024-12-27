@@ -7,6 +7,7 @@ class completion_notify : public service_base {
 public:
 	//! Called when an async operation has been completed. Note that on_completion is always called from main thread. You can use on_completion_async() helper if you need to signal completion while your context is in another thread.\n
 	//! IMPLEMENTATION WARNING: If process being completed creates a window taking caller's window as parent, you must not destroy the parent window inside on_completion(). If you need to do so, use PostMessage() or main_thread_callback to delay the deletion.
+	//! IMPLEMENTATION NOTE: on_completion() couldn't be declared noexcept in base class for historical reasons, but it's recommended that your overrides of on_completion() are noexcept.
 	//! @param p_code Context-specific status code. Possible values depend on the operation being performed.
 	virtual void on_completion(unsigned p_code) = 0;
 
@@ -22,7 +23,7 @@ public:
 //! Implementation helper.
 class completion_notify_dummy : public completion_notify {
 public:
-	void on_completion(unsigned) {}
+	void on_completion(unsigned) override {}
 };
 
 //! Implementation helper.

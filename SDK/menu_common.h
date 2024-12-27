@@ -45,7 +45,7 @@ public:
     //! Sub-command GUID for dynamically created items. Typically null GUID as simple items do not have sub command GUIDs.
     virtual GUID subCommandGuid() { return pfc::guid_null; }
 
-    virtual bool get_icon(fb2k::imageLocation_t& outLoc) { return false; }
+    virtual bool get_icon(fb2k::imageLocation_t& outLoc) { (void)outLoc; return false; }
 
     bool isSeparator() { return type() == itemSeparator; }
     bool isCommand() { return type() == itemCommand; }
@@ -56,3 +56,11 @@ public:
 
 typedef menu_tree_item mainmenu_tree_item;
 
+#define FB2K_MENU_CAPS_TITLE 1
+#define FB2K_MENU_CAPS_SENTENCE 2
+
+#ifdef _WIN32
+#define FB2K_MENU_CAPS FB2K_MENU_CAPS_SENTENCE
+#else
+#define FB2K_MENU_CAPS FB2K_MENU_CAPS_TITLE
+#endif

@@ -28,7 +28,7 @@ class NOVTABLE preferences_page : public service_base {
 public:
 #ifdef _WIN32
 	//! Obsolete.
-    virtual fb2k::hwnd_t create(fb2k::hwnd_t p_parent) { uBugCheck(); }
+	virtual fb2k::hwnd_t create(fb2k::hwnd_t p_parent) { (void)p_parent; uBugCheck(); }
 #endif
     
 #ifdef __APPLE__

@@ -67,11 +67,11 @@ namespace {
 		tfhook_sort() {
 			m_API->seed();
 		}
-		bool process_field(titleformat_text_out * p_out,const char * p_name,t_size p_name_length,bool & p_found_flag) {
+		bool process_field(titleformat_text_out *,const char *,t_size,bool &) override {
 			return false;
 		}
-		bool process_function(titleformat_text_out * p_out,const char * p_name,t_size p_name_length,titleformat_hook_function_params * p_params,bool & p_found_flag) {
-			if (stricmp_utf8_ex(p_name, p_name_length, "rand", ~0) == 0) {
+		bool process_function(titleformat_text_out * p_out,const char * p_name,t_size p_name_length,titleformat_hook_function_params * p_params,bool & p_found_flag) override {
+			if (stricmp_utf8_ex(p_name, p_name_length, "rand", SIZE_MAX) == 0) {
 				t_size param_count = p_params->get_param_count();
 				t_uint32 val;
 				if (param_count == 1) {
@@ -166,13 +166,12 @@ void metadb_handle_list_helper::remove_duplicates(metadb_handle_list_ref p_list)
 
 void metadb_handle_list_helper::sort_by_pointer_remove_duplicates(metadb_handle_list_ref p_list)
 {
-	t_size count = p_list.get_count();
+	const t_size count = p_list.get_count();
 	if (count>0)
 	{
 		sort_by_pointer(p_list);
 		bool b_found = false;
-		t_size n;
-		for(n=0;n<count-1;n++)
+		for(size_t n=0;n<count-1;n++)
 		{
 			if (p_list.get_item(n)==p_list.get_item(n+1))
 			{
@@ -184,8 +183,7 @@ void metadb_handle_list_helper::sort_by_pointer_remove_duplicates(metadb_handle_
 		if (b_found)
 		{
 			pfc::bit_array_bittable mask(count);
-			t_size n;
-			for(n=0;n<count-1;n++)
+			for(size_t n=0;n<count-1;n++)
 			{
 				if (p_list.get_item(n)==p_list.get_item(n+1))
 					mask.set(n+1,true);
@@ -210,7 +208,7 @@ t_size metadb_handle_list_helper::bsearch_by_pointer(metadb_handle_list_cref p_l
 {
 	t_size blah;
 	if (p_list.bsearch_t(pfc::compare_t<metadb_handle_ptr,metadb_handle_ptr>,val,blah)) return blah;
-	else return ~0;
+	else return SIZE_MAX;
 }
 
 
@@ -285,27 +283,38 @@ double metadb_handle_list_helper::calc_total_duration_v2(metadb_handle_list_cref
 		return ret;
 	}
 
-	
-	pfc::refcounter walk = 0, walkSums = 0;
 	pfc::array_t<double> sums; sums.resize(numThreads); sums.fill_null();
 
-	auto worker = [&] {
-		double ret = 0;
-		for(;;) {
-			size_t idx = walk++;
-			if (idx >= count || aborter.is_set()) break;
+	{
+		pfc::refcounter walk = 0, walkSums = 0;
 
-			double temp = p_list.get_item(idx)->get_length();
-			if (temp > 0) ret += temp;
-		}
-		sums[walkSums++] = ret;
-	};
+		auto worker = [&] {
+			double ret = 0;
+			for (;;) {
+				size_t idx = walk++;
+				if (idx >= count || aborter.is_set()) break;
 
-	fb2k::cpuThreadPool::runMultiHelper(worker, numThreads);
+				double temp = p_list.get_item(idx)->get_length();
+				if (temp > 0) ret += temp;
+			}
+			sums[walkSums++] = ret;
+		};
+
+		fb2k::cpuThreadPool::runMultiHelper(worker, numThreads);
+	}
 	aborter.check();
 	double ret = 0;
 	for (size_t walk = 0; walk < numThreads; ++walk) ret += sums[walk];
 	return ret;	
+}
+
+pfc::string8 metadb_handle_list_helper::format_total_size(metadb_handle_list_cref p_list) {
+    pfc::string8 temp;
+    bool unknown = false;
+    t_filesize val = metadb_handle_list_helper::calc_total_size_ex(p_list,unknown);
+    if (unknown) temp << "> ";
+    temp << pfc::format_file_size_short(val);
+    return temp;
 }
 
 double metadb_handle_list_helper::calc_total_duration(metadb_handle_list_cref p_list)

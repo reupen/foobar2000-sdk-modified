@@ -211,6 +211,7 @@
 		0F75F55E2A6B1CA800A45078 /* cfg_var.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F75F4922A6B1CA800A45078 /* cfg_var.h */; };
 		0F75F55F2A6B1CA800A45078 /* menu_helpers.h in Headers */ = {isa = PBXBuildFile; fileRef = 0F75F4932A6B1CA800A45078 /* menu_helpers.h */; };
 		0FCA711C2AA2210C001CB0F2 /* commonObjects-Apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0FCA711A2AA2210C001CB0F2 /* commonObjects-Apple.mm */; };
+		0FDB0DFC2CEB60A900178906 /* ui_element_mac.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FDB0DFB2CEB60A500178906 /* ui_element_mac.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -419,6 +420,7 @@
 		0F75F4932A6B1CA800A45078 /* menu_helpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = menu_helpers.h; sourceTree = "<group>"; };
 		0FCA711A2AA2210C001CB0F2 /* commonObjects-Apple.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "commonObjects-Apple.mm"; sourceTree = "<group>"; };
 		0FCA711E2AA2715E001CB0F2 /* commonObjects-Apple.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "commonObjects-Apple.h"; sourceTree = "<group>"; };
+		0FDB0DFB2CEB60A500178906 /* ui_element_mac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_element_mac.h; sourceTree = "<group>"; };
 		B166962019ACC1450001728F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		B166962E19ACC1450001728F /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		B166963119ACC1450001728F /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
@@ -466,6 +468,7 @@
 		B1DD3670198A725100EF7043 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				0FDB0DFB2CEB60A500178906 /* ui_element_mac.h */,
 				0F75F3D02A6B1CA000A45078 /* abort_callback.cpp */,
 				0F75F4472A6B1CA400A45078 /* abort_callback.h */,
 				0F75F4352A6B1CA300A45078 /* advconfig_impl_legacy.h */,
@@ -819,6 +822,7 @@
 				0F75F5252A6B1CA800A45078 /* components_menu.h in Headers */,
 				0F75F51B2A6B1CA800A45078 /* callback_merit.h in Headers */,
 				0F75F4AD2A6B1CA800A45078 /* service.h in Headers */,
+				0FDB0DFC2CEB60A900178906 /* ui_element_mac.h in Headers */,
 				0F75F4B82A6B1CA800A45078 /* replaygain.h in Headers */,
 				0F75F4A92A6B1CA800A45078 /* noInfo.h in Headers */,
 			);

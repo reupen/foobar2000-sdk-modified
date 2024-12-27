@@ -167,7 +167,7 @@ public:
 			FB2K_DebugLog() << "Skip-seeking: " << p_position;
 #endif
 			t_filesize skipped = this->skip_( delta, p_abort );
-			PFC_ASSERT( skipped == delta ); (void) skipped;
+			PFC_ASSERT( skipped == (t_filesize)delta ); (void) skipped;
 			return;
 		}
 
@@ -234,7 +234,7 @@ public:
 		m_buffer.set_size(blocksize);
 	}
 	size_t get_cache_block_size() override {return m_buffer.get_size();}
-	void suggest_grow_cache(size_t suggestSize) override {}
+	void suggest_grow_cache(size_t) override {}
 	void initialize(service_ptr_t<file> p_base,abort_callback & p_abort) {
 		m_base = p_base;
 		m_can_seek = m_base->can_seek();

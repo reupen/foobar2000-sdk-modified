@@ -519,14 +519,14 @@ public:
 		clipHi = ( (int_t) 1 << (d.bpsValid-1)) - 1;
 		scale = (float) ( (int64_t) 1 << (d.bpsValid - 1) ) * d.scale;
 		if (d.useUpperBits) {
-			shift = d.bps - d.bpsValid;
+			shift = (int8_t)( d.bps - d.bpsValid );
 		} else {
 			shift = 0;
 		}
 	}
 	inline int_t operator() (audio_sample s) const {
 		int_t v;
-		if (sizeof(int_t) > 4) v = (int_t) audio_math::rint64( s * scale );
+		if constexpr (sizeof(int_t) > 4) v = (int_t) audio_math::rint64( s * scale );
 		else v = (int_t)audio_math::rint32( s * scale );
 		return pfc::clip_t<int_t>( v, clipLo, clipHi) << shift;
 	}
@@ -676,10 +676,10 @@ WAVEFORMATEX audio_chunk::spec_t::toWFX() const {
 
 	WAVEFORMATEX wfx = {};
 	wfx.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-	wfx.nChannels = chanCount;
+	wfx.nChannels = (WORD) chanCount;
 	wfx.nSamplesPerSec = sampleRate;
 	wfx.nAvgBytesPerSec = sampleRate * chanCount * sampleWidth;
-	wfx.nBlockAlign = chanCount * sampleWidth;
+	wfx.nBlockAlign = (WORD)( chanCount * sampleWidth );
 	wfx.wBitsPerSample = sampleWidth * 8;
 	return wfx;
 }
@@ -704,11 +704,11 @@ WAVEFORMATEX audio_chunk::spec_t::toWFXWithBPS(uint32_t bps) const {
 
 	WAVEFORMATEX wfx = {};
 	wfx.wFormatTag = WAVE_FORMAT_PCM;
-	wfx.nChannels = chanCount;
+	wfx.nChannels = (WORD)chanCount;
 	wfx.nSamplesPerSec = sampleRate;
 	wfx.nAvgBytesPerSec = sampleRate * chanCount * sampleWidth;
-	wfx.nBlockAlign = chanCount * sampleWidth;
-	wfx.wBitsPerSample = sampleWidth * 8;
+	wfx.nBlockAlign = (WORD)( chanCount * sampleWidth );
+	wfx.wBitsPerSample = (WORD)( sampleWidth * 8 );
 	return wfx;
 }
 
@@ -720,7 +720,7 @@ WAVEFORMATEXTENSIBLE audio_chunk::spec_t::toWFXEXWithBPS(uint32_t bps) const {
 	wfxe.Format = toWFXWithBPS(bps);
 	wfxe.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
 	wfxe.Format.cbSize = sizeof(wfxe) - sizeof(wfxe.Format);
-	wfxe.Samples.wValidBitsPerSample = sampleWidth * 8;
+	wfxe.Samples.wValidBitsPerSample = (WORD)( sampleWidth * 8 );
 	wfxe.dwChannelMask = audio_chunk::g_channel_config_to_wfx(this->chanMask);
 	wfxe.SubFormat = isFloat ? KSDATAFORMAT_SUBTYPE_IEEE_FLOAT : KSDATAFORMAT_SUBTYPE_PCM;
 

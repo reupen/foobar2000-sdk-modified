@@ -117,6 +117,7 @@
 #include "toolbarDropDown.h"
 
 #include "commonObjects-Apple.h"
+#include "ui_element_mac.h"
 
 #endif //_FOOBAR2000_H_
 

@@ -43,6 +43,7 @@ public:
 	void set(const GUID & p_what,album_art_data_ptr p_content) {m_content.set(p_what,p_content);}
 	bool have_item(const GUID & p_what) {return m_content.have_item(p_what);}
 	album_art_data_ptr query(const GUID & p_what,abort_callback & p_abort) {
+		p_abort.check();
 		album_art_data_ptr temp;
 		if (!m_content.query(p_what,temp)) throw exception_album_art_not_found();
 		return temp;
@@ -67,6 +68,7 @@ public:
 	}
 
 	bool is_our_path(const char * p_path,const char * p_extension) override {
+		(void)p_path;
 		return m_extensions.have_item(p_extension);
 	}
 
@@ -94,6 +96,7 @@ public:
 	}
 
 	bool is_our_path(const char * p_path,const char * p_extension) override {
+		(void)p_path;
 		return m_extensions.have_item(p_extension);
 	}
 
@@ -161,6 +164,6 @@ private:
 //! album_art_path_list implementation helper
 class album_art_path_list_dummy : public album_art_path_list {
 public:
-	const char * get_path(t_size index) const {FB2K_BugCheck();}
-	t_size get_count() const {return 0;}
+	const char * get_path(t_size) const override {FB2K_BugCheck();}
+	t_size get_count() const override {return 0;}
 };

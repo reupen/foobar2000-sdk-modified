@@ -56,7 +56,7 @@ namespace {
     
     class completion_notify_func : public completion_notify {
     public:
-        void on_completion(unsigned p_code) {
+        void on_completion(unsigned p_code) noexcept override {
             m_func(p_code);
         }
 
@@ -67,7 +67,7 @@ namespace {
 namespace fb2k {
     
     completion_notify::ptr makeCompletionNotify( completionNotifyFunc_t func ) {
-        service_ptr_t<completion_notify_func> n = new service_impl_t< completion_notify_func >;
+        auto n = fb2k::service_new< completion_notify_func >();
         n->m_func = func;
         return n;
     }

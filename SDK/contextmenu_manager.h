@@ -121,7 +121,7 @@ public:
 	virtual void init_context_ex(metadb_handle_list_cref data,unsigned flags,const GUID & caller)=0;
 	virtual bool init_context_now_playing(unsigned flags)=0;//returns false if not playing
 
-	bool execute_by_id(unsigned id);
+	bool execute_by_id(unsigned id) noexcept;
 
 	bool get_description_by_id(unsigned id,pfc::string_base & out);
 

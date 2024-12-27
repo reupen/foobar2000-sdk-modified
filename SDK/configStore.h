@@ -78,6 +78,7 @@ public:
 	virtual void callNotify(const char * name) = 0;
 
     fb2k::stringRef getConfigString( const char * name, const char * defVal ) { return getConfigString(name, defVal ? fb2k::makeString(defVal) : nullptr); }
+    fb2k::stringRef getConfigString( const char * name, std::nullptr_t ) { return getConfigString(name, fb2k::stringRef ( nullptr ) ); }
 };
 
 struct configEventHandle_;

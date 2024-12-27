@@ -95,7 +95,7 @@ namespace foobar2000_io
 		bool haveTimestamp() const { return m_timestamp != filetimestamp_invalid; }
 		bool haveTimestampCreate() const { return m_timestampCreate != filetimestamp_invalid; }
 	};
-	enum {
+	static constexpr uint32_t
 		stats2_size = 1 << 0,
 		stats2_timestamp = 1 << 1,
 		stats2_timestampCreate = 1 << 2,
@@ -106,8 +106,7 @@ namespace foobar2000_io
 		stats2_remote = 1 << 6,
 		stats2_flags = (stats2_fileOrFolder | stats2_readOnly | stats2_hidden | stats2_remote),
 		stats2_legacy = (stats2_size | stats2_timestamp),
-		stats2_all = 0xFFFFFFFF,
-	};
+		stats2_all = 0xFFFFFFFF;
 
 	//! Invalid/unknown file stats constant. See: t_filestats.
 	static constexpr t_filestats filestats_invalid = t_filestats();
@@ -480,7 +479,7 @@ namespace foobar2000_io
 
 		virtual t_filestats2 get_stats2(uint32_t s2flags, abort_callback&) = 0;
 
-		virtual size_t lowLevelIO(const GUID& guid, size_t arg1, void* arg2, size_t arg2size, abort_callback& abort) { return 0; }
+		virtual size_t lowLevelIO(const GUID& guid, size_t arg1, void* arg2, size_t arg2size, abort_callback& abort) { (void)guid; (void)arg1; (void)arg2; (void)arg2size; (void)abort; return 0; }
 
 		// Old methods wrapped to get_stats2()
 		t_filetimestamp get_timestamp(abort_callback& p_abort) override;

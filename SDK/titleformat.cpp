@@ -176,6 +176,7 @@ void titleformat_compiler::compile_safe_ex(titleformat_object::ptr & p_out,const
 
 
 void titleformat_text_filter_nontext_chars::write(const GUID & p_inputtype,pfc::string_receiver & p_out,const char * p_data,t_size p_data_length) {
+	(void)p_inputtype;
 	for(t_size walk = 0;;) {
 		t_size base = walk;
 		while(walk < p_data_length && !isReserved(p_data[walk]) && p_data[walk] != 0) walk++;

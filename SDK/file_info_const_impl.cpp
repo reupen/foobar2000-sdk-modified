@@ -84,7 +84,7 @@ namespace {
 
 		inline int test(t_size p_index) const
 		{
-			return pfc::stricmp_ascii_ex(m_meta[m_hintmap[p_index]].m_name,~0,m_name,m_name_length);
+			return pfc::stricmp_ascii_ex(m_meta[m_hintmap[p_index]].m_name,SIZE_MAX,m_name,m_name_length);
 		}
 
 	private:
@@ -260,8 +260,8 @@ t_size file_info_const_impl::meta_find_ex(const char * p_name,t_size p_name_leng
 {
 #ifdef __file_info_const_impl_have_hintmap__
 	if (m_hintmap != NULL) {
-		t_size result = ~0;
-		if (!pfc::bsearch_inline_t(m_meta_count,bsearch_callback_hintmap_impl(m_meta,m_hintmap,p_name,p_name_length),result)) return ~0;
+		t_size result = SIZE_MAX;
+		if (!pfc::bsearch_inline_t(m_meta_count,bsearch_callback_hintmap_impl(m_meta,m_hintmap,p_name,p_name_length),result)) return SIZE_MAX;
 		else return m_hintmap[result];
 	} else {
 		return file_info::meta_find_ex(p_name,p_name_length);

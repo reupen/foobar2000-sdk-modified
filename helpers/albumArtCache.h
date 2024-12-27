@@ -46,7 +46,7 @@ namespace fb2k {
                     m_imageLoader = imageLoader::get()->beginLoad(loc, this->imageSize,  recv);
                     
                     if (m_imageLoader.is_valid() && timeOut > 0) {
-                        m_timeOutTimer = fb2k::registerTimer( timeOut, [=] {
+                        m_timeOutTimer = fb2k::registerTimer( timeOut, [=, this] {
                             m_timeOutTimer.release();
                             if (onLoaded) onLoaded();
                             if (asyncRecv) asyncRecv(nullptr);

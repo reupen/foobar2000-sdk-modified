@@ -185,7 +185,7 @@ public:
 	void on_min_max_info_change() {
 		if (m_receiver != NULL) m_receiver->on_min_max_info_change();
 	}
-	void on_alt_pressed(bool p_state) {}
+	void on_alt_pressed(bool p_state) { (void)p_state; }
 
 	bool query_color(const GUID & p_what,t_ui_color & p_out) {
 		if (m_receiver != NULL) return m_receiver->query_color(p_what,p_out);
@@ -228,13 +228,13 @@ private:
 class ui_element_instance_callback_receiver {
 public:
 	virtual void on_min_max_info_change() {}
-	virtual bool query_color(const GUID & p_what,t_ui_color & p_out) {return false;}
-	virtual bool request_activation(service_ptr_t<class ui_element_instance> p_item) {return false;}
+	virtual bool query_color(const GUID& p_what, t_ui_color& p_out) { (void)p_what; (void)p_out; return false; }
+	virtual bool request_activation(service_ptr_t<class ui_element_instance> p_item) { (void)p_item; return false; }
 	virtual bool is_edit_mode_enabled() {return false;}
 	virtual void request_replace(service_ptr_t<class ui_element_instance> p_item) {}
 	virtual t_ui_font query_font_ex(const GUID&) {return NULL;}
 	virtual bool is_elem_visible(service_ptr_t<ui_element_instance> elem) {return true;}
-	virtual t_size host_notify(ui_element_instance * source, const GUID & what, t_size param1, const void * param2, t_size param2size) {return 0;}
+	virtual t_size host_notify(ui_element_instance* source, const GUID& what, t_size param1, const void* param2, t_size param2size) { (void)source; (void)what; (void)param1; (void)param2; (void)param2size; return 0; }
 	ui_element_instance_callback_ptr ui_element_instance_callback_get_ptr() {
 		if (m_callback.is_empty()) m_callback = new service_impl_t<t_callback>(this);
 		return m_callback;
@@ -294,18 +294,18 @@ public:
 	virtual ui_element_min_max_info get_min_max_info();
 
 	//! Used by host to notify the element about various events. See ui_element_notify_* GUIDs for possible p_what parameter; meaning of other parameters depends on p_what value. Container classes should dispatch all notifications to their children.
-	virtual void notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size) {}
+	virtual void notify(const GUID& p_what, t_size p_param1, const void* p_param2, t_size p_param2size) { (void)p_what; (void)p_param1; (void)p_param2; (void)p_param2size; }
 
 #ifdef _WIN32
 	//! @param p_point Context menu point in screen coordinates. Always within out window's rect.
 	//! @return True to request edit_mode_context_menu_build() call to add our own items to the menu, false if we can't supply a context menu for this point.
-	virtual bool edit_mode_context_menu_test(const POINT & p_point,bool p_fromkeyboard) {return false;}
-	virtual void edit_mode_context_menu_build(const POINT & p_point,bool p_fromkeyboard,HMENU p_menu,unsigned p_id_base) {}
-	virtual void edit_mode_context_menu_command(const POINT & p_point,bool p_fromkeyboard,unsigned p_id,unsigned p_id_base) {}
+	virtual bool edit_mode_context_menu_test(const POINT& p_point, bool p_fromkeyboard) { (void)p_point; (void)p_fromkeyboard; return false; }
+	virtual void edit_mode_context_menu_build(const POINT& p_point, bool p_fromkeyboard, HMENU p_menu, unsigned p_id_base) { (void)p_point; (void)p_fromkeyboard; (void)p_menu; (void)p_id_base; }
+	virtual void edit_mode_context_menu_command(const POINT& p_point, bool p_fromkeyboard, unsigned p_id, unsigned p_id_base) { (void)p_point; (void)p_fromkeyboard; (void)p_id; (void)p_id_base; }
 	//! @param p_point Receives the point to spawn context menu over when user has pressed the context menu key; in screen coordinates.
-	virtual bool edit_mode_context_menu_get_focus_point(POINT & p_point) {return false;}
+	virtual bool edit_mode_context_menu_get_focus_point(POINT& p_point) { (void)p_point; return false; }
 
-	virtual bool edit_mode_context_menu_get_description(unsigned p_id,unsigned p_id_base,pfc::string_base & p_out) {return false;}
+	virtual bool edit_mode_context_menu_get_description(unsigned p_id, unsigned p_id_base, pfc::string_base& p_out) { (void)p_id; (void)p_id_base; (void)p_out; return false; }
 #endif // _WIN32
 
     //! Helper.
@@ -382,7 +382,7 @@ public:
 	virtual t_ui_icon get_icon() {return NULL;}
 	
 	//! Retrieves a human-readable description of the element.
-	virtual bool get_description(pfc::string_base & p_out) {return false;}
+	virtual bool get_description(pfc::string_base& p_out) { (void)p_out; return false; }
 
 	//! Retrieves a human-readable description of the element's function to use for grouping in the element list. The default implementation relies on get_subclass() return value.
 	virtual bool get_element_group(pfc::string_base & p_out);
@@ -431,7 +431,7 @@ public:
 	//! @param defSize Default window size @ 96DPI. If screen DPI is different, it will be rescaled appropriately.
 	//! @param title Window title to use.
 	//! @returns True when implemented, false when not - caller will automatically determine default size and window title then.
-	virtual bool get_popup_specs(ui_size & defSize, pfc::string_base & title) {return false;}
+	virtual bool get_popup_specs(ui_size& defSize, pfc::string_base& title) { (void)defSize; (void)title; return false; }
 
 	
 	FB2K_MAKE_SERVICE_INTERFACE(ui_element_v2, ui_element)

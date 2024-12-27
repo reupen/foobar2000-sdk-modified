@@ -98,18 +98,18 @@ protected:
 //! Inherit from this and you implement input_decoder_v4 without having to provide all the methods you don't actually need.
 class input_stubs {
 public:
-	bool decode_run_raw(audio_chunk & p_chunk, mem_block_container & p_raw, abort_callback & p_abort) { throw pfc::exception_not_implemented(); }
-	void set_logger(event_logger::ptr ptr) {}
-	void set_pause(bool paused) {}
+	bool decode_run_raw(audio_chunk& p_chunk, mem_block_container& p_raw, abort_callback& p_abort) { (void)p_chunk; (void)p_raw; (void)p_abort; throw pfc::exception_not_implemented(); }
+	void set_logger(event_logger::ptr ptr) { (void)ptr; }
+	void set_pause(bool paused) { (void)paused; }
 	bool flush_on_pause() { return false; }
-	size_t extended_param(const GUID & type, size_t arg1, void * arg2, size_t arg2size) { return 0; }
+	size_t extended_param(const GUID& type, size_t arg1, void* arg2, size_t arg2size) { (void)type, (void)arg1; (void)arg2; (void)arg2size; return 0; }
 	static GUID g_get_preferences_guid() {return pfc::guid_null;}
 	static bool g_is_low_merit() { return false; }
-	static bool g_fallback_is_our_payload(const void* bytes, size_t bytesAvail, t_filesize bytesWhole) { return false; }
+	static bool g_fallback_is_our_payload(const void* bytes, size_t bytesAvail, t_filesize bytesWhole) { (void)bytes; (void)bytesAvail; (void)bytes; (void)bytesWhole; return false; }
 
-    bool decode_get_dynamic_info(file_info & p_out, double & p_timestamp_delta) { return false; }
-    bool decode_get_dynamic_info_track(file_info & p_out, double & p_timestamp_delta) { return false; }
-    void decode_on_idle(abort_callback & p_abort) { }
+	bool decode_get_dynamic_info(file_info& p_out, double& p_timestamp_delta) { (void)p_out; (void)p_timestamp_delta; return false; }
+	bool decode_get_dynamic_info_track(file_info& p_out, double& p_timestamp_delta) { (void)p_out; (void)p_timestamp_delta; return false; }
+	void decode_on_idle(abort_callback& p_abort) { (void)p_abort; }
 
 
 	//! These typedefs indicate which interfaces your class actually supports. You can override them to support non default input API interfaces without specifying input_factory parameters.

@@ -96,8 +96,8 @@ namespace fb2k {
     }
 
     
-    void imageLocation_t::setPath( const char * path ) {
-        this->path = makeString(path);
+    void imageLocation_t::setPath( const char * path_ ) {
+        this->path = makeString(path_);
     }
     void imageLocation_t::setPath(stringRef path_) {
         this->path = path_;
@@ -122,8 +122,8 @@ namespace fb2k {
         return nullptr;
     }
 
-    void imageLocation_t::setEmbedded( const char * path, const GUID & albumArtID ) {
-        setPath( PFC_string_formatter() << "embedded://" << pfc::print_guid(albumArtID) << "," << path);
+    void imageLocation_t::setEmbedded( const char * path_, const GUID & albumArtID ) {
+        setPath( PFC_string_formatter() << "embedded://" << pfc::print_guid(albumArtID) << "," << path_);
     }
     bool imageLocation_t::equals(const fb2k::imageLocation_t &l1, const fb2k::imageLocation_t &l2) {
         if ( l1.path.is_empty() && l2.path.is_empty() ) return true;

@@ -55,9 +55,9 @@ public:
 	file_operation_callback_dynamic_impl_base() {file_operation_callback_dynamic_manager::get()->register_callback(this);}
 	~file_operation_callback_dynamic_impl_base() {file_operation_callback_dynamic_manager::get()->unregister_callback(this);}
 
-	void on_files_deleted_sorted(const pfc::list_base_const_t<const char *> & p_items) {}
-	void on_files_moved_sorted(const pfc::list_base_const_t<const char *> & p_from,const pfc::list_base_const_t<const char *> & p_to) {}
-	void on_files_copied_sorted(const pfc::list_base_const_t<const char *> & p_from,const pfc::list_base_const_t<const char *> & p_to) {}
+	void on_files_deleted_sorted(const pfc::list_base_const_t<const char*>& p_items) override { (void)p_items; }
+	void on_files_moved_sorted(const pfc::list_base_const_t<const char*>& p_from, const pfc::list_base_const_t<const char*>& p_to) override { (void)p_from; (void)p_to; }
+	void on_files_copied_sorted(const pfc::list_base_const_t<const char*>& p_from, const pfc::list_base_const_t<const char*>& p_to) override { (void)p_from; (void)p_to; }
 
 	PFC_CLASS_NOT_COPYABLE_EX(file_operation_callback_dynamic_impl_base);
 };

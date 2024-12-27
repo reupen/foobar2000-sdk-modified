@@ -32,9 +32,24 @@ class service_base;
 
 template<typename T>
 class service_ptr_base_t {
+    typedef service_ptr_base_t<T> self_t;
 public:
 	inline T* get_ptr() const throw() {return m_ptr;}
 	typedef T obj_t;
+    
+    
+    inline bool operator==(const self_t & other) const noexcept {return this->m_ptr == other.m_ptr;}
+    inline bool operator!=(const self_t & other) const noexcept {return this->m_ptr != other.m_ptr;}
+
+    inline bool operator>(const self_t & other) const noexcept {return this->m_ptr > other.m_ptr;}
+    inline bool operator<(const self_t & other) const noexcept {return this->m_ptr < other.m_ptr;}
+
+    inline bool operator==(T * other) const noexcept {return this->m_ptr == other;}
+    inline bool operator!=(T * other) const noexcept {return this->m_ptr != other;}
+
+    inline bool operator>(T * other) const noexcept {return this->m_ptr > other;}
+    inline bool operator<(T * other) const noexcept {return this->m_ptr < other;}
+
 protected:
 	T * m_ptr;
 };
@@ -123,18 +138,6 @@ public:
 	
 	inline bool is_valid() const throw() {return this->m_ptr != NULL;}
 	inline bool is_empty() const throw() {return this->m_ptr == NULL;}
-
-	inline bool operator==(const service_ptr_base_t<T> & p_item) const throw() {return this->m_ptr == p_item.get_ptr();}
-	inline bool operator!=(const service_ptr_base_t<T> & p_item) const throw() {return this->m_ptr != p_item.get_ptr();}
-
-	inline bool operator>(const service_ptr_base_t<T> & p_item) const throw() {return this->m_ptr > p_item.get_ptr();}
-	inline bool operator<(const service_ptr_base_t<T> & p_item) const throw() {return this->m_ptr < p_item.get_ptr();}
-
-	inline bool operator==(T * p_item) const throw() {return this->m_ptr == p_item;}
-	inline bool operator!=(T * p_item) const throw() {return this->m_ptr != p_item;}
-
-	inline bool operator>(T * p_item) const throw() {return this->m_ptr > p_item;}
-	inline bool operator<(T * p_item) const throw() {return this->m_ptr < p_item;}
 
 	template<typename t_other>
 	inline t_self & operator<<(service_ptr_t<t_other> & p_source) throw() {attach(p_source.detach());return *this;}
@@ -265,18 +268,6 @@ public:
 	
 	inline bool is_valid() const throw() {return true;}
 	inline bool is_empty() const throw() {return false;}
-
-	inline bool operator==(const service_ptr_base_t<T> & p_item) const throw() {return this->m_ptr == p_item.get_ptr();}
-	inline bool operator!=(const service_ptr_base_t<T> & p_item) const throw() {return this->m_ptr != p_item.get_ptr();}
-
-	inline bool operator>(const service_ptr_base_t<T> & p_item) const throw() {return this->m_ptr > p_item.get_ptr();}
-	inline bool operator<(const service_ptr_base_t<T> & p_item) const throw() {return this->m_ptr < p_item.get_ptr();}
-
-	inline bool operator==(T * p_item) const throw() {return this->m_ptr == p_item;}
-	inline bool operator!=(T * p_item) const throw() {return this->m_ptr != p_item;}
-
-	inline bool operator>(T * p_item) const throw() {return this->m_ptr > p_item;}
-	inline bool operator<(T * p_item) const throw() {return this->m_ptr < p_item;}
 
 	inline T* _duplicate_ptr() const throw() {//should not be used ! temporary !
 		service_add_ref_safe(this->m_ptr);
@@ -591,7 +582,7 @@ void _standard_api_get_internal(service_ptr & out, const GUID & classID);
 bool _standard_api_try_get_internal(service_ptr & out, const GUID & classID);
 
 template<typename T> inline void standard_api_create_t(service_ptr_t<T> & p_out) {
-	if (pfc::is_same_type<T,typename T::t_interface_entrypoint>::value) {
+	if constexpr (pfc::is_same_type<T,typename T::t_interface_entrypoint>::value) {
 		_standard_api_create_internal(p_out._as_base_ptr(), T::class_guid);
 		FB2K_ASSERT_VALID_SERVICE_PTR(p_out);
 	} else {
@@ -622,7 +613,7 @@ inline bool static_api_test_t() {
 	typedef typename T::t_interface_entrypoint EP;
 	service_class_helper_t<EP> helper;
 	if (helper.get_count() != 1) return false;
-	if (!pfc::is_same_type<T,EP>::value) {
+	if constexpr (!pfc::is_same_type<T,EP>::value) {
 		service_ptr_t<T> t;
 		if (!helper.create(0)->service_query_t(t)) return false;
 	}
@@ -674,7 +665,7 @@ public:
 	template<typename t_query>
 	bool next(service_ptr_t<t_query> & p_out) {
 		pfc::assert_same_type<typename t_query::t_interface_entrypoint,t_interface>();
-		if (pfc::is_same_type<t_query,t_interface>::value) {
+		if constexpr (pfc::is_same_type<t_query,t_interface>::value) {
 			return _next(reinterpret_cast<service_ptr_t<t_interface>&>(p_out));
 		} else {
 			service_ptr_t<t_interface> temp;
@@ -740,7 +731,7 @@ namespace fb2k {
 	service_ptr_t<api_t> std_api_get() {
 		typedef typename api_t::t_interface_entrypoint entrypoint_t;
 		service_ptr_t<api_t> ret;
-		if (pfc::is_same_type<api_t, entrypoint_t>::value) {
+		if constexpr (pfc::is_same_type<api_t, entrypoint_t>::value) {
 			_standard_api_get_internal(ret._as_base_ptr(), api_t::class_guid);
 		} else {
 			ret ^= std_api_get<entrypoint_t>();
@@ -753,7 +744,7 @@ namespace fb2k {
 	template<typename api_t>
 	bool std_api_try_get( service_ptr_t<api_t> & ret ) {
 		typedef typename api_t::t_interface_entrypoint entrypoint_t;
-		if (pfc::is_same_type<api_t, entrypoint_t>::value) {
+		if constexpr (pfc::is_same_type<api_t, entrypoint_t>::value) {
 			return _standard_api_try_get_internal(ret._as_base_ptr(), api_t::class_guid);
 		} else {
 			service_ptr_t<entrypoint_t> temp;

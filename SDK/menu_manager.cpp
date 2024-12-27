@@ -414,7 +414,7 @@ bool keyboard_shortcut_manager::is_typing_message(const MSG * msg) {
 
 #endif // _WIN32
 
-bool contextmenu_manager::execute_by_id(unsigned id) {
+bool contextmenu_manager::execute_by_id(unsigned id) noexcept {
     contextmenu_node * ptr = find_by_id(id);
     if (ptr == NULL) return false;
     ptr->execute();

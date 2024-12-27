@@ -156,7 +156,7 @@ public:
 #if PFC_DEBUG
 	void assert_valid(const char * ctx) const;
 #else
-	void assert_valid(const char * ctx) const {}
+	void assert_valid(const char* ctx) const { (void)ctx; }
 #endif
 	
     

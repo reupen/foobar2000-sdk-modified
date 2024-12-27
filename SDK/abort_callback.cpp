@@ -19,7 +19,7 @@ bool abort_callback::sleep_ex(double p_timeout_seconds) const {
 	return !pfc::event::g_wait_for(get_abort_event(),p_timeout_seconds);
 }
 
-bool abort_callback::waitForEvent( pfc::eventHandle_t evtHandle, double timeOut ) {
+bool abort_callback::waitForEvent( pfc::eventHandle_t evtHandle, double timeOut ) const {
     int status = pfc::event::g_twoEventWait( this->get_abort_event(), evtHandle, timeOut );
     switch(status) {
         case 1: throw exception_aborted();
@@ -33,18 +33,31 @@ bool abort_callback_usehandle::is_aborting() const {
     return pfc::event::g_wait_for( get_abort_event(), 0 );
 }
 
-bool abort_callback::waitForEvent(pfc::event& evt, double timeOut) { 
+bool abort_callback::waitForEvent(pfc::event& evt, double timeOut) const {
 	return waitForEvent(evt.get_handle(), timeOut); 
 }
 
-void abort_callback::waitForEvent(pfc::eventHandle_t evtHandle) {
+void abort_callback::waitForEvent(pfc::eventHandle_t evtHandle) const {
 	bool status = waitForEvent(evtHandle, -1); (void)status;
 	PFC_ASSERT(status); // should never return false
 }
 
-void abort_callback::waitForEvent(pfc::event& evt) {
+void abort_callback::waitForEvent(pfc::event& evt) const {
 	bool status = waitForEvent(evt, -1); (void)status;
 	PFC_ASSERT(status); // should never return false
+}
+
+bool abort_callback::waitForEventNoThrow(pfc::eventHandle_t evtHandle) const {
+    int status = pfc::event::g_twoEventWait(this->get_abort_event(), evtHandle, -1);
+    switch (status) {
+    case 1: return false;
+    case 2: return true;
+    default: uBugCheck();
+    }
+}
+
+bool abort_callback::waitForEventNoThrow(pfc::event& evt) const {
+    return waitForEventNoThrow(evt.get_handle());
 }
 
 namespace fb2k {

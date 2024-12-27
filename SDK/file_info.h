@@ -268,6 +268,9 @@ public:
 	//! Foramts long codec name ( codec + profile )
 	bool info_get_codec_long( pfc::string_base & out, const char * delim = " / ") const;
 
+    //! Simplified title getter, returns fallback value if title not set, useful for debugging.
+    const char * meta_get_title( const char * fallback = "(untitled)") const;
+
 private:
 	void merge(const pfc::list_base_const_t<const file_info*> & p_sources);
 public:

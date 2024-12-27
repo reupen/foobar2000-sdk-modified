@@ -554,6 +554,9 @@ public:
 	virtual void set_callback_merit(class playlist_callback_single*, fb2k::callback_merit_t) = 0;
 	
 };
+
+// IMPLEMENTATION NOTE: all playlist_callback methods could not be declared noexcept for historical reasons, but it's strongly recommended that your overrides of these methods are noexcept.
+
 class NOVTABLE playlist_callback
 {
 public:
@@ -683,30 +686,30 @@ public:
 		playlist_manager::get()->modify_callback(this,p_flags);
 	}
 	//dummy implementations - avoid possible pure virtual function calls!
-	void on_items_added(t_size p_playlist,t_size p_start, metadb_handle_list_cref p_data,const bit_array & p_selection) {}
-	void on_items_reordered(t_size p_playlist,const t_size * p_order,t_size p_count) {}
-	void on_items_removing(t_size p_playlist,const bit_array & p_mask,t_size p_old_count,t_size p_new_count) {}
-	void on_items_removed(t_size p_playlist,const bit_array & p_mask,t_size p_old_count,t_size p_new_count) {}
-	void on_items_selection_change(t_size p_playlist,const bit_array & p_affected,const bit_array & p_state) {}
-	void on_item_focus_change(t_size p_playlist,t_size p_from,t_size p_to) {}
+	void on_items_added(t_size p_playlist, t_size p_start, metadb_handle_list_cref p_data, const bit_array& p_selection) override { (void)p_playlist; (void)p_start; (void)p_data; (void)p_selection; }
+	void on_items_reordered(t_size p_playlist, const t_size* p_order, t_size p_count) override { (void)p_playlist; (void)p_order; (void)p_count; }
+	void on_items_removing(t_size p_playlist, const bit_array& p_mask, t_size p_old_count, t_size p_new_count) override { (void)p_playlist; (void)p_mask; (void)p_old_count; (void)p_new_count; }
+	void on_items_removed(t_size p_playlist,const bit_array & p_mask,t_size p_old_count,t_size p_new_count) override { (void)p_playlist; (void)p_mask; (void)p_old_count; (void)p_new_count; }
+	void on_items_selection_change(t_size p_playlist, const bit_array& p_affected, const bit_array& p_state) override { (void)p_playlist; (void)p_affected; (void)p_state; }
+	void on_item_focus_change(t_size p_playlist, t_size p_from, t_size p_to) override { (void)p_playlist; (void)p_from; (void)p_to; }
 	
-	void on_items_modified(t_size p_playlist,const bit_array & p_mask) {}
-	void on_items_modified_fromplayback(t_size p_playlist,const bit_array & p_mask,play_control::t_display_level p_level) {}
+	void on_items_modified(t_size p_playlist, const bit_array& p_mask) override { (void)p_playlist; (void)p_mask; }
+	void on_items_modified_fromplayback(t_size p_playlist, const bit_array& p_mask, play_control::t_display_level p_level) override { (void)p_playlist; (void)p_mask; (void)p_level; }
 
-	void on_items_replaced(t_size p_playlist,const bit_array & p_mask,const pfc::list_base_const_t<t_on_items_replaced_entry> & p_data) {}
+	void on_items_replaced(t_size p_playlist, const bit_array& p_mask, const pfc::list_base_const_t<t_on_items_replaced_entry>& p_data) override { (void)p_playlist; (void)p_mask; (void)p_data; }
 
-	void on_item_ensure_visible(t_size p_playlist,t_size p_idx) {}
+	void on_item_ensure_visible(t_size p_playlist, t_size p_idx) override { (void)p_playlist; (void)p_idx; }
 
-	void on_playlist_activate(t_size p_old,t_size p_new) {}
-	void on_playlist_created(t_size p_index,const char * p_name,t_size p_name_len) {}
-	void on_playlists_reorder(const t_size * p_order,t_size p_count) {}
-	void on_playlists_removing(const bit_array & p_mask,t_size p_old_count,t_size p_new_count) {}
-	void on_playlists_removed(const bit_array & p_mask,t_size p_old_count,t_size p_new_count) {}
-	void on_playlist_renamed(t_size p_index,const char * p_new_name,t_size p_new_name_len) {}
+	void on_playlist_activate(t_size p_old, t_size p_new) override { (void)p_old; (void)p_new; }
+	void on_playlist_created(t_size p_index, const char* p_name, t_size p_name_len) override { (void)p_index; (void)p_name; (void)p_name_len; }
+	void on_playlists_reorder(const t_size* p_order, t_size p_count) override { (void)p_order; (void)p_count; }
+	void on_playlists_removing(const bit_array& p_mask, t_size p_old_count, t_size p_new_count) override { (void)p_mask; (void)p_old_count; (void)p_new_count; }
+	void on_playlists_removed(const bit_array& p_mask, t_size p_old_count, t_size p_new_count) override { (void)p_mask; (void)p_old_count; (void)p_new_count; }
+	void on_playlist_renamed(t_size p_index, const char* p_new_name, t_size p_new_name_len) override { (void)p_index; (void)p_new_name; (void)p_new_name_len; }
 
-	void on_default_format_changed() {}
-	void on_playback_order_changed(t_size p_new_index) {}
-	void on_playlist_locked(t_size p_playlist,bool p_locked) {}
+	void on_default_format_changed() override {}
+	void on_playback_order_changed(t_size p_new_index) override { (void)p_new_index; }
+	void on_playlist_locked(t_size p_playlist, bool p_locked) override { (void)p_playlist; (void)p_locked; }
 };
 
 //! playlist_callback_single implementation helper - registers itself on creation / unregisters on destruction. Must not be instantiated statically!
@@ -723,23 +726,23 @@ protected:
 	}
 
 	//dummy implementations - avoid possible pure virtual function calls!
-	void on_items_added(t_size p_base, metadb_handle_list_cref p_data,const bit_array & p_selection) {}
-	void on_items_reordered(const t_size * p_order,t_size p_count) {}
-	void on_items_removing(const bit_array & p_mask,t_size p_old_count,t_size p_new_count) {}
-	void on_items_removed(const bit_array & p_mask,t_size p_old_count,t_size p_new_count) {}
-	void on_items_selection_change(const bit_array & p_affected,const bit_array & p_state) {}
-	void on_item_focus_change(t_size p_from,t_size p_to) {}
-	void on_items_modified(const bit_array & p_mask) {}
-	void on_items_modified_fromplayback(const bit_array & p_mask,play_control::t_display_level p_level) {}
-	void on_items_replaced(const bit_array & p_mask,const pfc::list_base_const_t<playlist_callback::t_on_items_replaced_entry> & p_data) {}
-	void on_item_ensure_visible(t_size p_idx) {}
+	void on_items_added(t_size p_base, metadb_handle_list_cref p_data, const bit_array& p_selection) override { (void)p_base; (void)p_data; (void)p_selection; }
+	void on_items_reordered(const t_size* p_order, t_size p_count) override { (void)p_order; (void)p_count; }
+	void on_items_removing(const bit_array& p_mask, t_size p_old_count, t_size p_new_count) override { (void)p_mask; (void)p_old_count; (void)p_new_count; }
+	void on_items_removed(const bit_array& p_mask, t_size p_old_count, t_size p_new_count) override { (void)p_mask; (void)p_old_count; (void)p_new_count; }
+	void on_items_selection_change(const bit_array& p_affected, const bit_array& p_state) override { (void)p_affected; (void)p_state; }
+	void on_item_focus_change(t_size p_from, t_size p_to) override { (void)p_from; (void)p_to; }
+	void on_items_modified(const bit_array& p_mask) override { (void)p_mask; }
+	void on_items_modified_fromplayback(const bit_array& p_mask, play_control::t_display_level p_level) override { (void)p_mask; (void)p_level; }
+	void on_items_replaced(const bit_array& p_mask, const pfc::list_base_const_t<playlist_callback::t_on_items_replaced_entry>& p_data) override { (void)p_mask; (void)p_data; }
+	void on_item_ensure_visible(t_size p_idx) override { (void)p_idx; }
 
-	void on_playlist_switch() {}
-	void on_playlist_renamed(const char * p_new_name,t_size p_new_name_len) {}
-	void on_playlist_locked(bool p_locked) {}
+	void on_playlist_switch() override {}
+	void on_playlist_renamed(const char* p_new_name, t_size p_new_name_len) override { (void)p_new_name; (void)p_new_name_len; }
+	void on_playlist_locked(bool p_locked) override { (void)p_locked; }
 
-	void on_default_format_changed() {}
-	void on_playback_order_changed(t_size p_new_index) {}
+	void on_default_format_changed() override {}
+	void on_playback_order_changed(t_size p_new_index) override { (void)p_new_index; }
 
 	PFC_CLASS_NOT_COPYABLE(playlist_callback_single_impl_base,playlist_callback_single_impl_base);
 };
@@ -937,6 +940,6 @@ protected:
 		return (api->playlist_lock_get_filter_mask(active) & what) == 0;
 	}
 private:
-	void on_playlist_switch() {on_lock_state_change();}
-	void on_playlist_locked(bool p_locked) {on_lock_state_change();}
+	void on_playlist_switch() override {on_lock_state_change();}
+	void on_playlist_locked(bool) override {on_lock_state_change();}
 };

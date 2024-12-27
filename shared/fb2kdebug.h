@@ -163,6 +163,7 @@ namespace fb2k {
 		uBugCheck();
 	}
 	inline void crashOnException(std::function<void()> const & f, const char* context = nullptr) {
+		(void)context;
 		fb2k_instacrash_scope(f());
 	}
 #else

@@ -28,7 +28,7 @@ public:
 	virtual bool get_display_data(pfc::string_base & p_out,unsigned & p_displayflags,metadb_handle_list_cref p_data,const GUID & p_caller) = 0;
 	virtual t_type get_type() = 0;
 	virtual void execute(metadb_handle_list_cref p_data,const GUID & p_caller) = 0;
-	virtual t_glyph get_glyph(metadb_handle_list_cref p_data,const GUID & p_caller) {return 0;}//RESERVED
+	virtual t_glyph get_glyph(metadb_handle_list_cref p_data, const GUID& p_caller) { (void)p_data; (void)p_caller; return 0; }//RESERVED
 	virtual t_size get_children_count() = 0;
 	virtual contextmenu_item_node * get_child(t_size p_index) = 0;
 	virtual bool get_description(pfc::string_base & p_out) = 0;
@@ -65,35 +65,36 @@ public:
 class NOVTABLE contextmenu_item_node_popup : public contextmenu_item_node
 {
 public:
-	t_type get_type() {return TYPE_POPUP;}
-	void execute(metadb_handle_list_cref data,const GUID & caller) {}
-	bool get_description(pfc::string_base & p_out) {return false;}
+	t_type get_type() override {return TYPE_POPUP;}
+	void execute(metadb_handle_list_cref data, const GUID& caller) override { (void)data; (void)caller; }
+	bool get_description(pfc::string_base& p_out) override { (void)p_out; return false; }
 };
 
 class NOVTABLE contextmenu_item_node_root_popup : public contextmenu_item_node_root
 {
 public:
-	t_type get_type() {return TYPE_POPUP;}
-	void execute(metadb_handle_list_cref data,const GUID & caller) {}
-	bool get_description(pfc::string_base & p_out) {return false;}
+	t_type get_type() override {return TYPE_POPUP;}
+	void execute(metadb_handle_list_cref data, const GUID& caller) override { (void)data; (void)caller; }
+	bool get_description(pfc::string_base& p_out) override { (void)p_out; return false; }
 };
 
 class contextmenu_item_node_separator : public contextmenu_item_node
 {
 public:
-	t_type get_type() {return TYPE_SEPARATOR;}
-	void execute(metadb_handle_list_cref data,const GUID & caller) {}
-	bool get_description(pfc::string_base & p_out) {return false;}
-	t_size get_children_count() {return 0;}
-	bool get_display_data(pfc::string_base & p_out,unsigned & p_displayflags,metadb_handle_list_cref p_data,const GUID & p_caller) 
+	t_type get_type() override {return TYPE_SEPARATOR;}
+	void execute(metadb_handle_list_cref data, const GUID& caller) override { (void)data; (void)caller; }
+	bool get_description(pfc::string_base& p_out) override { (void)p_out; return false; }
+	t_size get_children_count() override {return 0;}
+	bool get_display_data(pfc::string_base & p_out,unsigned & p_displayflags,metadb_handle_list_cref p_data,const GUID & p_caller) override
 	{
+		(void)p_data; (void)p_caller;
 		p_displayflags = 0;
 		p_out = "---";
 		return true;
 	}
-	contextmenu_item_node * get_child(t_size) {return NULL;}
-	GUID get_guid() {return pfc::guid_null;}
-	bool is_mappable_shortcut() {return false;}
+	contextmenu_item_node * get_child(t_size) override {return NULL;}
+	GUID get_guid() override {return pfc::guid_null;}
+	bool is_mappable_shortcut() override {return false;}
 };
 
 /*!
@@ -118,7 +119,7 @@ public:
 	//! Retrieves human-readable name of the context menu item.
 	virtual void get_item_name(unsigned p_index,pfc::string_base & p_out) = 0;
 	//! Obsolete since v1.0, don't use or override in new components.
-	virtual void get_item_default_path(unsigned p_index,pfc::string_base & p_out) {p_out = "";}
+	virtual void get_item_default_path(unsigned p_index, pfc::string_base& p_out) { (void)p_index; p_out = ""; }
 	//! Retrieves item's description to show in the status bar. Set p_out to the string to be displayed and return true if you provide a description, return false otherwise.
 	virtual bool get_item_description(unsigned p_index,pfc::string_base & p_out) = 0;
 	//! Controls default state of context menu preferences for this item: \n
@@ -170,11 +171,12 @@ public:
 
 	
 	// Functions to be overridden by implementers (some are not mandatory).
-	virtual t_enabled_state get_enabled_state(unsigned p_index) {return contextmenu_item::DEFAULT_ON;}
+	virtual t_enabled_state get_enabled_state(unsigned p_index) { (void)p_index; return contextmenu_item::DEFAULT_ON; }
 	virtual unsigned get_num_items() = 0;
 	virtual void get_item_name(unsigned p_index,pfc::string_base & p_out) = 0;
 	virtual void context_command(unsigned p_index,metadb_handle_list_cref p_data,const GUID& p_caller) = 0;
 	virtual bool context_get_display(unsigned p_index,metadb_handle_list_cref p_data,pfc::string_base & p_out,unsigned & p_displayflags,const GUID & p_caller) {
+		(void)p_caller; (void)p_data; (void)p_displayflags;
 		PFC_ASSERT(p_index>=0 && p_index<get_num_items());
 		get_item_name(p_index,p_out);
 		return true;
@@ -199,6 +201,7 @@ private:
 
 	contextmenu_item_node_root * instantiate_item(unsigned p_index,metadb_handle_list_cref p_data,const GUID & p_caller)
 	{
+		(void)p_data; (void)p_caller;
 		return new contextmenu_item_node_impl(this,p_index);
 	}
 
@@ -211,6 +214,7 @@ private:
 
 	virtual bool item_is_mappable_shortcut(unsigned p_index)
 	{
+		(void)p_index;
 		return true;
 	}
 
@@ -350,10 +354,11 @@ public:
 	contextmenu_item_lambda(func_t f, const char* n, const GUID& g, const GUID& pg, const char* d = nullptr, double sp = 0) : m_func(f), m_name(n), m_guid(g), m_parentGuid(pg), m_desc(d), m_sortPriority(sp) {}
 
 	unsigned get_num_items() override { return 1; }
-	void get_item_name(unsigned p_index, pfc::string_base& p_out) override { p_out = m_name; }
-	void context_command(unsigned p_index, metadb_handle_list_cref p_data, const GUID& p_caller) override { m_func(p_data); }
-	GUID get_item_guid(unsigned p_index) override { return m_guid; }
+	void get_item_name(unsigned p_index, pfc::string_base& p_out) override { (void)p_index; p_out = m_name; }
+	void context_command(unsigned p_index, metadb_handle_list_cref p_data, const GUID& p_caller) override { (void)p_index; (void)p_caller; m_func(p_data); }
+	GUID get_item_guid(unsigned p_index) override { (void)p_index; return m_guid; }
 	bool get_item_description(unsigned p_index, pfc::string_base& p_out) override {
+		(void)p_index;
 		if (m_desc == nullptr) return false;
 		p_out = m_desc;
 		return true;

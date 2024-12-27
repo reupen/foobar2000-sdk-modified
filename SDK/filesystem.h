@@ -75,8 +75,8 @@ namespace foobar2000_io
 		//! Helper
 		t_filestats get_stats( const char * path, abort_callback & abort );
 		
-		virtual bool relative_path_create(const char * file_path,const char * playlist_path,pfc::string_base & out) {return false;}
-		virtual bool relative_path_parse(const char * relative_path,const char * playlist_path,pfc::string_base & out) {return false;}
+		virtual bool relative_path_create(const char* file_path, const char* playlist_path, pfc::string_base& out) { (void)file_path; (void)playlist_path; (void)out; return false; }
+		virtual bool relative_path_parse(const char* relative_path, const char* playlist_path, pfc::string_base& out) { (void)relative_path; (void)playlist_path; (void)out; return false; }
 
 		//! Creates a directory.
 		virtual void create_directory(const char * p_path,abort_callback & p_abort) = 0;
@@ -306,7 +306,7 @@ namespace foobar2000_io
 
 		//! Optional method to return a native filesystem path to this item, null if N/A.
 		//! Aborter provided for corner cases, normally not needed.
-		virtual fb2k::stringRef getNativePath(const char* in, abort_callback& a) { return nullptr; }
+		virtual fb2k::stringRef getNativePath(const char* in, abort_callback& a) { (void)in; (void)a; return nullptr; }
 
 		// Old method wrapped to get_stats2()
 		void get_stats(const char* p_path, t_filestats& p_stats, bool& p_is_writeable, abort_callback& p_abort) override;

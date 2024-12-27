@@ -20,7 +20,7 @@ private:
 
 class tag_write_callback_dummy : public tag_write_callback {
 public:
-	bool open_temp_file(service_ptr_t<file> & p_out,abort_callback & p_abort) {return false;}
+	bool open_temp_file(service_ptr_t<file>& p_out, abort_callback& p_abort) override { (void)p_out; (void)p_abort; return false; }
 };
 
 //! For internal use - call tag_processor namespace methods instead.

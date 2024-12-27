@@ -378,7 +378,7 @@ public:
 	void queryMultiParallel_(metadb_handle_list_cref items, std::function< void(size_t, const rec_t&) > f) {
 		class qmc_impl : public queryMultiParallelCallback_t {
 		public:
-			void onInfo(size_t idx, const rec_t& rec, void* ctx) override {m_f(idx, rec);}
+			void onInfo(size_t idx, const rec_t& rec, void*) override {m_f(idx, rec);}
 
 			decltype(f) m_f;
 		};

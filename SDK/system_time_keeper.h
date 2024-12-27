@@ -41,7 +41,7 @@ public:
 	}
 
 	//! Override me
-	void on_time_changed(t_filetimestamp newVal) override {}
+	void on_time_changed(t_filetimestamp) override {}
 
 	PFC_CLASS_NOT_COPYABLE_EX(system_time_callback_impl)
 private:

@@ -88,6 +88,6 @@ class NOVTABLE advconfig_entry_string_v2 : public advconfig_entry_string {
 	FB2K_MAKE_SERVICE_INTERFACE(advconfig_entry_string_v2, advconfig_entry_string)
 public:
 	virtual void get_default_state(pfc::string_base & out) = 0;
-	virtual void validate(pfc::string_base & val) {}
+	virtual void validate(pfc::string_base& val) { (void)val; }
 	virtual t_uint32 get_preferences_flags() {return 0;} //signals whether changing this setting should trigger playback restart or app restart; see: preferences_state::* constants
 };

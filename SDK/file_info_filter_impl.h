@@ -20,6 +20,7 @@ public:
 	}
 
 	bool apply_filter(metadb_handle_ptr p_location, t_filestats p_stats, file_info & p_info) {
+		(void)p_stats;
 		t_size index;
 		if (m_handles.bsearch_t(pfc::compare_t<metadb_handle_ptr, metadb_handle_ptr>, p_location, index)) {
 			p_info = m_infos[index];

@@ -961,6 +961,11 @@ bool file_info::meta_value_exists( const char * name, const char * findValue, bo
 	return false;
 }
 
+const char * file_info::meta_get_title( const char * fallback) const {
+    auto ret = meta_get("title", 0);
+    return ret?ret:fallback;
+}
+
 #ifdef FOOBAR2000_MOBILE
 #include "album_art.h"
 #include "hasher_md5.h"

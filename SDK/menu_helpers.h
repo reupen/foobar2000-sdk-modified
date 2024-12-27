@@ -188,3 +188,9 @@ public:
 	static inline bool main_playlist_moveforward() {return run_main(guid_main_playlist_moveforward);}
 	static inline bool main_saveconfig() {return run_main(guid_main_saveconfig);}
 };
+
+namespace fb2k {
+    // Turn sentence-capitalized into title-capitalized if needed
+    // No-op on systems using sentence capitalization
+    void capitalizeMenuLabel( pfc::string_base & inOut );
+}
