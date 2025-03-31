@@ -190,7 +190,9 @@ static protoHash_t protoHash(const char * URL) {
 	u.hash = 0;
 	unsigned i = 0;
 	for (const char* walk = URL; walk != delim; ++walk) {
-		u.chars[i] ^= pfc::ascii_tolower_lookup(*walk);
+		char c = *walk;
+		if (c > 0) c = pfc::ascii_tolower_lookup(c);
+		u.chars[i] ^= c;
 		i = (i + 1) % std::size(u.chars);
 	}
 	return u.hash;
