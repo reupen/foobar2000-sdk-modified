@@ -12,7 +12,7 @@
 constexpr unsigned allowRecurseBase = 2; // max. 2 archive levels - mitigate droste.zip stack overflow
 static void process_path_internal(const char * p_path,const service_ptr_t<file> & p_reader,playlist_loader_callback::ptr callback, abort_callback & abort,playlist_loader_callback::t_entry_type type,const t_filestats & p_stats, unsigned allowRecurse );
 
-bool playlist_loader::g_try_load_playlist(file::ptr fileHint,const char * p_path,playlist_loader_callback::ptr p_callback, abort_callback & p_abort) {
+static bool g_try_load_playlist(file::ptr & fileHint,const char * p_path,playlist_loader_callback::ptr p_callback, abort_callback & p_abort) {
 	// Determine if this file is a playlist or not (which usually means that it's a media file)
 	pfc::string8 filepath;
 
@@ -20,14 +20,12 @@ bool playlist_loader::g_try_load_playlist(file::ptr fileHint,const char * p_path
 	
 	pfc::string8 extension = filesystem::g_get_extension(filepath);
 
-	service_ptr_t<file> l_file = fileHint;
-
-	if (l_file.is_empty()) {
+	if (fileHint.is_empty()) {
 		filesystem::ptr fs;
 		if (filesystem::g_get_interface(fs,filepath)) {
 			if (fs->supports_content_types()) {
 				try {
-					fs->open(l_file,filepath,filesystem::open_mode_read,p_abort);
+					fs->open(fileHint,filepath,filesystem::open_mode_read,p_abort);
 				} catch(exception_io const &) { return false; } // fall thru
 			}
 		}
@@ -35,13 +33,13 @@ bool playlist_loader::g_try_load_playlist(file::ptr fileHint,const char * p_path
 
 	service_enum_t<playlist_loader> e;
 
-	if (l_file.is_valid()) {
+	if (fileHint.is_valid()) {
 
 		// Important: in case of remote HTTP files, use actual connected path for matching file extensions, following any redirects.
 		// At least one internet radio station has been known to present .pls links that are 302 redirects to real streams, so they don't parse as playlists.
 		{
 			file_metadata_http::ptr meta;
-			if (meta &= l_file->get_metadata_(p_abort)) {
+			if (meta &= fileHint->get_metadata_(p_abort)) {
 				pfc::string8 realPath;
 				meta->get_connected_path(realPath);
 				extension = filesystem::g_get_extension(realPath);
@@ -49,14 +47,14 @@ bool playlist_loader::g_try_load_playlist(file::ptr fileHint,const char * p_path
 		}
 
 		pfc::string8 content_type;
-		if (l_file->get_content_type(content_type)) {
+		if (fileHint->get_content_type(content_type)) {
 			for (auto l : e) {
 				if (l->is_our_content_type(content_type)) {
 					try {
-						TRACK_CODE("playlist_loader::open",l->open(filepath,l_file,p_callback, p_abort));
+						TRACK_CODE("playlist_loader::open",l->open(filepath,fileHint,p_callback, p_abort));
 						return true;
 					} catch(exception_io_unsupported_format const &) {
-						l_file->reopen(p_abort);
+                        fileHint->reopen(p_abort);
 					}
 				}
 			}
@@ -66,12 +64,12 @@ bool playlist_loader::g_try_load_playlist(file::ptr fileHint,const char * p_path
 	if (extension.length()>0) {
 		for (auto l : e) {
 			if (stricmp_utf8(l->get_extension(),extension) == 0) {
-				if (l_file.is_empty()) filesystem::g_open_read(l_file,filepath,p_abort);
+                if (fileHint.is_empty()) filesystem::g_open_read(fileHint,filepath,p_abort);
 				try {
-					TRACK_CODE("playlist_loader::open",l->open(filepath,l_file,p_callback,p_abort));
+					TRACK_CODE("playlist_loader::open",l->open(filepath,fileHint,p_callback,p_abort));
 					return true;
 				} catch(exception_io_unsupported_format const &) {
-					l_file->reopen(p_abort);
+                    fileHint->reopen(p_abort);
 				}
 			}
 		}
@@ -85,7 +83,7 @@ void playlist_loader::g_load_playlist_filehint(file::ptr fileHint,const char * p
 }
 
 void playlist_loader::g_load_playlist(const char * p_path,playlist_loader_callback::ptr callback, abort_callback & abort) {
-	g_load_playlist_filehint(NULL,p_path,callback,abort);
+	g_load_playlist_filehint(nullptr,p_path,callback,abort);
 }
 namespace {
 	class MIC_impl : public metadb_info_container_v2 {
@@ -290,7 +288,7 @@ static void process_path_internal(const char * p_path,const service_ptr_t<file> 
 				results.main( p_path, abort );
 				for( auto & i : results.m_entries ) {
 					try {
-						process_path_internal(i.m_path.c_str(), 0, callback, abort, playlist_loader_callback::entry_directory_enumerated, i.m_stats, allowRecurse);
+						process_path_internal(i.m_path.c_str(), nullptr, callback, abort, playlist_loader_callback::entry_directory_enumerated, i.m_stats, allowRecurse);
 					} catch (exception_aborted const &) {
 						throw;
 					} catch (std::exception const& e) {
@@ -354,7 +352,7 @@ static void process_path_internal(const char * p_path,const service_ptr_t<file> 
 			try {
 				TRACK_CODE("link_resolver::resolve",ptr->resolve(p_reader,p_path,temp,abort));
 
-				track_indexer__g_get_tracks_wrap(temp,0,filestats_invalid,playlist_loader_callback::entry_from_playlist,callback, abort);
+				track_indexer__g_get_tracks_wrap(temp,nullptr,filestats_invalid,playlist_loader_callback::entry_from_playlist,callback, abort);
 				return;//success
 			} catch(exception_aborted const &) {throw;}
 			catch(...) {}
@@ -425,7 +423,7 @@ void playlist_loader::g_process_path(const char * p_filename,playlist_loader_cal
 
 	auto filename = file_path_canonical(p_filename);
 
-	process_path_internal(filename,0,callback,abort, type,filestats_invalid, allowRecurseBase);
+	process_path_internal(filename,nullptr,callback,abort, type,filestats_invalid, allowRecurseBase);
 }
 
 void playlist_loader::g_save_playlist(const char * p_filename,const pfc::list_base_const_t<metadb_handle_ptr> & data,abort_callback & p_abort)
@@ -459,8 +457,9 @@ void playlist_loader::g_save_playlist(const char * p_filename,const pfc::list_ba
 
 bool playlist_loader::g_process_path_ex(const char * filename,playlist_loader_callback::ptr callback, abort_callback & abort,playlist_loader_callback::t_entry_type type)
 {
-	if (g_try_load_playlist(NULL, filename, callback, abort)) return true;
+    file::ptr fileHint;
+    if (g_try_load_playlist(fileHint, filename, callback, abort)) return true;
 	//not a playlist format
-	g_process_path(filename,callback,abort,type);
+    process_path_internal(file_path_canonical(filename),fileHint,callback,abort,type,filestats_invalid,allowRecurseBase);
 	return false;
 }

@@ -99,12 +99,6 @@ public:
 	//! @param fileHint File object to read from, can be NULL if not available.
 	static void g_load_playlist_filehint(file::ptr fileHint,const char * p_path,playlist_loader_callback::ptr p_callback, abort_callback & p_abort);
 
-	//! Attempts to load a playlist file from specified filesystem path. Throws exception_io or derivatives on failure, exception_aborted on abort. If specified file is not a recognized playlist file, returns false; returns true upon successful playlist load.
-	//! @param p_path Filesystem path to load playlist from, a UTF-8 encoded null-terminated string.
-	//! @param p_callback Callback object receiving enumerated playable item locations as well as signaling user aborting the operation.
-	//! @param fileHint File object to read from, can be NULL if not available.
-	static bool g_try_load_playlist(file::ptr fileHint,const char * p_path,playlist_loader_callback::ptr p_callback, abort_callback & p_abort);
-
 	//! Saves specified list of locations into a playlist file. Throws exception_io or derivatives on failure, exception_aborted on abort.
 	//! @param p_path Filesystem path to save playlist to, a UTF-8 encoded null-terminated string.
 	//! @param p_data List of items to save to playlist file.

@@ -30,7 +30,7 @@
 
 
 // Use this to determine what foobar2000 SDK version is in use, undefined for releases older than 2018
-#define FOOBAR2000_SDK_VERSION 20241203
+#define FOOBAR2000_SDK_VERSION 20250307
 
 // cfg_var downgrade support, experimental, intended for specific components only.
 // Allows new style configStore data to be imported back to old foobar2000 friendly cfg_vars.
