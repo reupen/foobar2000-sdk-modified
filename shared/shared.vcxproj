@@ -293,9 +293,6 @@
       <ImportLibrary>$(OutDir)shared.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(OutDir)shared.lib" "$(ProjectDir)shared-$(Platform).lib"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -328,9 +325,6 @@
       </DataExecutionPrevention>
       <ImportLibrary>$(OutDir)shared.lib</ImportLibrary>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(OutDir)shared.lib" "$(ProjectDir)shared-$(Platform).lib"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
@@ -363,9 +357,6 @@
       </DataExecutionPrevention>
       <ImportLibrary>$(OutDir)shared.lib</ImportLibrary>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(OutDir)shared.lib" "$(ProjectDir)shared-$(Platform).lib"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">
     <ClCompile>
@@ -398,9 +389,6 @@
       </DataExecutionPrevention>
       <ImportLibrary>$(OutDir)shared.lib</ImportLibrary>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(OutDir)shared.lib" "$(ProjectDir)shared-$(Platform).lib"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="audio_math.cpp" />
