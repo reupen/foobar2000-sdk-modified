@@ -228,7 +228,7 @@ public:
 class NOVTABLE now_playing_album_art_notify {
 public:
 	//! Called when album art has finished loading for the now playing track.
-	//! @param data The newly loaded album art. Never a null object - the callbacks are simply not called when there is nothing to show.
+	//! @param data The newly loaded album art. Possibly null if there's nothing to show.
 	virtual void on_album_art( album_art_data::ptr data ) = 0;
 };
 
